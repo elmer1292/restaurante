@@ -1,5 +1,6 @@
 <?php
 require_once '../../config/Session.php';
+Session::init();
 require_once '../../models/MesaModel.php';
 require_once '../../models/ProductModel.php';
 require_once '../../models/VentaModel.php';
@@ -9,7 +10,6 @@ if (isset($_GET['debug'])) {
     echo '<pre>SESSION: ' . print_r($_SESSION, true) . '</pre>';
 }
 
-Session::init();
 Session::checkRole(['Administrador', 'Mesero']);
 
 $idMesa = isset($_GET['mesa']) ? (int)$_GET['mesa'] : 0;
@@ -318,6 +318,19 @@ foreach ($productosPorCategoria as $idCategoria => $prods) {
                 }
             }, 'json');
         }
+
+        // Verificar el estado del procedimiento almacenado al cargar la página
+        $(document).ready(function() {
+            $.get('verificar_procedimiento.php', { nombre: 'sp_CreateSale' }, function(data) {
+                if (data.existe) {
+                    console.log('El procedimiento almacenado sp_CreateSale existe.');
+                } else {
+                    console.warn('El procedimiento almacenado sp_CreateSale NO existe.');
+                }
+            }, 'json');
+        });
     </script>
 </body>
 </html>
+
+;

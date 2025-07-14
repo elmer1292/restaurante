@@ -10,6 +10,10 @@ if (!Session::isLoggedIn()) {
 }
 
 $userRole = Session::get('user_role');
+echo $userRole;
+$userRoleId = Session::get('user_role_id');
+$userId= Session::get('user_id');
+echo $userRoleId;
 $username = Session::get('username');
 $nombreCompleto = Session::get('nombre_completo');
 

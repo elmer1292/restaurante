@@ -11,10 +11,18 @@ class VentaModel {
 
     public function createSale($idCliente, $idMesa, $metodoPago, $idEmpleado) {
         try {
+            // Log de los valores recibidos para depuración
+            error_log('createSale params: idCliente=' . var_export($idCliente, true) . ', idMesa=' . var_export($idMesa, true) . ', metodoPago=' . var_export($metodoPago, true) . ', idEmpleado=' . var_export($idEmpleado, true));
             $stmt = $this->conn->prepare('CALL sp_CreateSale(?, ?, ?, ?)');
             $stmt->execute([$idCliente, $idMesa, $metodoPago, $idEmpleado]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['ID_Venta'];
+            error_log('createSale result: ' . var_export($result, true));
+            if ($result && isset($result['ID_Venta'])) {
+                return $result['ID_Venta'];
+            } else {
+                error_log('No se obtuvo ID_Venta al crear la venta.');
+                return false;
+            }
         } catch (PDOException $e) {
             error_log('Error en createSale: ' . $e->getMessage());
             return false;

@@ -3,7 +3,7 @@ require_once '../../config/Session.php';
 require_once '../../models/MesaModel.php';
 
 Session::init();
-Session::checkRole(['Administrador', 'Mesero']);
+Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
 $userRole = isset($_SESSION['user']['Rol']) ? $_SESSION['user']['Rol'] : '';
 $mesaModel = new MesaModel();

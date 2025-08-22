@@ -4,7 +4,7 @@ require_once '../../models/VentaModel.php';
 require_once '../../models/MesaModel.php';
 
 Session::init();
-Session::checkRole(['Administrador', 'Mesero']);
+Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
 header('Content-Type: application/json');
 
@@ -27,7 +27,7 @@ $mesaModel = new MesaModel();
 try {
     // Iniciar la venta
     $idVenta = $ventaModel->createSale(
-        1, // Cliente por defecto (C/F)
+        1,  //Cliente por defecto (C/F)),
         $idMesa,
         'Pendiente',
         Session::get('user_id')
@@ -65,3 +65,6 @@ try {
     error_log('Error en procesar_comanda.php: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+>¿php
+// Fin del script
+?>

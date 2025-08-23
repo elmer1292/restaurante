@@ -20,7 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $userModel->validateUser($username);
 
         if ($user && $userModel->verifyPassword($password, $user['Contrasenia'])) {
+            // Obtener el ID del empleado
+            $empleadoId = $userModel->getEmpleadoIdByUserId($user['ID_Usuario']);
+            
             $_SESSION['user_id'] = $user['ID_Usuario'];
+            $_SESSION['empleado_id'] = $empleadoId;
             $_SESSION['username'] = $user['Nombre_Usuario'];
             $_SESSION['user_role'] = $user['Nombre_Rol'];
             $_SESSION['nombre_completo'] = $user['Nombre_Completo'];

@@ -27,10 +27,10 @@ $mesaModel = new MesaModel();
 try {
     // Iniciar la venta
     $idVenta = $ventaModel->createSale(
-        1,  //Cliente por defecto (C/F)),
+        1,  //Cliente por defecto (C/F)
         $idMesa,
-        'Pendiente',
-        Session::get('user_id')
+        'Efectivo', // Método de pago por defecto
+        Session::get('empleado_id')
     );
 
     if (!$idVenta) {

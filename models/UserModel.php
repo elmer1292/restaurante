@@ -92,6 +92,18 @@ class UserModel {
         }
     }
 
+    public function getEmpleadoIdByUserId($userId) {
+        try {
+            $stmt = $this->conn->prepare('SELECT ID_Empleado FROM empleados WHERE ID_Usuario = ?');
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['ID_Empleado'] : null;
+        } catch (PDOException $e) {
+            error_log('Error en getEmpleadoIdByUserId: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     public function deleteUser($userId) {
         try {
             $query = "UPDATE Empleados SET Estado = 0 WHERE ID_Usuario = ?";

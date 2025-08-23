@@ -18,7 +18,11 @@ if (isset($_GET['msg'])) {
             break;
         case 'pagina_no_encontrada':
             $mensaje = 'La página solicitada no fue encontrada.';
-            $tipo = '404';
+            $tipo = 'pagina_no_encontrada';
+            break;
+        case 'error_inesperado':
+            $mensaje = 'Ha ocurrido un error inesperado. Por favor, intente de nuevo más tarde.';
+            $tipo = 'error';
             break;
     }
 }
@@ -50,8 +54,8 @@ if (isset($_GET['msg'])) {
         }
         .error-icon.acceso_denegado { color: #dc3545; }
         .error-icon.sesion { color: #ffc107; }
-        .error-icon.error { color: #6c757d; }
-        .error-icon.404 { color: #0dcaf0; }
+        .error-icon.error { color: #6c757d; } /* Default error color */
+        .error-icon.pagina_no_encontrada { color: #0dcaf0; }
     </style>
 </head>
 <body>
@@ -66,7 +70,7 @@ if (isset($_GET['msg'])) {
                     case 'sesion':
                         echo '<i class="bi bi-clock-history"></i>';
                         break;
-                    case '404':
+                    case 'pagina_no_encontrada':
                         echo '<i class="bi bi-question-circle"></i>';
                         break;
                     default:

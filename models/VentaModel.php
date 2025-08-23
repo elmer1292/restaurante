@@ -132,4 +132,19 @@ class VentaModel {
             return false;
         }
     }
+    
+    public function getVentaActivaByMesa($idMesa) {
+        try {
+            $stmt = $this->conn->prepare(
+                'SELECT * FROM ventas 
+                WHERE ID_Mesa = ? AND Estado = "Pendiente" 
+                ORDER BY Fecha_Hora DESC LIMIT 1'
+            );
+            $stmt->execute([$idMesa]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error en getVentaActivaByMesa: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

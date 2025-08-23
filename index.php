@@ -10,10 +10,10 @@ if (!Session::isLoggedIn()) {
 }
 
 $userRole = Session::get('user_role');
-echo $userRole;
+
 $userRoleId = Session::get('user_role_id');
 $userId= Session::get('user_id');
-echo $userRoleId;
+
 $username = Session::get('username');
 $nombreCompleto = Session::get('nombre_completo');
 
@@ -63,44 +63,45 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
+            <!-- <div class="col-md-3 col-lg-2 sidebar">
                 <div class="text-center mb-4">
                     <h4 class="text-white">RestBar</h4>
                 </div>
                 <div class="text-white text-center mb-4">
-                    <p class="mb-1"><?php echo htmlspecialchars($nombreCompleto); ?></p>
-                    <small><?php echo htmlspecialchars($userRole); ?></small>
+                    <p class="mb-1"><php echo htmlspecialchars($nombreCompleto); ?></p>
+                    <small><php echo htmlspecialchars($userRole); ?></small>
                 </div>
                 <nav class="nav flex-column">
                     <a class="nav-link active" href="index.php">
                         <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
-                    <?php if ($userRole === 'Administrador'): ?>
+                    <php if ($userRole === 'Administrador'): ?>
                     <a class="nav-link" href="views/empleados/">
                         <i class="bi bi-people"></i> Empleados
                     </a>
                     <a class="nav-link" href="views/productos/">
                         <i class="bi bi-box"></i> Productos
                     </a>
-                    <?php endif; ?>
-                    <?php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
+                    <php endif; ?>
+                    <php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
                     <a class="nav-link" href="views/mesas/">
                         <i class="bi bi-grid"></i> Mesas
                     </a>
                     <a class="nav-link" href="views/comandas/">
                         <i class="bi bi-receipt"></i> Comandas
                     </a>
-                    <?php endif; ?>
-                    <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
+                    <php endif; ?>
+                    <php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
                     <a class="nav-link" href="views/ventas/">
-                        <i class="bi bi-cash-register"></i> Ventas
+                        <i class="bi bi-cash-coin"></i> Ventas
                     </a>
-                    <?php endif; ?>
+                    <php endif; ?>
                     <a class="nav-link" href="logout.php">
                         <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                     </a>
                 </nav>
-            </div>
+            </div> -->
+            <?php include 'views/shared/sidebar.php'; ?>
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">

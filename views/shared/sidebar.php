@@ -64,8 +64,8 @@ $baseUrl = '/restaurante';
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'ventas') !== false ? 'active' : ''; ?>" 
                    href="<?php echo $baseUrl; ?>/views/ventas/">
-                    <i class="bi bi-cash-register"></i>
-                    Ventas
+                   <i class="bi bi-cash-coin"></i>
+                   Ventas
                 </a>
             </li>
             <?php endif; ?>

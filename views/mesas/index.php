@@ -163,8 +163,15 @@ if (isset($_SESSION['mensaje'])) {
             });
 
             $('.mesa-card').click(function() {
-                if ($(this).data('estado') === 0) {
-                    window.location.href = '../comandas/nueva.php?mesa=' + $(this).data('id');
+                const idMesa = $(this).data('id');
+                const estado = $(this).data('estado');
+                
+                if (estado === 0) {
+                    // Si la mesa está libre, crear nueva comanda
+                    window.location.href = '../comandas/nueva.php?mesa=' + idMesa;
+                } else {
+                    // Si la mesa está ocupada, agregar productos
+                    window.location.href = '../comandas/agregar_productos.php?mesa=' + idMesa;
                 }
             });
         });

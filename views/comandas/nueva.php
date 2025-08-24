@@ -1,9 +1,9 @@
 <?php
-require_once '../../config/Session.php';
+require_once 'config/Session.php';
 Session::init();
-require_once '../../models/MesaModel.php';
-require_once '../../models/ProductModel.php';
-require_once '../../models/VentaModel.php';
+require_once 'models/MesaModel.php';
+require_once 'models/ProductModel.php';
+require_once 'models/VentaModel.php';
 
 // DEBUG: Mostrar el contenido de la sesión en pantalla
 if (isset($_GET['debug'])) {
@@ -15,7 +15,7 @@ Session::checkRole(['Administrador', 'Mesero']);
 $idMesa = isset($_GET['mesa']) ? (int)$_GET['mesa'] : 0;
 
 if (!$idMesa) {
-    header('Location: ../mesas/');
+    header('Location: views/mesas/');
     exit();
 }
 
@@ -24,7 +24,7 @@ $mesa = $mesaModel->getTableById($idMesa);
 
 if (!$mesa || $mesa['Estado'] == 1) {
     $_SESSION['mensaje'] = 'Mesa no disponible o inválida';
-    header('Location: ../mesas/');
+    header('Location: views/mesas/');
     exit();
 }
 
@@ -98,7 +98,7 @@ foreach ($productosPorCategoria as $idCategoria => $prods) {
 <body>
     <div class="container-fluid">
         <div class="row">
-            <?php include '../shared/sidebar.php'; ?>
+            <?php include 'views/shared/sidebar.php'; ?>
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">

@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/Session.php';
+require_once 'config/Session.php';
 require_once '../../models/VentaModel.php';
 require_once '../../models/MesaModel.php';
 

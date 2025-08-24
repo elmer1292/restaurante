@@ -55,6 +55,7 @@ CREATE TABLE `usuarios` (
   `Nombre_Usuario` varchar(30) DEFAULT NULL,
   `Contrasenia` varchar(255) DEFAULT NULL,
   `ID_Rol` int DEFAULT NULL,
+  `Estado` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`ID_usuario`),
   UNIQUE KEY `Nombre_Usuario_UNIQUE` (`Nombre_Usuario`),
   KEY `ID_Rol` (`ID_Rol`),

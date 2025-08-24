@@ -11,4 +11,10 @@ spl_autoload_register(function ($className) {
         require_once $file;
         return;
     }
+
+    $file = __DIR__ . '/../controllers/' . $className . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+        return;
+    }
 });

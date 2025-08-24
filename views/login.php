@@ -1,43 +1,5 @@
 <?php
-require_once 'config/Session.php';
-require_once 'models/UserModel.php';
-
-Session::init();
-
-if (Session::isLoggedIn()) {
-    header('Location: /restaurante/');
-    exit();
-}
-
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    if ($username && $password) {
-        $userModel = new UserModel();
-        $user = $userModel->validateUser($username);
-
-        if ($user && $userModel->verifyPassword($password, $user['Contrasenia'])) {
-            // Obtener el ID del empleado
-            $empleadoId = $userModel->getEmpleadoIdByUserId($user['ID_Usuario']);
-            
-            $_SESSION['user_id'] = $user['ID_Usuario'];
-            $_SESSION['empleado_id'] = $empleadoId;
-            $_SESSION['username'] = $user['Nombre_Usuario'];
-            $_SESSION['user_role'] = $user['Nombre_Rol'];
-            $_SESSION['nombre_completo'] = $user['Nombre_Completo'];
-
-            header('Location: /restaurante/');
-            exit();
-        } else {
-            $error = 'Usuario o contraseña incorrectos';
-        }
-    } else {
-        $error = 'Por favor, complete todos los campos';
-    }
-}
+// La variable $error viene del controlador AuthController
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -74,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1>RestBar</h1>
                 <p class="text-muted">Sistema de Gestión de Restaurante</p>
             </div>
-            <?php if ($error): ?>
+            <?php if (isset($error) && $error): ?>
                 <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
-            <form method="POST" action="">
+            <form method="POST" action="/login">
                 <div class="mb-3">
                     <label for="username" class="form-label">Usuario</label>
                     <input type="text" class="form-control" id="username" name="username" required>

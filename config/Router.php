@@ -1,18 +1,32 @@
 <?php
 class Router {
-    private $routes = [];
+    protected $routes = [];
 
-    public function add($route, $controller) {
-        $this->routes[$route] = $controller;
+    public function add($route, $controller, $action) {
+        $this->routes[$route] = ['controller' => $controller, 'action' => $action];
     }
 
     public function dispatch($uri) {
         if (array_key_exists($uri, $this->routes)) {
-            require_once $this->routes[$uri];
+            $controllerName = $this->routes[$uri]['controller'];
+            $actionName = $this->routes[$uri]['action'];
+
+            $controllerFile = 'controllers/' . $controllerName . '.php';
+            if (file_exists($controllerFile)) {
+                require_once $controllerFile;
+                $controller = new $controllerName();
+                $controller->$actionName();
+            } else {
+                $this->handleNotFound();
+            }
         } else {
-            // Handle 404 Not Found
-            header("HTTP/1.0 404 Not Found");
-            require_once 'views/error/404.php';
+            $this->handleNotFound();
         }
+    }
+
+    private function handleNotFound() {
+        require_once 'controllers/ErrorController.php';
+        $errorController = new ErrorController();
+        $errorController->notFound();
     }
 }

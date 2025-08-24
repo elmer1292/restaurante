@@ -6,47 +6,22 @@ require_once 'config/Router.php';
 
 Session::init();
 
-// Redirigir si no está logueado
-if (!Session::isLoggedIn()) {
-    header('Location: login.php');
+$router = new Router();
+
+// Cargar rutas
+require_once 'config/routes.php';
+
+// Obtener la URI y limpiarla
+$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$uri = str_replace('restaurante/', '', $uri); // Ajusta 'restaurante/' si tu proyecto está en un subdirectorio
+$uri = ($uri === 'index.php' || $uri === '') ? '/' : $uri;
+
+// Redirigir si no está logueado (a menos que esté intentando acceder a la página de login)
+if (!Session::isLoggedIn() && $uri !== 'login') {
+    header('Location: login'); // Redirigir a la ruta 'login' del router
     exit();
 }
 
-// Obtener rol y ruta actual
-$userRole = Session::getUserRole();
-
-$currentPage = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$currentPage = str_replace('restaurante/', '', $currentPage);
-if ($currentPage === 'index.php' || $currentPage === '' || $currentPage === '/' || $currentPage === 'restaurante') {
-    $currentPage = '';
-}
-
-// Definir rutas y permisos
-$routes = [
-    '' => ['view' => 'views/dashboard.php', 'roles' => ['Administrador', 'Mesero', 'Cajero']],
-    'empleados' => ['view' => 'views/empleados/index.php', 'roles' => ['Administrador']],
-    'productos' => ['view' => 'views/productos/index.php', 'roles' => ['Administrador']],
-    'mesas' => ['view' => 'views/mesas/index.php', 'roles' => ['Administrador', 'Mesero', 'Cajero']],
-    'comandas' => ['view' => 'views/comandas/index.php', 'roles' => ['Administrador', 'Mesero', 'Cajero']],
-    'ventas' => ['view' => 'views/ventas/index.php', 'roles' => ['Administrador', 'Cajero']],
-];
-
-// Cargar header
-require_once 'views/shared/header.php';
-
-// Mostrar vista según ruta y rol
-if (isset($routes[$currentPage])) {
-    $route = $routes[$currentPage];
-    if (in_array($userRole, $route['roles'])) {
-        require_once $route['view'];
-    } else {
-        // Acceso denegado
-        require_once 'error.php';
-    }
-} else {
-    // Página no encontrada
-    require_once 'views/error/404.php';
-}
-
-// Cargar footer
-require_once 'views/shared/footer.php';
+// La lógica de autenticación y carga de vistas compartidas se maneja dentro de los controladores a través de BaseController.
+// El Router se encarga de despachar la solicitud al controlador y acción correctos.
+$router->dispatch($uri);

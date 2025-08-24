@@ -76,7 +76,7 @@ $empleados = $userModel->getAllUsers();
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="empleadoForm" action="controllers/UserController.php" method="POST">
+            <form id="empleadoForm" action="/restaurante/controllers/UserController.php" method="POST">
                     <input type="hidden" name="action" value="create">
                     <input type="hidden" name="id" id="empleadoId">
                     
@@ -125,4 +125,4 @@ $empleados = $userModel->getAllUsers();
     </div>
 </div>
 
-<script src="assets/js/empleados.js"></script>
+<script src="assets\js\empleados.js"></script>

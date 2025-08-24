@@ -1,19 +1,16 @@
 // Función para editar empleado
 function editarEmpleado(id) {
-    fetch(`../../controllers/UserController.php?action=get&id=${id}`)
+    fetch(`/restaurante/controllers/UserController.php?action=get&id=${id}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('empleadoId').value = data.ID_Usuario;
-            document.getElementById('nombre').value = data.Nombre;
-            document.getElementById('usuario').value = data.Usuario;
-            document.getElementById('rol').value = data.Rol;
+            document.getElementById('empleadoId').value = data.ID_usuario;
+            document.getElementById('nombre').value = data.Nombre_Completo;
+            document.getElementById('usuario').value = data.Nombre_Usuario;
+            document.getElementById('rol').value = data.ID_Rol;
             document.getElementById('estado').value = data.Estado;
-            
             document.querySelector('#empleadoForm [name="action"]').value = 'update';
             document.getElementById('password').required = false;
-            
-            const modal = new bootstrap.Modal(document.getElementById('empleadoModal'));
-            modal.show();
+            $('#empleadoModal').modal('show');
         })
         .catch(error => console.error('Error:', error));
 }

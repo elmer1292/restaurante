@@ -59,41 +59,7 @@ foreach ($productosPorCategoria as $idCategoria => $prods) {
     <title>Nueva Comanda - Mesa <?php echo $mesa['Numero_Mesa']; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .producto-card {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .producto-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .producto-card:active {
-            transform: translateY(-2px);
-            background-color: #f8f9fa;
-        }
-        .producto-card.clicked {
-            animation: clickFeedback 0.3s ease;
-        }
-        @keyframes clickFeedback {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.95); }
-            100% { transform: scale(1); }
-        }
-        .comanda-preview {
-            position: sticky;
-            top: 20px;
-        }
-        .cantidad-badge {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: #dc3545;
-            color: white;
-            border-radius: 50%;
-            padding: 5px 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="/restaurante/assets/css/styles.css">
 </head>
 <body>
     <div class="container-fluid">
@@ -329,7 +295,7 @@ foreach ($productosPorCategoria as $idCategoria => $prods) {
                 }
             }, 'json');
         });
-    </script>
+    <script src="/restaurante/assets/js/nueva_comanda.js"></script>
 </body>
 </html>
 

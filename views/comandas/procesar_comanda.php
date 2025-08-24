@@ -54,12 +54,25 @@ try {
         throw new Exception('Error al actualizar el total de la venta');
     }
 
+    // Validar que todos los productos estén preparados antes de cerrar la comanda
+    $conn = (new Database())->connect();
+    $stmt = $conn->prepare("SELECT COUNT(*) as pendientes FROM detalle_venta WHERE ID_Venta = ? AND Estado_Producto != 'Preparado'");
+    $stmt->execute([$idVenta]);
+    $pendientes = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($pendientes['pendientes'] > 0) {
+        throw new Exception('No se puede cerrar la comanda: hay productos pendientes de preparación');
+    }
+
     // Marcar la mesa como ocupada
     if (!$mesaModel->updateTableStatus($idMesa, 1)) {
         throw new Exception('Error al actualizar el estado de la mesa');
     }
 
-    echo json_encode(['success' => true, 'message' => 'Comanda procesada exitosamente']);
+    // Registrar usuario que cierra la comanda (auditoría)
+    $usuario = $_SESSION['username'] ?? 'Desconocido';
+    // Aquí podrías guardar en una tabla de auditoría si lo deseas
+
+    echo json_encode(['success' => true, 'message' => 'Comanda procesada exitosamente por ' . $usuario]);
 
 } catch (Exception $e) {
     error_log('Error en procesar_comanda.php: ' . $e->getMessage());

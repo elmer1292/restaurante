@@ -14,7 +14,6 @@ if (isset($_SESSION['mensaje'])) {
     unset($_SESSION['mensaje']);
 }
 
-require_once 'views/shared/header.php';
 ?>
 
 <h1 class="h2 mb-4">Gestión de Productos</h1>
@@ -123,31 +122,4 @@ require_once 'views/shared/header.php';
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#productosTable').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
-            }
-        });
-
-        $('.edit-producto').click(function() {
-            $('#modalTitle').text('Editar Producto');
-            $('#id_producto').val($(this).data('id'));
-            $('#nombre').val($(this).data('nombre'));
-            $('#categoria').val($(this).data('categoria'));
-            $('#precio_costo').val($(this).data('costo'));
-            $('#precio_venta').val($(this).data('venta'));
-            $('#stock').val($(this).data('stock'));
-            $('#productoModal').modal('show');
-        });
-
-        $('#productoModal').on('hidden.bs.modal', function() {
-            $('#modalTitle').text('Nuevo Producto');
-            $('#productoForm').trigger('reset');
-            $('#id_producto').val('');
-        });
-    });
-</script>
-
-<?php require_once 'views/shared/footer.php'; ?>
+<script src="/restaurante/assets/js/productos.js"></script>

@@ -29,48 +29,7 @@ foreach ($comandas as $comanda) {
     <title>Panel de Barra - RestBar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .comanda-card {
-            transition: all 0.3s ease;
-            background-color: #f8f9fa;
-        }
-        .comanda-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .tiempo-espera {
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        .mesa-numero {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #198754;
-        }
-        .item-cantidad {
-            font-weight: bold;
-            color: #0dcaf0;
-        }
-        .refresh-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            background-color: #198754;
-            border-color: #198754;
-        }
-        .refresh-button:hover {
-            background-color: #157347;
-            border-color: #157347;
-        }
-        @media (min-width: 768px) {
-            .comandas-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                gap: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/restaurante/assets/css/styles.css">
 </head>
 <body class="bg-light">
     <div class="container-fluid">
@@ -113,6 +72,17 @@ foreach ($comandas as $comanda) {
                                         <span class="item-cantidad"><?php echo $item['Cantidad']; ?>x</span>
                                         <?php echo htmlspecialchars($item['Nombre_Producto']); ?>
                                     </div>
+                                    <div>
+                                        <?php if ($item['Estado_Producto'] !== 'Preparado'): ?>
+                                            <form method="post" style="display:inline;">
+                                                <input type="hidden" name="id_venta" value="<?php echo $item['ID_Venta']; ?>">
+                                                <input type="hidden" name="id_producto" value="<?php echo $item['ID_Producto']; ?>">
+                                                <button type="submit" name="marcar_preparado" class="btn btn-sm btn-success">Preparado</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="badge bg-success">Preparado</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
@@ -141,5 +111,21 @@ foreach ($comandas as $comanda) {
             location.reload();
         }, 30000);
     </script>
+
+<?php
+// Procesar marcado de producto como preparado
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['marcar_preparado'])) {
+    $idVenta = (int)$_POST['id_venta'];
+    $idProducto = (int)$_POST['id_producto'];
+    try {
+        $conn = (new Database())->connect();
+        $stmt = $conn->prepare("UPDATE detalle_venta SET Estado_Producto = 'Preparado' WHERE ID_Venta = ? AND ID_Producto = ?");
+        $stmt->execute([$idVenta, $idProducto]);
+        echo '<script>location.reload();</script>';
+    } catch (Exception $e) {
+        echo '<script>alert("Error al marcar como preparado: ' . $e->getMessage() . '");</script>';
+    }
+}
+?>
 </body>
 </html>

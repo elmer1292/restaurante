@@ -78,11 +78,13 @@ class UserModel {
 
     public function getAllUsers() {
         try {
-            $query = "SELECT u.ID_Usuario, e.Nombre_Completo as Nombre, u.Nombre_Usuario as Usuario, 
-                     r.Nombre_Rol as Rol, e.Estado 
-                     FROM Usuarios u 
-                     INNER JOIN Empleados e ON u.ID_Usuario = e.ID_Usuario 
-                     INNER JOIN Roles r ON u.ID_Rol = r.ID_Rol";
+            $query = "SELECT u.ID_usuario, e.Nombre_Completo as Nombre, u.Nombre_Usuario as Usuario, 
+                     r.Nombre_Rol as Rol, e.ID_Empleado, e.Correo, e.Telefono, e.Fecha_Contratacion, u.Estado
+                     FROM usuarios u 
+                     INNER JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
+                     INNER JOIN roles r ON u.ID_Rol = r.ID_Rol
+                     order by u.ID_usuario ASC
+                     ";
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -106,7 +108,7 @@ class UserModel {
 
     public function deleteUser($userId) {
         try {
-            $query = "UPDATE Empleados SET Estado = 0 WHERE ID_Usuario = ?";
+            $query = "UPDATE empleados SET Estado = 0 WHERE ID_Usuario = ?";
             $stmt = $this->conn->prepare($query);
             $stmt->execute([$userId]);
             return true;
@@ -118,12 +120,12 @@ class UserModel {
 
     public function getUserById($userId) {
         try {
-            $query = "SELECT u.ID_Usuario, e.Nombre_Completo, u.Nombre_Usuario, 
+            $query = "SELECT u.ID_usuario, e.Nombre_Completo, u.Nombre_Usuario, 
                      r.ID_Rol, r.Nombre_Rol, e.Estado 
-                     FROM Usuarios u 
-                     INNER JOIN Empleados e ON u.ID_Usuario = e.ID_Usuario 
-                     INNER JOIN Roles r ON u.ID_Rol = r.ID_Rol 
-                     WHERE u.ID_Usuario = ?";
+                     FROM usuarios u 
+                     INNER JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
+                     INNER JOIN roles r ON u.ID_Rol = r.ID_Rol 
+                     WHERE u.ID_usuario = ?";
             $stmt = $this->conn->prepare($query);
             $stmt->execute([$userId]);
             return $stmt->fetch(PDO::FETCH_ASSOC);

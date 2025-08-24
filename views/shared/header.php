@@ -1,5 +1,5 @@
 <?php
-require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/config/Session.php';
 Session::init();
 $userRole = Session::get('user_role');
 $nombreCompleto = Session::get('nombre_completo');

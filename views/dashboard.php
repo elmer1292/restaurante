@@ -1,4 +1,4 @@
-<?php require_once 'shared/header.php'; 
+<?php
 require_once 'config/database.php';
 
 // Obtener estadísticas del dashboard
@@ -29,5 +29,3 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
-
-<?php require_once 'shared/footer.php'; ?>

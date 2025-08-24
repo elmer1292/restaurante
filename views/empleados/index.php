@@ -13,7 +13,6 @@ $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
 $userModel = new UserModel();
 $empleados = $userModel->getAllUsers();
 
-require_once 'views/shared/header.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
@@ -45,20 +44,20 @@ require_once 'views/shared/header.php';
         <tbody>
             <?php foreach ($empleados as $empleado): ?>
             <tr>
-                <td><?php echo htmlspecialchars($empleado['ID_Usuario']); ?></td>
+                <td><?php echo htmlspecialchars($empleado['ID_usuario']); ?></td>
                 <td><?php echo htmlspecialchars($empleado['Nombre']); ?></td>
                 <td><?php echo htmlspecialchars($empleado['Usuario']); ?></td>
                 <td><?php echo htmlspecialchars($empleado['Rol']); ?></td>
                 <td>
-                    <span class="badge <?php echo $empleado['Estado'] ? 'bg-success' : 'bg-danger'; ?>">
-                        <?php echo $empleado['Estado'] ? 'Activo' : 'Inactivo'; ?>
+                    <span class="badge <?php echo ($empleado['Estado'] == 1) ? 'bg-success' : 'bg-danger'; ?>">
+                        <?php echo ($empleado['Estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-warning" onclick="editarEmpleado(<?php echo $empleado['ID_Usuario']; ?>)">
+                    <button class="btn btn-sm btn-warning" onclick="editarEmpleado(<?php echo $empleado['ID_usuario']; ?>)">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarEmpleado(<?php echo $empleado['ID_Usuario']; ?>)">
+                    <button class="btn btn-sm btn-danger" onclick="eliminarEmpleado(<?php echo $empleado['ID_usuario']; ?>)">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -127,5 +126,3 @@ require_once 'views/shared/header.php';
 </div>
 
 <script src="assets/js/empleados.js"></script>
-
-<?php require_once 'views/shared/footer.php'; ?>

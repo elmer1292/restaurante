@@ -1,5 +1,5 @@
 <?php
-require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/config/Session.php';
 Session::init();
 $userRole = Session::get('user_role');
 $nombreCompleto = Session::get('nombre_completo');
@@ -80,30 +80,4 @@ $baseUrl = '/restaurante';
     </div>
 </nav>
 
-<style>
-.sidebar {
-    min-height: 100vh;
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-}
-
-.sidebar .nav-link {
-    margin-bottom: .5rem;
-    padding: .5rem 1rem;
-    color: rgba(255, 255, 255, .8);
-    font-size: 0.9rem;
-}
-
-.sidebar .nav-link:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, .1);
-}
-
-.sidebar .nav-link.active {
-    color: #fff;
-    background: rgba(255, 255, 255, .2);
-}
-
-.sidebar .nav-link i {
-    margin-right: .5rem;
-}
-</style>
+<link rel="stylesheet" href="/restaurante/assets/css/styles.css">

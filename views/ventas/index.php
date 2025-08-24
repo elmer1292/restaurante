@@ -64,10 +64,14 @@ require_once 'views/shared/header.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cobrar_venta'])) {
     $idVenta = (int)$_POST['cobrar_venta'];
     try {
-        $conn = (new \Database())->connect();
-        $stmt = $conn->prepare("UPDATE ventas SET Estado = 'Pagada' WHERE ID_Venta = ?");
-        $stmt->execute([$idVenta]);
-        echo '<script>alert("Venta cobrada correctamente.");window.location.reload();</script>';
+    $conn = (new \Database())->connect();
+    // Marcar venta como pagada
+    $stmt = $conn->prepare("UPDATE ventas SET Estado = 'Pagada' WHERE ID_Venta = ?");
+    $stmt->execute([$idVenta]);
+    // Liberar la mesa asociada
+    $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
+    $stmtMesa->execute([$idVenta]);
+    echo '<script>alert("Venta cobrada y mesa liberada correctamente.");window.location.reload();</script>';
     } catch (Exception $e) {
         echo '<script>alert("Error al cobrar la venta: ' . $e->getMessage() . '");</script>';
     }

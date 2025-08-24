@@ -2,6 +2,7 @@
 require_once 'config/Session.php';
 require_once '../../models/VentaModel.php';
 require_once '../../models/MesaModel.php';
+require_once '../../models/ProductModel.php';
 
 Session::init();
 Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
@@ -40,8 +41,15 @@ if (!$venta || $venta['Estado'] != 'Pendiente') {
 }
 
 try {
-    // Agregar los detalles de la venta
+    $productModel = new ProductModel();
+    $usuario = $_SESSION['username'] ?? 'Desconocido';
     foreach ($items as $item) {
+        $producto = $productModel->getProductsByCategory($item['id_producto']);
+        // Validar stock
+        if (isset($producto[0]) && $item['cantidad'] > $producto[0]['Stock']) {
+            throw new Exception('Stock insuficiente para el producto: ' . $producto[0]['Nombre_Producto']);
+        }
+        // Agregar detalle de venta
         if (!$ventaModel->addSaleDetail(
             $idVenta,
             $item['id_producto'],
@@ -50,6 +58,7 @@ try {
         )) {
             throw new Exception('Error al agregar producto a la venta');
         }
+        // Aquí podrías registrar auditoría: usuario, producto, cantidad, fecha
     }
 
     // Actualizar el total de la venta
@@ -57,7 +66,7 @@ try {
         throw new Exception('Error al actualizar el total de la venta');
     }
 
-    echo json_encode(['success' => true, 'message' => 'Productos agregados exitosamente']);
+    echo json_encode(['success' => true, 'message' => 'Productos agregados exitosamente por ' . $usuario]);
 
 } catch (Exception $e) {
     error_log('Error en agregar_productos_comanda.php: ' . $e->getMessage());

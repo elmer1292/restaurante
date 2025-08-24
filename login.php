@@ -5,7 +5,7 @@ require_once 'models/UserModel.php';
 Session::init();
 
 if (Session::isLoggedIn()) {
-    header('Location: index.php');
+    header('Location: /restaurante/');
     exit();
 }
 
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_role'] = $user['Nombre_Rol'];
             $_SESSION['nombre_completo'] = $user['Nombre_Completo'];
 
-            header('Location: index.php');
+            header('Location: /restaurante/');
             exit();
         } else {
             $error = 'Usuario o contraseña incorrectos';

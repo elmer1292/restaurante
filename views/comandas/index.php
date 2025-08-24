@@ -1,3 +1,10 @@
-<?php
-require_once 'barra.php';
-require_once 'cocina.php';
+<div>
+    <?php
+include 'barra.php';
+?>
+</div>
+<div>
+    <?php
+include 'cocina.php';
+?>
+</div>

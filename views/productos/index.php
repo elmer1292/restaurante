@@ -1,6 +1,5 @@
 <?php
-require_once '../../config/Session.php';
-require_once '../../models/ProductModel.php';
+require_once 'config/Session.php';
 
 Session::init();
 Session::checkRole(['Administrador']);
@@ -28,7 +27,7 @@ if (isset($_SESSION['mensaje'])) {
 <body>
     <div class="container-fluid">
         <div class="row">
-            <?php include '../shared/sidebar.php'; ?>
+            <?php include 'views/shared/sidebar.php'; ?>
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
                 <h1 class="h2 mb-4">Gestión de Productos</h1>

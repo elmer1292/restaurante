@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../config/Session.php';
+require_once 'config/Session.php';
 Session::init();
 $userRole = Session::get('user_role');
 $nombreCompleto = Session::get('nombre_completo');
@@ -28,15 +28,15 @@ $baseUrl = '/restaurante';
 
             <?php if ($userRole === 'Administrador'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'views/empleados') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/views/empleados/">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'empleados') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo $baseUrl; ?>/empleados">
                     <i class="bi bi-people"></i>
                     Empleados
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'views/productos') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/views/productos/">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'productos') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo $baseUrl; ?>/productos">
                     <i class="bi bi-box"></i>
                     Productos
                 </a>
@@ -45,15 +45,15 @@ $baseUrl = '/restaurante';
 
             <?php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'views/mesas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/views/mesas/">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'mesas') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo $baseUrl; ?>/mesas">
                     <i class="bi bi-grid"></i>
                     Mesas
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'comandas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/views/comandas/">
+                   href="<?php echo $baseUrl; ?>/comandas">
                     <i class="bi bi-receipt"></i>
                     Comandas
                 </a>
@@ -63,7 +63,7 @@ $baseUrl = '/restaurante';
             <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'ventas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/views/ventas/">
+                   href="<?php echo $baseUrl; ?>/ventas">
                    <i class="bi bi-cash-coin"></i>
                    Ventas
                 </a>

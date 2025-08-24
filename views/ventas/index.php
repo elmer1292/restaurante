@@ -1,9 +1,6 @@
 <?php
 // Archivo index.php para la sección de ventas
 
-require_once '../../models/VentaModel.php';
-require_once '../../models/MesaModel.php';
-
 $ventaModel = new VentaModel();
 $mesaModel = new MesaModel();
 
@@ -26,7 +23,7 @@ try {
 <body>
 <div class="container-fluid">
     <div class="row">
-    <?php include '../shared/sidebar.php'; ?>
+    <?php include 'views/shared/sidebar.php'; ?>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <h1 class="mb-4">Ventas Pendientes</h1>
             <?php if (empty($ventasPendientes)): ?>

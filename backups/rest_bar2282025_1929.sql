@@ -62,6 +62,22 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO `usuarios` VALUES (1,'superadmin','$2y$10$t/mD.Wc7Fo3Ot.nU0Q9XxuLMDHzF4bYM0QZXgBUM0OPITQzL4JSxS',1),(8,'elaguna','$2y$10$NiN5s3BGkBuQqwkeX1TjiOL1PBXSeLmrX6EYavDYW8B3zhCWdyg.u',3),(9,'eojeda','$2y$10$6V0h8ioF855oKKRMhkJMPu/WmyAvnvokAGzvr0.EDABWLFGztU6Pe',2),(10,'kramos','$2y$10$mIFjirasRfhBIZ3txBUL5OnBoF40nbMjaH1AmM79I1M8RRJ71dBza',3),(12,'xchevez','$2y$10$8q/QVWblz1kOyDnDhc0yDOyg2DsOKcbTcgCwquyd/oLtbKwihqQgO',1),(15,'jarredondo','$2y$10$SCPMsHuh7XqoFuFkOw1DHO/VmqiyVcSjRfMcoqscspw3t37ZQ/25m',3);
+
+
+CREATE TABLE `empleados` (
+  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
+  `Nombre_Completo` varchar(100) NOT NULL,
+  `Correo` varchar(100) DEFAULT NULL,
+  `Telefono` varchar(15) DEFAULT NULL,
+  `Fecha_Contratacion` date NOT NULL,
+  `ID_Usuario` int DEFAULT NULL,
+  PRIMARY KEY (`ID_Empleado`),
+  UNIQUE KEY `Correo` (`Correo`),
+  KEY `ID_Usuario` (`ID_Usuario`),
+  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15),(15,'elmer','elmer113.com','123456789','2025-07-14',15);
 CREATE TABLE `ventas` (
   `ID_Venta` int NOT NULL AUTO_INCREMENT,
   `ID_Cliente` int DEFAULT NULL,
@@ -92,22 +108,6 @@ CREATE TABLE `detalle_venta` (
   CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
   CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `empleados` (
-  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
-  `Nombre_Completo` varchar(100) NOT NULL,
-  `Correo` varchar(100) DEFAULT NULL,
-  `Telefono` varchar(15) DEFAULT NULL,
-  `Fecha_Contratacion` date NOT NULL,
-  `ID_Usuario` int DEFAULT NULL,
-  PRIMARY KEY (`ID_Empleado`),
-  UNIQUE KEY `Correo` (`Correo`),
-  KEY `ID_Usuario` (`ID_Usuario`),
-  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15),(15,'elmer','elmer113.com','123456789','2025-07-14',15);
-
 DELIMITER ;;
 CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_AddProduct`(
     IN p_nombre VARCHAR(100),

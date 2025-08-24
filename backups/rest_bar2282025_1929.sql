@@ -17,34 +17,6 @@ CREATE TABLE `clientes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 INSERT INTO `clientes` VALUES (1,'C/F','N/A','N/A');
 
-CREATE TABLE `detalle_venta` (
-  `ID_Detalle` int NOT NULL AUTO_INCREMENT,
-  `ID_Venta` int DEFAULT NULL,
-  `ID_Producto` int DEFAULT NULL,
-  `Precio_Venta` decimal(10,2) NOT NULL,
-  `Cantidad` int NOT NULL,
-  `Subtotal` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`ID_Detalle`),
-  KEY `ID_Venta` (`ID_Venta`),
-  KEY `ID_Producto` (`ID_Producto`),
-  CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
-  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `empleados` (
-  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
-  `Nombre_Completo` varchar(100) NOT NULL,
-  `Correo` varchar(100) DEFAULT NULL,
-  `Telefono` varchar(15) DEFAULT NULL,
-  `Fecha_Contratacion` date NOT NULL,
-  `ID_Usuario` int DEFAULT NULL,
-  PRIMARY KEY (`ID_Empleado`),
-  UNIQUE KEY `Correo` (`Correo`),
-  KEY `ID_Usuario` (`ID_Usuario`),
-  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15),(15,'elmer','elmer113.com','123456789','2025-07-14',15);
 
 CREATE TABLE `mesas` (
   `ID_Mesa` int NOT NULL AUTO_INCREMENT,
@@ -107,6 +79,34 @@ CREATE TABLE `ventas` (
   CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`ID_Mesa`) REFERENCES `mesas` (`ID_Mesa`),
   CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`ID_Empleado`) REFERENCES `empleados` (`ID_Empleado`)
 ) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `detalle_venta` (
+  `ID_Detalle` int NOT NULL AUTO_INCREMENT,
+  `ID_Venta` int DEFAULT NULL,
+  `ID_Producto` int DEFAULT NULL,
+  `Precio_Venta` decimal(10,2) NOT NULL,
+  `Cantidad` int NOT NULL,
+  `Subtotal` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`ID_Detalle`),
+  KEY `ID_Venta` (`ID_Venta`),
+  KEY `ID_Producto` (`ID_Producto`),
+  CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
+  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `empleados` (
+  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
+  `Nombre_Completo` varchar(100) NOT NULL,
+  `Correo` varchar(100) DEFAULT NULL,
+  `Telefono` varchar(15) DEFAULT NULL,
+  `Fecha_Contratacion` date NOT NULL,
+  `ID_Usuario` int DEFAULT NULL,
+  PRIMARY KEY (`ID_Empleado`),
+  UNIQUE KEY `Correo` (`Correo`),
+  KEY `ID_Usuario` (`ID_Usuario`),
+  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15),(15,'elmer','elmer113.com','123456789','2025-07-14',15);
 
 DELIMITER ;;
 CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_AddProduct`(
@@ -363,20 +363,7 @@ BEGIN
     UPDATE mesas SET Estado = p_estado WHERE ID_Mesa = p_id_mesa;
 END ;;
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 DROP PROCEDURE IF EXISTS `sp_UpdateUser` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
+/DELIMITER ;;
 CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_UpdateUser`(
     IN p_user_id INT,
     IN p_username VARCHAR(30),

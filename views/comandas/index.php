@@ -1,4 +1,3 @@
 <?php
-// Archivo index.php para la carpeta comandas
-header('Location: nueva.php');
-exit();
+require_once 'barra.php';
+require_once 'cocina.php';

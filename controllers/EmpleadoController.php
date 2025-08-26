@@ -9,6 +9,10 @@ class EmpleadoController extends BaseController {
         $this->render('views/empleados/index.php');
     }
 
+    /**
+     * Devuelve los datos de un empleado por ID (JSON).
+     * @return void
+     */
     public function getEmpleado() {
         require_once __DIR__ . '/../helpers/Validator.php';
         $userModel = new UserModel();
@@ -25,6 +29,10 @@ class EmpleadoController extends BaseController {
         }
     }
 
+    /**
+     * Actualiza los datos de un empleado (requiere CSRF y validación).
+     * @return void
+     */
     public function updateEmpleado() {
         require_once __DIR__ . '/../helpers/Csrf.php';
         require_once __DIR__ . '/../helpers/Validator.php';

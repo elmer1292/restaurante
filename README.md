@@ -182,6 +182,32 @@ Desde agosto 2025, el sistema implementa protección CSRF en todos los formulari
 
 ---
 
+## Seguridad y Validación
+
+- Todas las rutas POST/PUT/DELETE requieren validación de CSRF.
+- Validación y sanitización centralizada con el helper Validator.
+- Todas las consultas SQL usan sentencias preparadas (PDO).
+- Los parámetros de paginación están validados y limitados.
+- Las sesiones usan cookies HttpOnly y Secure (si HTTPS).
+
+## Cómo correr el proyecto
+
+1. Instala XAMPP y asegúrate de tener PHP y MySQL activos.
+2. Clona el repositorio en `htdocs`.
+3. Configura la base de datos en `config/config.php`.
+4. Importa el archivo SQL desde la carpeta `backups`.
+5. Accede a `http://localhost/restaurante` en tu navegador.
+
+## Cómo contribuir
+
+- Haz fork del repositorio y crea una rama para tu cambio.
+- Sigue la guía de nombres y estilos del proyecto.
+- Agrega docblocks en funciones complejas.
+- Realiza pruebas manuales antes de enviar PR.
+- Describe claramente tu cambio en el PR.
+
+---
+
 ## Mantenimiento
 
 - Realizar respaldos regulares de la base de datos
@@ -196,3 +222,19 @@ Para reportar problemas o solicitar soporte, por favor crear un issue en el repo
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo LICENSE para más detalles.
+
+## Guía de Nombres Consistente
+
+- **Idioma:** Español para todo el código y nombres.
+- **Clases:** StudlyCaps (Ejemplo: VentaModel, ProductoController)
+- **Métodos:** camelCase (Ejemplo: getAllVentas, crearUsuario)
+- **Archivos:**
+  - Modelos: NombreModel.php (Ejemplo: VentaModel.php)
+  - Controladores: NombreController.php (Ejemplo: ProductoController.php)
+  - Helpers: NombreHelper.php o función específica (Ejemplo: Validator.php)
+- **Variables:** camelCase (Ejemplo: totalVentas, nombreProducto)
+- **Constantes:** MAYÚSCULAS_CON_GUIONES (Ejemplo: DB_HOST)
+
+> Mantener el idioma y estilo en todo el proyecto. Si se renombra una clase o método, actualizar los includes/imports/rutas correspondientes.
+
+---

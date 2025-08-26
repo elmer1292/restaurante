@@ -36,6 +36,14 @@ class VentaModel {
         $this->conn = $database->connect();
     }
 
+    /**
+     * Crea una nueva venta y retorna el ID generado.
+     * @param int $idCliente
+     * @param int $idMesa
+     * @param string $metodoPago
+     * @param int $idEmpleado
+     * @return int|false ID de la venta o false en error
+     */
     public function createSale($idCliente, $idMesa, $metodoPago, $idEmpleado) {
         try {
             // Log de los valores recibidos para depuración
@@ -56,6 +64,14 @@ class VentaModel {
         }
     }
 
+    /**
+     * Agrega un detalle de producto a una venta.
+     * @param int $idVenta
+     * @param int $idProducto
+     * @param int $cantidad
+     * @param float $precioVenta
+     * @return bool
+     */
     public function addSaleDetail($idVenta, $idProducto, $cantidad, $precioVenta) {
         try {
             $stmt = $this->conn->prepare('CALL sp_AddSaleDetail(?, ?, ?, ?)');
@@ -66,6 +82,11 @@ class VentaModel {
         }
     }
 
+    /**
+     * Obtiene los detalles de una venta con JOINs a productos y categorías.
+     * @param int $idVenta
+     * @return array|false
+     */
     public function getSaleDetails($idVenta) {
         try {
             $stmt = $this->conn->prepare(

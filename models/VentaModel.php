@@ -68,7 +68,13 @@ class VentaModel {
 
     public function getSaleDetails($idVenta) {
         try {
-            $stmt = $this->conn->prepare('CALL sp_GetSaleDetails(?)');
+            $stmt = $this->conn->prepare(
+                'SELECT dv.*, p.Nombre_Producto, p.Precio_Venta, c.Nombre_Categoria
+                 FROM detalle_venta dv
+                 INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto
+                 INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria
+                 WHERE dv.ID_Venta = ?'
+            );
             $stmt->execute([$idVenta]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {

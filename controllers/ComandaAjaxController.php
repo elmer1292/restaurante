@@ -5,16 +5,18 @@ require_once __DIR__ . '/../models/VentaModel.php';
 class ComandaAjaxController extends BaseController {
     public function agregarProductos() {
         require_once __DIR__ . '/../helpers/Csrf.php';
+        require_once __DIR__ . '/../helpers/Validator.php';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
             if (!Csrf::validateToken($csrfToken)) {
                 http_response_code(403);
                 echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
                 exit;
             }
-            $idMesa = isset($_POST['id_mesa']) ? (int)$_POST['id_mesa'] : null;
-            $productos = isset($_POST['productos']) ? json_decode($_POST['productos'], true) : [];
-            if (!$idMesa || empty($productos)) {
+            $idMesa = Validator::int(Validator::get($_POST, 'id_mesa'));
+            $productos = Validator::get($_POST, 'productos');
+            $productos = is_string($productos) ? json_decode($productos, true) : $productos;
+            if ($idMesa === null || empty($productos)) {
                 echo json_encode(['success' => false, 'error' => 'Datos insuficientes']);
                 exit;
             }
@@ -29,9 +31,16 @@ class ComandaAjaxController extends BaseController {
             try {
                 $conn->beginTransaction();
                 foreach ($productos as $p) {
-                    $res = $ventaModel->addSaleDetail($idVenta, $p['id'], $p['cantidad'], $p['precio']);
+                    $pid = Validator::int(Validator::get($p, 'id'));
+                    $cantidad = Validator::int(Validator::get($p, 'cantidad'));
+                    $precio = Validator::float(Validator::get($p, 'precio'));
+                    $nombre = Validator::sanitizeString(Validator::get($p, 'nombre', ''));
+                    if ($pid === null || $cantidad === null || $precio === null) {
+                        throw new Exception('Producto inválido: ' . $nombre);
+                    }
+                    $res = $ventaModel->addSaleDetail($idVenta, $pid, $cantidad, $precio);
                     if (!$res) {
-                        throw new Exception('Error al agregar producto: ' . $p['nombre']);
+                        throw new Exception('Error al agregar producto: ' . $nombre);
                     }
                 }
                 $ventaModel->actualizarTotal($idVenta);

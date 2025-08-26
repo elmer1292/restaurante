@@ -5,16 +5,17 @@ require_once __DIR__ . '/../models/VentaModel.php';
 class DetalleVentaController extends BaseController {
     public function actualizarEstado() {
         require_once __DIR__ . '/../helpers/Csrf.php';
+        require_once __DIR__ . '/../helpers/Validator.php';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
             if (!Csrf::validateToken($csrfToken)) {
                 http_response_code(403);
                 echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
                 exit;
             }
-            $idDetalle = isset($_POST['id_detalle']) ? (int)$_POST['id_detalle'] : null;
-            $estado = isset($_POST['estado']) ? $_POST['estado'] : null;
-            if ($idDetalle && $estado) {
+            $idDetalle = Validator::int(Validator::get($_POST, 'id_detalle'));
+            $estado = Validator::sanitizeString(Validator::get($_POST, 'estado'));
+            if ($idDetalle !== null && $estado !== null) {
                 $ventaModel = new VentaModel();
                 $result = $ventaModel->actualizarEstadoDetalle($idDetalle, $estado);
                 header('Content-Type: application/json');
@@ -28,23 +29,24 @@ class DetalleVentaController extends BaseController {
     }
     public function eliminarProducto() {
         require_once __DIR__ . '/../helpers/Csrf.php';
+        require_once __DIR__ . '/../helpers/Validator.php';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
             if (!Csrf::validateToken($csrfToken)) {
                 http_response_code(403);
                 echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
                 exit;
             }
-            $idDetalle = isset($_POST['id_detalle']) ? (int)$_POST['id_detalle'] : null;
-            $cantidadEliminar = isset($_POST['cantidad']) ? (int)$_POST['cantidad'] : null;
-            if ($idDetalle) {
+            $idDetalle = Validator::int(Validator::get($_POST, 'id_detalle'));
+            $cantidadEliminar = Validator::int(Validator::get($_POST, 'cantidad'));
+            if ($idDetalle !== null) {
                 $ventaModel = new VentaModel();
                 // Obtener cantidad actual
                 $conn = (new Database())->connect();
                 $stmt = $conn->prepare('SELECT Cantidad FROM detalle_venta WHERE ID_Detalle = ?');
                 $stmt->execute([$idDetalle]);
                 $actual = $stmt->fetchColumn();
-                if ($cantidadEliminar && $cantidadEliminar < $actual) {
+                if ($cantidadEliminar !== null && $cantidadEliminar < $actual) {
                     $result = $ventaModel->actualizarCantidadDetalle($idDetalle, $actual - $cantidadEliminar);
                 } else {
                     $result = $ventaModel->eliminarDetalle($idDetalle);

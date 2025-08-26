@@ -10,35 +10,44 @@ class EmpleadoController extends BaseController {
     }
 
     public function getEmpleado() {
+        require_once __DIR__ . '/../helpers/Validator.php';
         $userModel = new UserModel();
-        if (isset($_GET['id'])) {
-            $id = (int)$_GET['id'];
+        $id = Validator::int(Validator::get($_GET, 'id'));
+        if ($id !== null) {
             $empleado = $userModel->getUserById($id);
             header('Content-Type: application/json');
             echo json_encode($empleado);
+            exit;
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'ID inválido']);
             exit;
         }
     }
 
     public function updateEmpleado() {
         require_once __DIR__ . '/../helpers/Csrf.php';
+        require_once __DIR__ . '/../helpers/Validator.php';
         $userModel = new UserModel();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
             if (!Csrf::validateToken($csrfToken)) {
                 http_response_code(403);
                 echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
                 exit;
             }
-            $action = $_POST['action'] ?? '';
+            $action = Validator::sanitizeString(Validator::get($_POST, 'action'));
             if ($action === 'update') {
-                $id = (int)$_POST['id'];
-                $nombre = $_POST['nombre'] ?? '';
-                $usuario = $_POST['usuario'] ?? '';
-                $password = $_POST['password'] ?? null;
-                $rol = $_POST['rol'] ?? '';
-                $estado = isset($_POST['estado']) ? (int)$_POST['estado'] : 1;
-
+                $id = Validator::int(Validator::get($_POST, 'id'));
+                $nombre = Validator::sanitizeString(Validator::get($_POST, 'nombre'));
+                $usuario = Validator::sanitizeString(Validator::get($_POST, 'usuario'));
+                $password = Validator::get($_POST, 'password', null);
+                $rol = Validator::sanitizeString(Validator::get($_POST, 'rol'));
+                $estado = Validator::int(Validator::get($_POST, 'estado', 1));
+                if ($id === null || $nombre === null || $usuario === null || $rol === null) {
+                    header('Location: /empleados?mensaje=Datos inválidos');
+                    exit;
+                }
                 // Actualizar usuario y empleado
                 $result = $userModel->updateUser($id, $usuario, $password, $rol);
                 if ($result) {

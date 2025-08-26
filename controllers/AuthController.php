@@ -12,9 +12,10 @@ class AuthController extends BaseController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = filter_var($_POST['username'] ?? '', FILTER_SANITIZE_STRING);
-            $password = $_POST['password'] ?? '';
-            $csrf_token = $_POST['csrf_token'] ?? '';
+            require_once __DIR__ . '/../helpers/Validator.php';
+            $username = Validator::sanitizeString(Validator::get($_POST, 'username'));
+            $password = Validator::get($_POST, 'password', '');
+            $csrf_token = Validator::get($_POST, 'csrf_token', '');
 
             // Verificar CSRF
             if (empty($_SESSION['csrf_token']) || $csrf_token !== $_SESSION['csrf_token']) {

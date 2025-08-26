@@ -4,14 +4,12 @@ require_once 'config/Session.php';
 Session::init();
 Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
-$userRole = isset($_SESSION['user']['Rol']) ? $_SESSION['user']['Rol'] : '';
+$userRole = Session::get('user_role');
 
-require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
+
 $mesaModel = new MesaModel();
-$params = getPageParams($_GET, 50);
-$mesas = $mesaModel->getAllTables($params['offset'], $params['limit']);
+$mesas = $mesaModel->getAllTables();
 $totalMesas = $mesaModel->getTotalTables();
-$totalPages = isset($totalMesas) && $params['limit'] > 0 ? ceil($totalMesas / $params['limit']) : 1;
 
 $mensaje = '';
 if (isset($_SESSION['mensaje'])) {
@@ -71,18 +69,6 @@ if (isset($_SESSION['mensaje'])) {
     </div>
     <?php endforeach; ?>
 </div>
-<!-- Controles de paginación -->
-<nav aria-label="Paginación de mesas">
-    <ul class="pagination">
-        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
-                <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
-                    <?php echo $i; ?>
-                </a>
-            </li>
-        <?php endfor; ?>
-    </ul>
-</nav>
 
 <!-- Modal para Crear/Editar Mesa -->
 <div class="modal fade" id="mesaModal" tabindex="-1">

@@ -20,15 +20,7 @@ class VentaModel {
             return false;
         }
     }
-    public function actualizarEstadoDetalle($idDetalle, $estado) {
-        try {
-            $stmt = $this->conn->prepare('UPDATE detalle_venta SET Estado = ? WHERE ID_Detalle = ?');
-            return $stmt->execute([$estado, $idDetalle]);
-        } catch (PDOException $e) {
-            error_log('Error en actualizarEstadoDetalle: ' . $e->getMessage());
-            return false;
-        }
-    }
+    // Método actualizarEstadoDetalle eliminado
     private $conn;
 
     public function __construct() {
@@ -142,7 +134,7 @@ class VentaModel {
                 INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
                 INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
                 INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
-                WHERE c.Nombre_Categoria = "Comidas" OR c.Nombre_Categoria = "Carnes" 
+                WHERE c.Nombre_Categoria = "Buffet" OR c.Nombre_Categoria = "Carnes" OR c.Nombre_Categoria = "Sopas" 
                 ORDER BY v.Fecha_Hora DESC'
             );
             $stmt->execute();
@@ -191,7 +183,7 @@ class VentaModel {
         try {
             $stmt = $this->conn->prepare(
                 'SELECT * FROM ventas 
-                WHERE ID_Mesa = ? AND Estado = "Pendiente" 
+                WHERE ID_Mesa = ?
                 ORDER BY Fecha_Hora DESC LIMIT 1'
             );
             $stmt->execute([$idMesa]);

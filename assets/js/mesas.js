@@ -1,4 +1,5 @@
 // JS para la gestión de mesas
+// Nota: El campo 'estado' aquí solo se refiere al estado de la mesa (ocupada/libre), no al estado de productos.
 $(document).ready(function() {
     $('.edit-mesa').click(function(e) {
         e.stopPropagation();

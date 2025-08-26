@@ -1,6 +1,6 @@
 <?php
-require_once 'config/Session.php';
-require_once 'models/VentaModel.php';
+require_once dirname(__DIR__, 2) . '/config/Session.php';
+require_once dirname(__DIR__, 2) . '/models/VentaModel.php';
 
 Session::init();
 
@@ -72,13 +72,6 @@ foreach ($comandas as $comanda) {
                                         <span class="item-cantidad"><?php echo $item['Cantidad']; ?>x</span>
                                         <?php echo htmlspecialchars($item['Nombre_Producto']); ?>
                                     </div>
-                                    <div>
-                                        <?php if ($item['Estado'] !== 'preparado'): ?>
-                                            <button type="button" class="btn btn-sm btn-success" onclick="marcarPreparado(<?php echo $item['ID_Detalle']; ?>)">Preparado</button>
-                                        <?php else: ?>
-                                            <span class="badge bg-success">Preparado</span>
-                                        <?php endif; ?>
-                                    </div>
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
@@ -106,22 +99,6 @@ foreach ($comandas as $comanda) {
         setInterval(() => {
             location.reload();
         }, 30000);
-
-        function marcarPreparado(idDetalle) {
-            fetch('/restaurante/detalleventa/actualizarEstado', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id_detalle=${idDetalle}&estado=preparado`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error al actualizar estado');
-                }
-            });
-        }
     </script>
 
 <?php

@@ -55,6 +55,18 @@ if (isset($_SESSION['mensaje'])) {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <!-- Controles de paginación -->
+        <nav aria-label="Paginación de productos">
+            <ul class="pagination">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
+        </nav>
     </div>
 </div>
 

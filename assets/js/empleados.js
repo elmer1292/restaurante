@@ -1,16 +1,19 @@
 // Función para editar empleado
 function editarEmpleado(id) {
-    fetch(`/restaurante/controllers/UserController.php?action=get&id=${id}`)
+    fetch(`/restaurante/empleados/get?id=${id}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('empleadoId').value = data.ID_usuario;
             document.getElementById('nombre').value = data.Nombre_Completo;
             document.getElementById('usuario').value = data.Nombre_Usuario;
-            document.getElementById('rol').value = data.ID_Rol;
+            // Asignar el nombre del rol en vez del ID
+            document.getElementById('rol').value = data.Nombre_Rol;
             document.getElementById('estado').value = data.Estado;
             document.querySelector('#empleadoForm [name="action"]').value = 'update';
             document.getElementById('password').required = false;
-            $('#empleadoModal').modal('show');
+            // Abrir el modal usando Bootstrap 5 API puro
+            var modal = new bootstrap.Modal(document.getElementById('empleadoModal'));
+            modal.show();
         })
         .catch(error => console.error('Error:', error));
 }

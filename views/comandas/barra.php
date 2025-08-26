@@ -73,12 +73,8 @@ foreach ($comandas as $comanda) {
                                         <?php echo htmlspecialchars($item['Nombre_Producto']); ?>
                                     </div>
                                     <div>
-                                        <?php if ($item['Estado_Producto'] !== 'Preparado'): ?>
-                                            <form method="post" style="display:inline;">
-                                                <input type="hidden" name="id_venta" value="<?php echo $item['ID_Venta']; ?>">
-                                                <input type="hidden" name="id_producto" value="<?php echo $item['ID_Producto']; ?>">
-                                                <button type="submit" name="marcar_preparado" class="btn btn-sm btn-success">Preparado</button>
-                                            </form>
+                                        <?php if ($item['Estado'] !== 'preparado'): ?>
+                                            <button type="button" class="btn btn-sm btn-success" onclick="marcarPreparado(<?php echo $item['ID_Detalle']; ?>)">Preparado</button>
                                         <?php else: ?>
                                             <span class="badge bg-success">Preparado</span>
                                         <?php endif; ?>
@@ -110,21 +106,28 @@ foreach ($comandas as $comanda) {
         setInterval(() => {
             location.reload();
         }, 30000);
+
+        function marcarPreparado(idDetalle) {
+            fetch('/restaurante/detalleventa/actualizarEstado', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id_detalle=${idDetalle}&estado=preparado`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error al actualizar estado');
+                }
+            });
+        }
     </script>
 
 <?php
 // Procesar marcado de producto como preparado
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['marcar_preparado'])) {
-    $idVenta = (int)$_POST['id_venta'];
-    $idProducto = (int)$_POST['id_producto'];
-    try {
-        $conn = (new Database())->connect();
-        $stmt = $conn->prepare("UPDATE detalle_venta SET Estado_Producto = 'Preparado' WHERE ID_Venta = ? AND ID_Producto = ?");
-        $stmt->execute([$idVenta, $idProducto]);
-        echo '<script>location.reload();</script>';
-    } catch (Exception $e) {
-        echo '<script>alert("Error al marcar como preparado: ' . $e->getMessage() . '");</script>';
-    }
+    // Eliminado: ahora el cambio de estado se hace por AJAX
 }
 ?>
 </body>

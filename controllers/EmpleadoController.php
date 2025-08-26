@@ -5,8 +5,8 @@ require_once 'BaseController.php';
 class EmpleadoController extends BaseController {
     public function index() {
         // Aquí se manejará la lógica para la gestión de empleados
-        // Por ahora, simplemente cargamos la vista.
-        require_once 'views/empleados/index.php';
+        // Ahora se usa render para incluir header, sidebar y footer.
+        $this->render('views/empleados/index.php');
     }
 
     public function getEmpleado() {

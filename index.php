@@ -12,9 +12,13 @@ $router = new Router();
 require_once 'config/routes.php';
 
 // Obtener la URI y limpiarla
-$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$uri = str_replace('restaurante/', '', $uri); // Ajusta 'restaurante/' si tu proyecto está en un subdirectorio
-$uri = ($uri === 'index.php' || $uri === '') ? '/' : $uri;
+
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri = str_replace('/restaurante', '', $uri); // Ajusta para subdirectorio
+$uri = trim($uri, '/');
+if ($uri === '' || $uri === 'index.php') {
+    $uri = '/';
+}
 
 // Redirigir si no está logueado (a menos que esté intentando acceder a la página de login)
 if (!Session::isLoggedIn() && $uri !== 'login') {

@@ -2,6 +2,15 @@
 require_once __DIR__ . '/../config/database.php';
 
 class VentaModel {
+    public function actualizarEstadoDetalle($idDetalle, $estado) {
+        try {
+            $stmt = $this->conn->prepare('UPDATE detalle_venta SET Estado = ? WHERE ID_Detalle = ?');
+            return $stmt->execute([$estado, $idDetalle]);
+        } catch (PDOException $e) {
+            error_log('Error en actualizarEstadoDetalle: ' . $e->getMessage());
+            return false;
+        }
+    }
     private $conn;
 
     public function __construct() {

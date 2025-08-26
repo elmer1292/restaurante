@@ -14,61 +14,87 @@ if (!$idMesa) {
     exit;
 }
 
+// Inicialización de modelos y obtención de datos de la mesa
 $ventaModel = new VentaModel();
 $productModel = new ProductModel();
 $mesaModel = new MesaModel();
 $mesa = $mesaModel->getTableById($idMesa);
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
+// ...estructura visual mejorada...
+echo '<div class="row">';
+    // Menú de productos por categorías (izquierda)
+    echo '<div class="col-md-4">';
+    include '../../views/shared/menu_productos.php';
+    echo '</div>';
 
-echo '<h2>Detalle de Mesa #' . htmlspecialchars($mesa['Numero_Mesa']) . '</h2>';
-echo '<p>Capacidad: ' . htmlspecialchars($mesa['Capacidad']) . ' personas</p>';
-echo '<p>Estado: ' . ($mesa['Estado'] ? 'Ocupada' : 'Libre') . '</p>';
+    // Sección resumen de comanda y productos agregados (derecha)
+    echo '<div class="col-md-8">';
+    echo '<h2>Detalle de Mesa #' . htmlspecialchars($mesa['Numero_Mesa']) . '</h2>';
+    echo '<p>Capacidad: ' . htmlspecialchars($mesa['Capacidad']) . ' personas</p>';
+    echo '<p>Estado: ' . ($mesa['Estado'] ? 'Ocupada' : 'Libre') . '</p>';
 
-if ($comanda) {
-    echo '<h4>Productos en la comanda</h4>';
-    $detalles = $ventaModel->getSaleDetails($comanda['ID_Venta']);
-    if ($detalles) {
-        echo '<ul>';
-        foreach ($detalles as $detalle) {
-            echo '<li>' . htmlspecialchars($detalle['Nombre_Producto']) . ' x' . $detalle['Cantidad'] . ' - $' . number_format($detalle['Precio_Venta'], 2);
-            if ($comanda['Estado'] == 'Pendiente') {
-                echo ' <form method="post" style="display:inline;"><input type="hidden" name="eliminar_producto" value="' . $detalle['ID_Producto'] . '"><button type="submit" class="btn btn-sm btn-danger">Eliminar</button></form>';
-            }
-            echo '</li>';
-        }
-        echo '</ul>';
-    } else {
-        echo '<div class="alert alert-info">No hay productos en la comanda.</div>';
-    }
+    echo '<div id="comanda-resumen">';
+    // Aquí se mostrará el resumen de la comanda actual y los productos agregados vía JS
+    echo '</div>';
 
-    // Agregar productos si la comanda está abierta
-    if ($comanda['Estado'] == 'Pendiente') {
-        $productos = $productModel->getAllProducts();
-        echo '<h4>Agregar producto</h4>';
-        echo '<form method="post">';
-        echo '<select name="id_producto">';
-        foreach ($productos as $producto) {
-            echo '<option value="' . $producto['ID_Producto'] . '">' . htmlspecialchars($producto['Nombre_Producto']) . '</option>';
-        }
-        echo '</select>';
-        echo '<input type="number" name="cantidad" min="1" value="1">';
-        echo '<button type="submit" name="agregar_producto" class="btn btn-success">Agregar</button>';
-        echo '</form>';
-    } else {
-        echo '<div class="alert alert-info">La comanda está cerrada o en preparación. No se pueden agregar productos.</div>';
-    }
-} else {
-    echo '<div class="alert alert-warning">La mesa está libre. Agrega un producto para crear una nueva comanda.</div>';
-    $productos = $productModel->getAllProducts();
-    echo '<form method="post">';
-    echo '<select name="id_producto">';
-    foreach ($productos as $producto) {
-        echo '<option value="' . $producto['ID_Producto'] . '">' . htmlspecialchars($producto['Nombre_Producto']) . '</option>';
-    }
-    echo '</select>';
-    echo '<input type="number" name="cantidad" min="1" value="1">';
-    echo '<button type="submit" name="crear_comanda" class="btn btn-primary">Agregar y crear comanda</button>';
-    echo '</form>';
-}
+    echo '<div id="productos-agregados" class="mt-4">';
+    echo '<h4>Productos a agregar</h4>';
+    echo '<ul id="lista-productos-agregados" class="list-group mb-3"></ul>';
+    echo '<button class="btn btn-success" onclick="enviarProductosComanda()">Enviar pedido</button>';
+    echo '</div>';
+
+    echo '</div>';
+echo '</div>';
+
 require_once '../../views/shared/footer.php';
+?>
+<script>
+// Productos agregados temporalmente antes de enviar
+let productosAgregados = [];
+
+function agregarProductoMenu(id, nombre, precio) {
+    // Si ya existe, suma cantidad
+    let prod = productosAgregados.find(p => p.id === id);
+    if (prod) {
+        prod.cantidad++;
+    } else {
+        productosAgregados.push({id, nombre, precio, cantidad: 1});
+    }
+    renderProductosAgregados();
+}
+
+function renderProductosAgregados() {
+    const lista = document.getElementById('lista-productos-agregados');
+    lista.innerHTML = '';
+    let total = 0;
+    productosAgregados.forEach((p, idx) => {
+        total += p.precio * p.cantidad;
+        lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>${p.nombre} x${p.cantidad}</span>
+            <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
+            <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProductoAgregado(${idx})">Eliminar</button>
+        </li>`;
+    });
+    lista.innerHTML += `<li class="list-group-item fw-bold d-flex justify-content-between align-items-center">
+        <span>Total</span><span>$${total.toFixed(2)}</span>
+    </li>`;
+}
+
+function eliminarProductoAgregado(idx) {
+    productosAgregados.splice(idx, 1);
+    renderProductosAgregados();
+}
+
+function enviarProductosComanda() {
+    if (productosAgregados.length === 0) {
+        alert('Agrega al menos un producto.');
+        return;
+    }
+    // Aquí iría el AJAX para enviar los productos al backend
+    // Por ahora solo resetea la lista
+    alert('Pedido enviado (simulado).');
+    productosAgregados = [];
+    renderProductosAgregados();
+}
+</script>
 ?>

@@ -1,7 +1,7 @@
 <?php
 
-require_once '../models/UserModel.php';
-require_once 'BaseController.php';
+require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/BaseController.php';
 
 class AuthController extends BaseController {
     public function login() {
@@ -12,22 +12,24 @@ class AuthController extends BaseController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = $_POST['username'] ?? '';
+            $username = filter_var($_POST['username'] ?? '', FILTER_SANITIZE_STRING);
             $password = $_POST['password'] ?? '';
+            $csrf_token = $_POST['csrf_token'] ?? '';
 
-            if ($username && $password) {
+            // Verificar CSRF
+            if (empty($_SESSION['csrf_token']) || $csrf_token !== $_SESSION['csrf_token']) {
+                $error = 'Token CSRF inválido. Por favor, recargue la página.';
+            } elseif ($username && $password) {
                 $userModel = new UserModel();
                 $user = $userModel->validateUser($username);
 
                 if ($user && $userModel->verifyPassword($password, $user['Contrasenia'])) {
                     $empleadoId = $userModel->getEmpleadoIdByUserId($user['ID_Usuario']);
-                    
                     Session::set('user_id', $user['ID_Usuario']);
                     Session::set('empleado_id', $empleadoId);
                     Session::set('username', $user['Nombre_Usuario']);
                     Session::set('user_role', $user['Nombre_Rol']);
                     Session::set('nombre_completo', $user['Nombre_Completo']);
-
                     $this->redirect('/'); // Redirigir al dashboard
                 } else {
                     $error = 'Usuario o contraseña incorrectos';
@@ -35,8 +37,10 @@ class AuthController extends BaseController {
             } else {
                 $error = 'Por favor, complete todos los campos';
             }
+            // Regenerar token CSRF tras cada intento
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }
-        // Cargar la vista de login
+        // Renderizar la vista de login siempre
         $this->render('views/login.php', ['error' => $error]);
     }
 

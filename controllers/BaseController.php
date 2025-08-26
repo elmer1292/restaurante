@@ -18,6 +18,12 @@ class BaseController {
     }
 
     protected function redirect($path) {
+        // Asegura que todas las redirecciones incluyan la ruta base /restaurante
+        $base = '/restaurante';
+        // Si el path ya incluye la base, no la duplica
+        if (strpos($path, $base) !== 0) {
+            $path = $base . $path;
+        }
         header('Location: ' . $path);
         exit();
     }

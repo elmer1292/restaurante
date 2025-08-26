@@ -121,7 +121,7 @@ class UserModel {
     public function getUserById($userId) {
         try {
             $query = "SELECT u.ID_usuario, e.Nombre_Completo, u.Nombre_Usuario, 
-                     r.ID_Rol, r.Nombre_Rol, e.Estado 
+                     r.ID_Rol, r.Nombre_Rol, e.Correo, e.Telefono, e.Fecha_Contratacion, u.Estado 
                      FROM usuarios u 
                      INNER JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
                      INNER JOIN roles r ON u.ID_Rol = r.ID_Rol 

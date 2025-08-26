@@ -103,6 +103,7 @@ CREATE TABLE `detalle_venta` (
   `Precio_Venta` decimal(10,2) NOT NULL,
   `Cantidad` int NOT NULL,
   `Subtotal` decimal(10,2) DEFAULT NULL,
+  `Estado` enum('pendiente','preparando','preparado','entregado','cancelado') DEFAULT 'pendiente',
   PRIMARY KEY (`ID_Detalle`),
   KEY `ID_Venta` (`ID_Venta`),
   KEY `ID_Producto` (`ID_Producto`),

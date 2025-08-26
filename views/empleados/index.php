@@ -76,7 +76,7 @@ $empleados = $userModel->getAllUsers();
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-            <form id="empleadoForm" action="/restaurante/controllers/UserController.php" method="POST">
+            <form id="empleadoForm" action="/restaurante/controllers/EmpleadoController.php" method="POST">
                     <input type="hidden" name="action" value="create">
                     <input type="hidden" name="id" id="empleadoId">
                     

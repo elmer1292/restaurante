@@ -21,7 +21,7 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">Gestión de Empleados</h1>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#empleadoModal">
+    <button class="btn btn-primary" onclick="abrirEmpleadoModal()">
         <i class="bi bi-plus-circle"></i> Nuevo Empleado
     </button>
 </div>
@@ -46,27 +46,41 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($empleados as $empleado): ?>
+            <?php if (empty($empleados)): ?>
             <tr>
-                <td><?php echo htmlspecialchars($empleado['ID_usuario']); ?></td>
-                <td><?php echo htmlspecialchars($empleado['Nombre']); ?></td>
-                <td><?php echo htmlspecialchars($empleado['Usuario']); ?></td>
-                <td><?php echo htmlspecialchars($empleado['Rol']); ?></td>
-                <td>
-                    <span class="badge <?php echo ($empleado['Estado'] == 1) ? 'bg-success' : 'bg-danger'; ?>">
-                        <?php echo ($empleado['Estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-warning" onclick="editarEmpleado(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarEmpleado(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
+                <td colspan="6" class="text-center text-muted">No hay empleados para mostrar.</td>
             </tr>
-            <?php endforeach; ?>
+            <?php else: ?>
+                <?php foreach ($empleados as $empleado): ?>
+                <?php if ($empleado['ID_usuario'] != $_SESSION['user_id']): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($empleado['ID_usuario'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($empleado['Nombre'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($empleado['Usuario'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($empleado['Rol'] ?? ''); ?></td>
+                    <td>
+                        <span class="badge <?php echo ($empleado['Estado'] == 1) ? 'bg-success' : 'bg-danger'; ?>">
+                            <?php echo ($empleado['Estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="abrirEmpleadoModal(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <?php if ($empleado['Estado'] == 1): ?>
+                            <button class="btn btn-sm btn-danger" onclick="abrirEliminarModal(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>, 0)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-sm btn-success" onclick="abrirEliminarModal(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>, 1)">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 </div>
@@ -93,10 +107,12 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
             </div>
             <div class="modal-body">
             <form id="empleadoForm" action="/restaurante/controllers/EmpleadoController.php" method="POST">
-                <?php require_once '../../helpers/Csrf.php'; ?>
+                <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
                 <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
-                    <input type="hidden" name="action" value="create">
-                    <input type="hidden" name="id" id="empleadoId">
+                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="id" id="empleadoId">
+                <!-- Actualizar la acción del formulario para usar el router -->
+                <!-- El script se moverá fuera del formulario para evitar errores de acceso a elementos nulos -->
                     
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
@@ -106,6 +122,18 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                     <div class="mb-3">
                         <label for="usuario" class="form-label">Usuario</label>
                         <input type="text" class="form-control" id="usuario" name="usuario" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="correo" name="correo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono" name="telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_contratacion" class="form-label">Fecha de Contratación</label>
+                        <input type="date" class="form-control" id="fecha_contratacion" name="fecha_contratacion" value="<?= date('Y-m-d') ?>">
                     </div>
                     
                     <div class="mb-3">
@@ -117,11 +145,11 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                     <div class="mb-3">
                         <label for="rol" class="form-label">Rol</label>
                         <select class="form-select" id="rol" name="rol" required>
-                            <option value="Administrador">Administrador</option>
-                            <option value="Mesero">Mesero</option>
-                            <option value="Cajero">Cajero</option>
-                            <option value="Cocina">Cocina</option>
-                            <option value="Barra">Barra</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Mesero</option>
+                            <option value="3">Cajero</option>
+                            <option value="4">Cocina</option>
+                            <option value="5">Barra</option>
                         </select>
                     </div>
                     
@@ -143,4 +171,39 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
     </div>
 </div>
 
-<script src="assets\js\empleados.js"></script>
+<script src="/restaurante/assets/js/empleados.js"></script>
+<script>
+// Mover el foco al body al cerrar los modales para evitar el warning de accesibilidad
+document.addEventListener('DOMContentLoaded', function() {
+    var empleadoModal = document.getElementById('empleadoModal');
+    var confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (empleadoModal) {
+        empleadoModal.addEventListener('hidden.bs.modal', function () {
+            document.body.focus();
+        });
+    }
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('hidden.bs.modal', function () {
+            document.body.focus();
+        });
+    }
+});
+</script>
+<!-- Modal de confirmación para eliminar empleado -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteLabel">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro de que desea eliminar este empleado?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>

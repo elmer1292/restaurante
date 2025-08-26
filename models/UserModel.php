@@ -66,13 +66,12 @@ class UserModel {
             } else {
                 $hashedPassword = null;
             }
-
             $stmt = $this->conn->prepare('CALL sp_UpdateUser(?, ?, ?, ?)');
             $stmt->execute([$userId, $username, $hashedPassword, $roleId]);
             return true;
         } catch (PDOException $e) {
             error_log('Error en updateUser: ' . $e->getMessage());
-            return false;
+            return $e->getMessage();
         }
     }
 
@@ -114,7 +113,7 @@ class UserModel {
             return true;
         } catch (PDOException $e) {
             error_log('Error en deleteUser: ' . $e->getMessage());
-            return false;
+            return $e->getMessage();
         }
     }
 
@@ -140,8 +139,8 @@ class UserModel {
             $query = "SELECT u.ID_usuario, e.Nombre_Completo as Nombre, u.Nombre_Usuario as Usuario, 
                      r.Nombre_Rol as Rol, e.ID_Empleado, e.Correo, e.Telefono, e.Fecha_Contratacion, u.Estado
                      FROM usuarios u 
-                     INNER JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
-                     INNER JOIN roles r ON u.ID_Rol = r.ID_Rol
+                     LEFT JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
+                     LEFT JOIN roles r ON u.ID_Rol = r.ID_Rol
                      ORDER BY u.ID_usuario ASC
                      LIMIT :limit OFFSET :offset";
             $stmt = $this->conn->prepare($query);

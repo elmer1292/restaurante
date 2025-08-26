@@ -12,6 +12,7 @@ $router->add('logout', 'AuthController', 'logout');
 $router->add('empleados', 'EmpleadoController', 'index');
 $router->add('empleados/get', 'EmpleadoController', 'getEmpleado');
 $router->add('empleados/update', 'EmpleadoController', 'updateEmpleado');
+$router->add('empleados/delete', 'EmpleadoController', 'deleteEmpleado');
 $router->add('productos', 'ProductoController', 'index');
 $router->add('mesas', 'MesaController', 'index');
 $router->add('comandas', 'ComandaController', 'index');

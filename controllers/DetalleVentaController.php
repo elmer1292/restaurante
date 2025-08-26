@@ -15,13 +15,7 @@ class DetalleVentaController extends BaseController {
             }
             $idDetalle = Validator::int(Validator::get($_POST, 'id_detalle'));
             $estado = Validator::sanitizeString(Validator::get($_POST, 'estado'));
-            if ($idDetalle !== null && $estado !== null) {
-                $ventaModel = new VentaModel();
-                $result = $ventaModel->actualizarEstadoDetalle($idDetalle, $estado);
-                header('Content-Type: application/json');
-                echo json_encode(['success' => $result]);
-                exit;
-            }
+            // Método eliminado: actualizarEstadoDetalle
         }
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'error' => 'Datos insuficientes']);
@@ -41,16 +35,25 @@ class DetalleVentaController extends BaseController {
             $cantidadEliminar = Validator::int(Validator::get($_POST, 'cantidad'));
             if ($idDetalle !== null) {
                 $ventaModel = new VentaModel();
-                // Obtener cantidad actual
+                // Obtener cantidad actual y el id de la venta
                 $conn = (new Database())->connect();
-                $stmt = $conn->prepare('SELECT Cantidad FROM detalle_venta WHERE ID_Detalle = ?');
+                $stmt = $conn->prepare('SELECT Cantidad, ID_Venta FROM detalle_venta WHERE ID_Detalle = ?');
                 $stmt->execute([$idDetalle]);
-                $actual = $stmt->fetchColumn();
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $actual = $row ? $row['Cantidad'] : null;
+                $idVenta = $row ? $row['ID_Venta'] : null;
+                if ($actual === null || $idVenta === null) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => 'Detalle no encontrado']);
+                    exit;
+                }
                 if ($cantidadEliminar !== null && $cantidadEliminar < $actual) {
                     $result = $ventaModel->actualizarCantidadDetalle($idDetalle, $actual - $cantidadEliminar);
                 } else {
                     $result = $ventaModel->eliminarDetalle($idDetalle);
                 }
+                // Actualizar el total de la venta
+                $ventaModel->actualizarTotal($idVenta);
                 header('Content-Type: application/json');
                 echo json_encode(['success' => $result]);
                 exit;

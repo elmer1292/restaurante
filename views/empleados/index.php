@@ -1,5 +1,6 @@
 <?php
 require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
 
 Session::init();
 if (!Session::isLoggedIn() || Session::getUserRole() !== 'Administrador') {
@@ -11,7 +12,10 @@ $userRole = Session::getUserRole();
 $mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
 
 $userModel = new UserModel();
-$empleados = $userModel->getAllUsers();
+$params = getPageParams($_GET, 50);
+$empleados = $userModel->getAllUsersPaginated($params['offset'], $params['limit']);
+$totalEmpleados = $userModel->getTotalUsers();
+$totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmpleados / $params['limit']) : 1;
 
 ?>
 
@@ -66,6 +70,18 @@ $empleados = $userModel->getAllUsers();
         </tbody>
     </table>
 </div>
+<!-- Controles de paginación -->
+<nav aria-label="Paginación de empleados">
+    <ul class="pagination">
+        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
+                    <?php echo $i; ?>
+                </a>
+            </li>
+        <?php endfor; ?>
+    </ul>
+</nav>
 
 <!-- Modal para Agregar/Editar Empleado -->
 <div class="modal fade" id="empleadoModal" tabindex="-1">

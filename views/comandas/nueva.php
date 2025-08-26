@@ -1,10 +1,27 @@
+
+<!-- Controles de paginación -->
+<nav aria-label="Paginación de productos">
+    <ul class="pagination">
+        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
+                    <?php echo $i; ?>
+                </a>
+            </li>
+        <?php endfor; ?>
+    </ul>
+</nav>
 <?php
 require_once 'config/Session.php';
 Session::init();
 require_once 'models/MesaModel.php';
 require_once 'models/ProductModel.php';
 require_once 'models/VentaModel.php';
-
+require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
+$params = getPageParams($_GET, 50);
+$productos = $productModel->getAllProducts($params['offset'], $params['limit']);
+$totalProductos = $productModel->getTotalProducts();
+$totalPages = isset($totalProductos) && $params['limit'] > 0 ? ceil($totalProductos / $params['limit']) : 1;
 // DEBUG: Mostrar el contenido de la sesión en pantalla
 if (isset($_GET['debug'])) {
     echo '<pre>SESSION: ' . print_r($_SESSION, true) . '</pre>';
@@ -30,7 +47,7 @@ if (!$mesa || $mesa['Estado'] == 1) {
 
 $productModel = new ProductModel();
 $categorias = $productModel->getAllCategories();
-$productos = $productModel->getAllProducts();
+// ...existing code...
 
 // Debug: Verificar los productos obtenidos
 error_log('Productos obtenidos: ' . print_r($productos, true));

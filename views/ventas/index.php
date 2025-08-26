@@ -1,17 +1,27 @@
 <?php
 require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
 
 Session::init();
 Session::checkRole(['Administrador', 'Cajero']);
 
 $ventaModel = new VentaModel();
+$params = getPageParams($_GET, 50);
 $ventasPendientes = [];
 try {
     $conn = (new \Database())->connect();
-    $stmt = $conn->query("SELECT v.*, m.Numero_Mesa FROM ventas v INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa WHERE v.Estado = 'Pendiente' ORDER BY v.Fecha_Hora DESC");
+    $stmt = $conn->prepare("SELECT v.*, m.Numero_Mesa FROM ventas v INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa WHERE v.Estado = 'Pendiente' ORDER BY v.Fecha_Hora DESC LIMIT :limit OFFSET :offset");
+    $stmt->bindValue(':limit', (int)$params['limit'], PDO::PARAM_INT);
+    $stmt->bindValue(':offset', (int)$params['offset'], PDO::PARAM_INT);
+    $stmt->execute();
     $ventasPendientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmtTotal = $conn->query("SELECT COUNT(*) as total FROM ventas WHERE Estado = 'Pendiente'");
+    $rowTotal = $stmtTotal->fetch(PDO::FETCH_ASSOC);
+    $totalVentas = $rowTotal ? (int)$rowTotal['total'] : 0;
+    $totalPages = $params['limit'] > 0 ? ceil($totalVentas / $params['limit']) : 1;
 } catch (Exception $e) {
     $ventasPendientes = [];
+    $totalPages = 1;
 }
 
 require_once 'views/shared/header.php';
@@ -22,6 +32,18 @@ require_once 'views/shared/header.php';
     <div class="alert alert-info">No hay ventas pendientes.</div>
 <?php else: ?>
     <div class="accordion" id="ventasAccordion">
+        <!-- Controles de paginación -->
+        <nav aria-label="Paginación de ventas">
+            <ul class="pagination">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
+        </nav>
         <?php foreach ($ventasPendientes as $venta): ?>
             <div class="accordion-item mb-2">
                 <h2 class="accordion-header" id="heading<?= $venta['ID_Venta'] ?>">

@@ -134,4 +134,34 @@ class UserModel {
             return false;
         }
     }
+
+        public function getAllUsersPaginated($offset = 0, $limit = 10) {
+        try {
+            $query = "SELECT u.ID_usuario, e.Nombre_Completo as Nombre, u.Nombre_Usuario as Usuario, 
+                     r.Nombre_Rol as Rol, e.ID_Empleado, e.Correo, e.Telefono, e.Fecha_Contratacion, u.Estado
+                     FROM usuarios u 
+                     INNER JOIN empleados e ON u.ID_usuario = e.ID_Usuario 
+                     INNER JOIN roles r ON u.ID_Rol = r.ID_Rol
+                     ORDER BY u.ID_usuario ASC
+                     LIMIT :limit OFFSET :offset";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error en getAllUsersPaginated: ' . $e->getMessage());
+            return [];
+        }
+    }
+    public function getTotalUsers() {
+        try {
+            $stmt = $this->conn->query('SELECT COUNT(*) as total FROM usuarios');
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? (int)$row['total'] : 0;
+        } catch (PDOException $e) {
+            error_log('Error en getTotalUsers: ' . $e->getMessage());
+            return 0;
+        }
+    }
 }

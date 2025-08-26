@@ -9,13 +9,26 @@ class MesaModel {
         $this->conn = $database->connect();
     }
 
-    public function getAllTables() {
+    public function getAllTables($offset = 0, $limit = 10) {
         try {
-            $stmt = $this->conn->query('CALL sp_GetAllTables()');
+            $stmt = $this->conn->prepare('SELECT * FROM mesas ORDER BY Numero_Mesa LIMIT :limit OFFSET :offset');
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log('Error en getAllTables: ' . $e->getMessage());
             return false;
+        }
+    }
+    public function getTotalTables() {
+        try {
+            $stmt = $this->conn->query('SELECT COUNT(*) as total FROM mesas');
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? (int)$row['total'] : 0;
+        } catch (PDOException $e) {
+            error_log('Error en getTotalTables: ' . $e->getMessage());
+            return 0;
         }
     }
 

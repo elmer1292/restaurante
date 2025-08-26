@@ -103,4 +103,5 @@ if (isset($_SESSION['mensaje'])) {
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="/restaurante/assets/js/mesas.js"></script>
+<?php require_once __DIR__ . '/../../config/base_url.php'; ?>
+<script src="<?php echo BASE_URL; ?>assets/js/mesas.js"></script>

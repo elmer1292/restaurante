@@ -16,7 +16,7 @@ $(document).ready(function() {
         const estadoActual = $(this).data('estado');
         const nuevoEstado = estadoActual ? 0 : 1;
 
-        $.post('procesar_mesa.php', {
+    $.post(BASE_URL + 'views/mesas/procesar_mesa.php', {
             action: 'toggle_estado',
             id_mesa: idMesa,
             estado: nuevoEstado

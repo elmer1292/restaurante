@@ -1,10 +1,16 @@
 <?php
+require_once __DIR__ . '/../config/base_url.php';
+require_once __DIR__ . '/../config/autoloader.php';
 Session::init();
+if (!Session::get('loggedIn')) {
+    header('Location: ' . BASE_URL . 'login');
+    exit;
+}
 $usuario = isset($usuario) ? $usuario : [];
 ?>
 <div class="container mt-4">
     <h2>Mi Perfil</h2>
-    <form id="perfilForm" method="POST" action="/restaurante/user/update">
+    <form id="perfilForm" method="POST" action="<?= BASE_URL ?>user/update">
         <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
@@ -36,7 +42,7 @@ document.getElementById('perfilForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = e.target;
     const datos = new FormData(form);
-    fetch('/restaurante/user/update', {
+    fetch(window.BASE_URL + 'user/update', {
         method: 'POST',
         body: datos
     })

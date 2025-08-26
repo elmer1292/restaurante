@@ -133,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cobrar_venta'])) {
 ?>
 
 <?php require_once 'views/shared/footer.php'; ?>
+<?php require_once __DIR__ . '/../../config/base_url.php'; ?>
 <script>
 function agregarMetodoPago(idVenta) {
     const container = document.getElementById('metodosPagoContainer' + idVenta);
@@ -179,7 +180,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         let metodoPagoStr = pagos.join(', ');
         if (metodoPagoStr.length > 20) metodoPagoStr = metodoPagoStr.substring(0, 20);
         const csrfToken = form.querySelector('input[name="csrf_token"]').value;
-        fetch('views/ventas/registrar_pago.php', {
+    fetch('<?php echo BASE_URL; ?>views/ventas/registrar_pago.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({

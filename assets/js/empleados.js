@@ -1,7 +1,7 @@
 // Función para abrir el modal de edición/creación y cargar datos si es edición
 async function refreshCsrfToken(form) {
     try {
-        const res = await fetch('/restaurante/api/csrf_token.php');
+    const res = await fetch(BASE_URL + 'api/csrf_token.php');
         const data = await res.json();
         if (data.csrf_token) {
             form.querySelector('[name="csrf_token"]').value = data.csrf_token;
@@ -18,7 +18,7 @@ async function abrirEmpleadoModal(id = null) {
     await refreshCsrfToken(form);
     if (id) {
         // Edición: cargar datos por AJAX
-        fetch(`/restaurante/empleados/get?id=${id}`)
+    fetch(BASE_URL + `empleados/get?id=${id}`)
             .then(res => res.json())
             .then(data => {
                 form.querySelector('[name="action"]').value = 'update';
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const datos = new FormData(form);
-            fetch('/restaurante/empleados/update', {
+            fetch(BASE_URL + 'empleados/update', {
                 method: 'POST',
                 body: datos
             })
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Acción: activar si estadoAEliminar=1, eliminar si estadoAEliminar=0
             const accion = estadoAEliminar === 1 ? 'activar' : 'delete';
             const body = `action=${accion}&id=${empleadoAEliminar}&estado=${estadoAEliminar}&csrf_token=${encodeURIComponent(csrfToken)}`;
-            fetch('/restaurante/empleados/delete', {
+            fetch(BASE_URL + 'empleados/delete', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: body

@@ -91,13 +91,13 @@ function procesarComanda() {
         cantidad: item.cantidad,
         precio_venta: item.Precio_Venta
     }));
-    $.post('procesar_comanda.php', {
+    $.post(window.BASE_URL + 'views/comandas/procesar_comanda.php', {
         id_mesa: window.idMesa,
         items: JSON.stringify(items)
     }, function(response) {
         if (response.success) {
             alert('Comanda procesada exitosamente');
-            window.location.href = '../mesas/';
+            window.location.href = window.BASE_URL + 'views/mesas/';
         } else {
             alert('Error al procesar la comanda: ' + response.message);
         }
@@ -106,7 +106,7 @@ function procesarComanda() {
 
 // Verificar el estado del procedimiento almacenado al cargar la página
 $(document).ready(function() {
-    $.get('verificar_procedimiento.php', { nombre: 'sp_CreateSale' }, function(data) {
+    $.get(window.BASE_URL + 'views/comandas/verificar_procedimiento.php', { nombre: 'sp_CreateSale' }, function(data) {
         if (data.existe) {
             console.log('El procedimiento almacenado sp_CreateSale existe.');
         } else {

@@ -1,5 +1,7 @@
 <?php
 
+
+require_once 'config/base_url.php';
 require_once 'config/autoloader.php';
 require_once 'config/Session.php';
 require_once 'config/Router.php';
@@ -13,8 +15,9 @@ require_once 'config/routes.php';
 
 // Obtener la URI y limpiarla
 
+// Usar BASE_URL para limpiar la URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = str_replace('/restaurante', '', $uri); // Ajusta para subdirectorio
+$uri = str_replace(BASE_URL, '', $uri); // Ajusta para subdirectorio
 $uri = trim($uri, '/');
 if ($uri === '' || $uri === 'index.php') {
     $uri = '/';

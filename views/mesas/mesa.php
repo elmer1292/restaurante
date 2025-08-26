@@ -93,11 +93,12 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
     </div>
 </div>
 <?php require_once '../../views/shared/footer.php'; ?>
+<?php require_once '../../config/base_url.php'; ?>
 <script>
 document.getElementById('formCrearComanda')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const idMesa = this.id_mesa.value;
-    fetch('/restaurante/comanda/crear', {
+    fetch('<?php echo BASE_URL; ?>comanda/crear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         credentials: 'same-origin',
@@ -140,7 +141,7 @@ function enviarProductosComanda() {
     // Si los inputs no existen, usar variables PHP
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
     let csrfToken = csrfTokenInput ? csrfTokenInput.value : <?php echo json_encode(Csrf::getToken()); ?>;
-    fetch('/restaurante/comanda/agregarProductos', {
+    fetch('<?php echo BASE_URL; ?>comanda/agregarProductos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         credentials: 'same-origin',
@@ -163,7 +164,7 @@ function eliminarProductoComanda(idDetalle) {
     if (cantidad !== '') {
         body += '&cantidad=' + encodeURIComponent(cantidad);
     }
-    fetch('/restaurante/detalleventa/eliminarProducto', {
+    fetch('<?php echo BASE_URL; ?>detalleventa/eliminarProducto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
@@ -185,7 +186,7 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
     const idMesa = this.id_mesa.value;
     const idVenta = this.id_venta.value;
     const csrfToken = this.csrf_token.value;
-    fetch('/restaurante/comanda/liberar', {
+    fetch('<?php echo BASE_URL; ?>comanda/liberar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         credentials: 'same-origin',
@@ -198,7 +199,7 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = '/restaurante/mesas';
+            window.location.href = '<?php echo BASE_URL; ?>mesas';
         } else {
             alert(data.error || 'Error al liberar la mesa');
         }

@@ -91,14 +91,14 @@ function procesarProductos() {
         cantidad: item.cantidad,
         precio_venta: item.Precio_Venta
     }));
-    $.post('agregar_productos_comanda.php', {
+    $.post(window.BASE_URL + 'views/comandas/agregar_productos_comanda.php', {
         id_mesa: window.idMesa,
         id_venta: window.idVenta,
         items: JSON.stringify(items)
     }, function(response) {
         if (response.success) {
             alert('Productos agregados exitosamente');
-            window.location.href = '../mesas/';
+            window.location.href = window.BASE_URL + 'views/mesas/';
         } else {
             alert('Error al agregar productos: ' + response.message);
         }

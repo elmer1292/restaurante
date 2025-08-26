@@ -97,7 +97,7 @@ async function fetchData(url, options = {}) {
 // Función para actualizar el estado de una mesa
 async function updateTableStatus(tableId, status) {
     try {
-        const response = await fetchData('views/mesas/procesar_mesa.php', {
+        const response = await fetchData(window.BASE_URL + 'views/mesas/procesar_mesa.php', {
             method: 'POST',
             body: JSON.stringify({
                 id_mesa: tableId,

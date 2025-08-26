@@ -5,7 +5,7 @@ $userRole = Session::get('user_role');
 $nombreCompleto = Session::get('nombre_completo');
 $currentPage = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $currentPage = str_replace('restaurante/', '', $currentPage);
-$baseUrl = '/restaurante';
+require_once __DIR__ . '/../../config/base_url.php';
 ?>
 
 <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
@@ -20,14 +20,14 @@ $baseUrl = '/restaurante';
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/user/perfil">
+                   href="<?php echo BASE_URL; ?>views/perfil.php">
                     <i class="bi bi-person-circle"></i>
                     Mi Perfil
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo $currentPage === '' || $currentPage === 'index.php' ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/">
+                   href="<?php echo BASE_URL; ?>">
                     <i class="bi bi-speedometer2"></i>
                     Dashboard
                 </a>
@@ -36,14 +36,14 @@ $baseUrl = '/restaurante';
             <?php if ($userRole === 'Administrador'): ?>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'empleados') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/empleados">
+                   href="<?php echo BASE_URL; ?>views/empleados/">
                     <i class="bi bi-people"></i>
                     Empleados
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'productos') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/productos">
+                   href="<?php echo BASE_URL; ?>views/productos/">
                     <i class="bi bi-box"></i>
                     Productos
                 </a>
@@ -53,14 +53,14 @@ $baseUrl = '/restaurante';
             <?php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'mesas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/mesas">
+                   href="<?php echo BASE_URL; ?>views/mesas/">
                     <i class="bi bi-grid"></i>
                     Mesas
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'comandas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/comandas">
+                   href="<?php echo BASE_URL; ?>views/comandas/">
                     <i class="bi bi-receipt"></i>
                     Comandas
                 </a>
@@ -70,7 +70,7 @@ $baseUrl = '/restaurante';
             <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'ventas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo $baseUrl; ?>/ventas">
+                   href="<?php echo BASE_URL; ?>views/ventas/">
                    <i class="bi bi-cash-coin"></i>
                    Ventas
                 </a>
@@ -78,7 +78,7 @@ $baseUrl = '/restaurante';
             <?php endif; ?>
 
             <li class="nav-item">
-                <a class="nav-link text-white" href="<?php echo $baseUrl; ?>/logout.php">
+                <a class="nav-link text-white" href="<?php echo BASE_URL; ?>logout.php">
                     <i class="bi bi-box-arrow-right"></i>
                     Cerrar Sesión
                 </a>
@@ -87,4 +87,5 @@ $baseUrl = '/restaurante';
     </div>
 </nav>
 
-<link rel="stylesheet" href="/restaurante/assets/css/styles.css">
+<?php require_once __DIR__ . '/../../config/base_url.php'; ?>
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/styles.css">

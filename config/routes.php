@@ -19,6 +19,8 @@ $router->add('ventas', 'VentaController', 'index');
 
 // Puedes añadir más rutas aquí para otras acciones como crear, editar, eliminar, etc.
 // Ruta para AJAX de agregar productos a la comanda
+$router->add('detalleventa/actualizarEstado', 'DetalleVentaController', 'actualizarEstado');
+$router->add('detalleventa/eliminarProducto', 'DetalleVentaController', 'eliminarProducto');
 $router->add('comanda/agregarProductos', 'ComandaAjaxController', 'agregarProductos');
 // Ejemplo:
 // $router->add('productos/crear', 'ProductoController', 'create');

@@ -14,19 +14,26 @@ class ComandaAjaxController extends BaseController {
             $ventaModel = new VentaModel();
             $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
             if (!$comanda) {
-                // Crear nueva comanda si no existe
-                // Aquí deberías tener lógica para crear la venta y obtener el ID
                 echo json_encode(['success' => false, 'error' => 'No hay comanda activa']);
                 exit;
             }
             $idVenta = $comanda['ID_Venta'];
-            $ok = true;
-            foreach ($productos as $p) {
-                $res = $ventaModel->addSaleDetail($idVenta, $p['id'], $p['cantidad'], $p['precio']);
-                if (!$res) $ok = false;
+            $conn = (new Database())->connect();
+            try {
+                $conn->beginTransaction();
+                foreach ($productos as $p) {
+                    $res = $ventaModel->addSaleDetail($idVenta, $p['id'], $p['cantidad'], $p['precio']);
+                    if (!$res) {
+                        throw new Exception('Error al agregar producto: ' . $p['nombre']);
+                    }
+                }
+                $ventaModel->actualizarTotal($idVenta);
+                $conn->commit();
+                echo json_encode(['success' => true]);
+            } catch (Exception $e) {
+                $conn->rollBack();
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             }
-            $ventaModel->actualizarTotal($idVenta);
-            echo json_encode(['success' => $ok]);
             exit;
         }
         echo json_encode(['success' => false, 'error' => 'Método no permitido']);

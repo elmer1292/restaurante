@@ -2,6 +2,24 @@
 require_once __DIR__ . '/../config/database.php';
 
 class VentaModel {
+    public function actualizarCantidadDetalle($idDetalle, $nuevaCantidad) {
+        try {
+            $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = ? WHERE ID_Detalle = ?');
+            return $stmt->execute([$nuevaCantidad, $idDetalle]);
+        } catch (PDOException $e) {
+            error_log('Error en actualizarCantidadDetalle: ' . $e->getMessage());
+            return false;
+        }
+    }
+    public function eliminarDetalle($idDetalle) {
+        try {
+            $stmt = $this->conn->prepare('DELETE FROM detalle_venta WHERE ID_Detalle = ?');
+            return $stmt->execute([$idDetalle]);
+        } catch (PDOException $e) {
+            error_log('Error en eliminarDetalle: ' . $e->getMessage());
+            return false;
+        }
+    }
     public function actualizarEstadoDetalle($idDetalle, $estado) {
         try {
             $stmt = $this->conn->prepare('UPDATE detalle_venta SET Estado = ? WHERE ID_Detalle = ?');

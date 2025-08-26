@@ -21,31 +21,75 @@ $mesaModel = new MesaModel();
 $mesa = $mesaModel->getTableById($idMesa);
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
 // ...estructura visual mejorada...
-echo '<div class="row">';
-    // Menú de productos por categorías (izquierda)
-    echo '<div class="col-md-4">';
-    include '../../views/shared/menu_productos.php';
-    echo '</div>';
-
-    // Sección resumen de comanda y productos agregados (derecha)
-    echo '<div class="col-md-8">';
-    echo '<h2>Detalle de Mesa #' . htmlspecialchars($mesa['Numero_Mesa']) . '</h2>';
-    echo '<p>Capacidad: ' . htmlspecialchars($mesa['Capacidad']) . ' personas</p>';
-    echo '<p>Estado: ' . ($mesa['Estado'] ? 'Ocupada' : 'Libre') . '</p>';
-
-    echo '<div id="comanda-resumen">';
-    // Aquí se mostrará el resumen de la comanda actual y los productos agregados vía JS
-    echo '</div>';
-
-    echo '<div id="productos-agregados" class="mt-4">';
-    echo '<h4>Productos a agregar</h4>';
-    echo '<ul id="lista-productos-agregados" class="list-group mb-3"></ul>';
-    echo '<button class="btn btn-success" onclick="enviarProductosComanda()">Enviar pedido</button>';
-    echo '</div>';
-
-    echo '</div>';
 echo '</div>';
 
+?>
+<div class="container py-3">
+    <div class="row g-4">
+        <!-- Menú de productos por categorías (izquierda) -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0">Menú de Productos</h5></div>
+                <div class="card-body">
+                    <?php include '../../views/shared/menu_productos.php'; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna central: Agregar productos arriba de productos en la mesa -->
+        <div class="col-md-8">
+            <!-- Agregar productos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0">Agregar Productos</h5></div>
+                <div class="card-body">
+                    <ul id="lista-productos-agregados" class="list-group mb-3"></ul>
+                    <button class="btn btn-success w-100" onclick="enviarProductosComanda()">Enviar pedido</button>
+                </div>
+            </div>
+            <!-- Productos actuales de la mesa -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0">Productos en la Mesa</h5></div>
+                <div class="card-body">
+                    <h2>Detalle de Mesa #<?= htmlspecialchars($mesa['Numero_Mesa']) ?></h2>
+                    <p>Capacidad: <?= htmlspecialchars($mesa['Capacidad']) ?> personas</p>
+                    <p>Estado: <?= $mesa['Estado'] ? 'Ocupada' : 'Libre' ?></p>
+                    <?php if ($comanda): ?>
+                        <?php $detalles = $ventaModel->getSaleDetails($comanda['ID_Venta']); ?>
+                        <?php if ($detalles && count($detalles) > 0): ?>
+                            <ul class="list-group mb-3">
+                                <?php $total = 0; foreach ($detalles as $detalle): $total += $detalle['Subtotal']; ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold me-2"><?= htmlspecialchars($detalle['Nombre_Producto']) ?></span>
+                                            <span class="badge bg-secondary me-2">x<?= $detalle['Cantidad'] ?></span>
+                                            <span class="badge bg-info me-2"><?= htmlspecialchars($detalle['Estado']) ?></span>
+                                            <span class="text-success fw-bold">$<?= number_format($detalle['Subtotal'], 2) ?></span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <?php if ($detalle['Estado'] !== 'entregado'): ?>
+                                                <button type="button" class="btn btn-sm btn-success" onclick="actualizarEstadoDetalle(<?= $detalle['ID_Detalle'] ?>, 'entregado')">Entregar</button>
+                                            <?php endif; ?>
+                                            <?php if ($detalle['Estado'] !== 'cancelado'): ?>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="actualizarEstadoDetalle(<?= $detalle['ID_Detalle'] ?>, 'cancelado')">Cancelar</button>
+                                            <?php endif; ?>
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?= $detalle['ID_Detalle'] ?>)">Eliminar</button>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                                <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-light">
+                                    <span>Total</span><span class="text-primary">$<?= number_format($total, 2) ?></span>
+                                </li>
+                            </ul>
+                        <?php else: ?>
+                            <div class="alert alert-info">No hay productos en la comanda actual.</div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php
 require_once '../../views/shared/footer.php';
 ?>
 <script>
@@ -53,7 +97,6 @@ require_once '../../views/shared/footer.php';
 let productosAgregados = [];
 
 function agregarProductoMenu(id, nombre, precio) {
-    // Si ya existe, suma cantidad
     let prod = productosAgregados.find(p => p.id === id);
     if (prod) {
         prod.cantidad++;
@@ -69,15 +112,15 @@ function renderProductosAgregados() {
     let total = 0;
     productosAgregados.forEach((p, idx) => {
         total += p.precio * p.cantidad;
-        lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${p.nombre} x${p.cantidad}</span>
+        lista.innerHTML += `<li class='list-group-item d-flex justify-content-between align-items-center'>
+            <span>${p.nombre} <span class='badge bg-secondary ms-2'>x${p.cantidad}</span></span>
             <span>$${(p.precio * p.cantidad).toFixed(2)}</span>
-            <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProductoAgregado(${idx})">Eliminar</button>
+            <button class='btn btn-sm btn-outline-danger ms-2' onclick='eliminarProductoAgregado(${idx})'>Eliminar</button>
         </li>`;
     });
-    lista.innerHTML += `<li class="list-group-item fw-bold d-flex justify-content-between align-items-center">
-        <span>Total</span><span>$${total.toFixed(2)}</span>
-    </li>`;
+    if (productosAgregados.length > 0) {
+        lista.innerHTML += `<li class='list-group-item text-end fw-bold'>Total: $${total.toFixed(2)}</li>`;
+    }
 }
 
 function eliminarProductoAgregado(idx) {
@@ -90,11 +133,73 @@ function enviarProductosComanda() {
         alert('Agrega al menos un producto.');
         return;
     }
-    // Aquí iría el AJAX para enviar los productos al backend
-    // Por ahora solo resetea la lista
-    alert('Pedido enviado (simulado).');
-    productosAgregados = [];
-    renderProductosAgregados();
+    const idMesa = <?php echo json_encode($idMesa); ?>;
+    fetch('/restaurante/comanda/agregarProductos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `id_mesa=${idMesa}&productos=${encodeURIComponent(JSON.stringify(productosAgregados))}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Pedido enviado correctamente.');
+            productosAgregados = [];
+            renderProductosAgregados();
+            location.reload();
+        } else {
+            alert('Error al enviar pedido: ' + (data.error || ''));
+        }
+    })
+    .catch(() => {
+        alert('Error de comunicación con el servidor.');
+    });
 }
+
+function actualizarEstadoDetalle(idDetalle, estado) {
+    fetch('/restaurante/detalleventa/actualizarEstado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `id_detalle=${idDetalle}&estado=${estado}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al actualizar estado');
+        }
+    })
+    .catch(() => {
+        alert('Error de comunicación con el servidor.');
+    });
+}
+
+function eliminarProductoComanda(idDetalle) {
+    let cantidad = prompt('¿Cuántos deseas eliminar? (deja vacío para eliminar todos)');
+    if (cantidad === null) return;
+    cantidad = cantidad.trim();
+    let body = `id_detalle=${idDetalle}`;
+    if (cantidad !== '') {
+        body += `&cantidad=${encodeURIComponent(cantidad)}`;
+    }
+    fetch('/restaurante/detalleventa/eliminarProducto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al eliminar producto');
+        }
+    })
+    .catch(() => {
+        alert('Error de comunicación con el servidor.');
+    });
+}
+
+// Inicializa render
+renderProductosAgregados();
 </script>
-?>

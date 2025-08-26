@@ -54,10 +54,10 @@ $empleados = $userModel->getAllUsers();
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-warning" onclick="editarEmpleado(<?php echo $empleado['ID_usuario']; ?>)">
+                    <button class="btn btn-sm btn-warning" onclick="editarEmpleado(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarEmpleado(<?php echo $empleado['ID_usuario']; ?>)">
+                    <button class="btn btn-sm btn-danger" onclick="eliminarEmpleado(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>

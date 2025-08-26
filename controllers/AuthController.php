@@ -25,6 +25,8 @@ class AuthController extends BaseController {
                 $user = $userModel->validateUser($username);
 
                 if ($user && $userModel->verifyPassword($password, $user['Contrasenia'])) {
+                    // Regenerar ID de sesión tras login exitoso
+                    session_regenerate_id(true);
                     $empleadoId = $userModel->getEmpleadoIdByUserId($user['ID_Usuario']);
                     Session::set('user_id', $user['ID_Usuario']);
                     Session::set('empleado_id', $empleadoId);

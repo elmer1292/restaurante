@@ -20,18 +20,9 @@ foreach ($comandas as $comanda) {
     }
     $comandasPorMesa[$idMesa]['items'][] = $comanda;
 }
+require_once 'views/shared/header.php';
+
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Barra - RestBar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/restaurante/assets/css/styles.css">
-</head>
-<body class="bg-light">
     <div class="container-fluid">
         <div class="row">
             <?php include 'views/shared/sidebar.php'; ?>
@@ -107,5 +98,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['marcar_preparado'])) 
     // Eliminado: ahora el cambio de estado se hace por AJAX
 }
 ?>
-</body>
-</html>

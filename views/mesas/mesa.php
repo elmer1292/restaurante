@@ -45,7 +45,11 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
             <div class="card-header bg-white"><h5 class="mb-0">Agregar Productos</h5></div>
             <div class="card-body">
                 <ul id="lista-productos-agregados" class="list-group mb-3"></ul>
+                <?php if ($comanda): ?>
                 <button class="btn btn-success w-100" onclick="enviarProductosComanda()">Enviar pedido</button>
+                <?php else: ?>
+                <button class="btn btn-success w-100" disabled>Enviar pedido</button>
+                <?php endif; ?>
             </div>
         </div>
         <div class="card shadow-sm mb-4">
@@ -131,9 +135,12 @@ function eliminarProductoAgregado(idx) {
 }
 function enviarProductosComanda() {
     if (productosAgregados.length === 0) return;
-    const idMesa = document.querySelector('input[name="id_mesa"]').value;
-    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-    fetch('/restaurante/comanda/agregar_productos', {
+    let idMesaInput = document.querySelector('input[name="id_mesa"]');
+    let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
+    // Si los inputs no existen, usar variables PHP
+    let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
+    let csrfToken = csrfTokenInput ? csrfTokenInput.value : <?php echo json_encode(Csrf::getToken()); ?>;
+    fetch('/restaurante/comanda/agregarProductos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         credentials: 'same-origin',
@@ -199,7 +206,20 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
 });
 
 
+
 renderListaProductosAgregados();
+
+// Permite agregar productos desde el menú (usado en menu_productos.php)
+function agregarProductoMenu(id, nombre, precio) {
+    // Buscar si ya existe el producto en la lista
+    let idx = productosAgregados.findIndex(p => p.id === id);
+    if (idx !== -1) {
+        productosAgregados[idx].cantidad += 1;
+    } else {
+        productosAgregados.push({ id, nombre, cantidad: 1, precio });
+    }
+    renderListaProductosAgregados();
+}
 
 // Accesibilidad robusta: mueve el foco al botón 'Nueva Mesa' al cerrar el modal
 function focusNuevaMesaBtn() {

@@ -1,5 +1,6 @@
 <?php
 require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/helpers/View.php';
 
 Session::init();
 Session::checkRole(['Administrador']);
@@ -47,25 +48,10 @@ if (isset($_SESSION['mensaje'])) {
             </thead>
             <tbody>
                 <?php foreach ($productos as $producto): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($producto['ID_Producto']); ?></td>
-                    <td><?php echo htmlspecialchars($producto['Nombre_Producto']); ?></td>
-                    <td><?php echo htmlspecialchars($producto['Nombre_Categoria']); ?></td>
-                    <td>$<?php echo number_format($producto['Precio_Costo'], 2); ?></td>
-                    <td>$<?php echo number_format($producto['Precio_Venta'], 2); ?></td>
-                    <td><?php echo htmlspecialchars($producto['Stock']); ?></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-producto" 
-                                data-id="<?php echo $producto['ID_Producto']; ?>"
-                                data-nombre="<?php echo htmlspecialchars($producto['Nombre_Producto']); ?>"
-                                data-categoria="<?php echo $producto['ID_Categoria']; ?>"
-                                data-costo="<?php echo $producto['Precio_Costo']; ?>"
-                                data-venta="<?php echo $producto['Precio_Venta']; ?>"
-                                data-stock="<?php echo $producto['Stock']; ?>">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </td>
-                </tr>
+                    <?php
+                        // Renderiza la fila de producto usando el helper
+                        echo renderProductoTableRow($producto);
+                    ?>
                 <?php endforeach; ?>
             </tbody>
         </table>

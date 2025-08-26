@@ -1,12 +1,8 @@
 <?php
 require_once __DIR__ . '/../../models/ProductModel.php';
 $productModel = new ProductModel();
-// ...existing code...
-require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
-$params = getPageParams($_GET, 50);
-$productos = $productModel->getAllProducts($params['offset'], $params['limit']);
-$totalProductos = $productModel->getTotalProducts();
-$totalPages = isset($totalProductos) && $params['limit'] > 0 ? ceil($totalProductos / $params['limit']) : 1;
+$productos = $productModel->getAllProducts();
+
 // Agrupar productos por categoría
 $productosPorCategoria = [];
 foreach ($productos as $producto) {
@@ -32,16 +28,3 @@ foreach ($productos as $producto) {
         </div>
     <?php endforeach; ?>
 </div>
-
-<!-- Controles de paginación -->
-<nav aria-label="Paginación de productos">
-    <ul class="pagination">
-        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-            <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
-                <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
-                    <?php echo $i; ?>
-                </a>
-            </li>
-        <?php endfor; ?>
-    </ul>
-</nav>

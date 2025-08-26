@@ -21,10 +21,7 @@ $mesaModel = new MesaModel();
 $mesa = $mesaModel->getTableById($idMesa);
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
 // ...estructura visual mejorada...
-echo '</div>';
-
 ?>
-<div class="container py-3">
     <div class="row g-4">
         <!-- Menú de productos por categorías (izquierda) -->
         <div class="col-md-4">
@@ -88,7 +85,7 @@ echo '</div>';
             </div>
         </div>
     </div>
-</div>
+
 <?php
 require_once '../../views/shared/footer.php';
 ?>

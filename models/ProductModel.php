@@ -111,4 +111,18 @@ class ProductModel {
             return false;
         }
     }
+        /**
+     * Devuelve el total de productos en la base de datos.
+     * @return int
+     */
+    public function getTotalProducts() {
+        try {
+            $stmt = $this->conn->query('SELECT COUNT(*) as total FROM productos');
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? (int)$row['total'] : 0;
+        } catch (PDOException $e) {
+            error_log('Error en getTotalProducts: ' . $e->getMessage());
+            return 0;
+        }
+    }
 }

@@ -16,7 +16,6 @@ if (isset($_SESSION['mensaje'])) {
     $mensaje = $_SESSION['mensaje'];
     unset($_SESSION['mensaje']);
 }
-
 ?>
 
 <h1 class="h2 mb-4">Gestión de Productos</h1>

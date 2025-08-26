@@ -32,18 +32,6 @@ require_once 'views/shared/header.php';
     <div class="alert alert-info">No hay ventas pendientes.</div>
 <?php else: ?>
     <div class="accordion" id="ventasAccordion">
-        <!-- Controles de paginación -->
-        <nav aria-label="Paginación de ventas">
-            <ul class="pagination">
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
-                            <?php echo $i; ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
-            </ul>
-        </nav>
         <?php foreach ($ventasPendientes as $venta): ?>
             <div class="accordion-item mb-2">
                 <h2 class="accordion-header" id="heading<?= $venta['ID_Venta'] ?>">
@@ -67,22 +55,64 @@ require_once 'views/shared/header.php';
                                     </li>
                             <?php endforeach; endif; ?>
                         </ul>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><b>Total:</b> $<?= number_format($venta['Total'], 2) ?></span>
-                            <form method="post" style="margin:0;">
-                                <?php require_once '../../helpers/Csrf.php'; ?>
-                                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
-                                <input type="hidden" name="cobrar_venta" value="<?= $venta['ID_Venta'] ?>">
-                                <button type="submit" class="btn btn-success">Cobrar Mesa</button>
-                            </form>
-                        </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                        <span><b>Total:</b> $<?= number_format($venta['Total'], 2) ?></span>
+                                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pagoModal<?= $venta['ID_Venta'] ?>">Registrar Pago</button>
+                                                </div>
+                                                <!-- Modal de pago -->
+                                                <div class="modal fade" id="pagoModal<?= $venta['ID_Venta'] ?>" tabindex="-1">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Registrar Pago - Venta #<?= $venta['ID_Venta'] ?></h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <form class="formPagoVenta" data-id-venta="<?= $venta['ID_Venta'] ?>">
+                                                                <div class="modal-body">
+                                                                    <div id="metodosPagoContainer<?= $venta['ID_Venta'] ?>">
+                                                                        <div class="row mb-2 metodo-pago-row">
+                                                                            <div class="col-6">
+                                                                                <select class="form-select metodo-pago-select" required>
+                                                                                    <option value="Efectivo">Efectivo</option>
+                                                                                    <option value="Transferencia">Transferencia</option>
+                                                                                    <option value="Tarjeta">Tarjeta</option>
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="col-6">
+                                                                                <input type="number" min="1" max="<?= $venta['Total'] ?>" class="form-control metodo-pago-monto" placeholder="Monto" required>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-link" onclick="agregarMetodoPago(<?= $venta['ID_Venta'] ?>)">+ Agregar otro método</button>
+                                                                    <div class="mt-3"><b>Saldo pendiente:</b> $<span id="saldoPendiente<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'], 2) ?></span></div>
+                                                                    <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                    <button type="submit" class="btn btn-success">Registrar Pago</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
                     </div>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
-
+        <!-- Controles de paginación -->
+        <nav aria-label="Paginación de ventas">
+            <ul class="pagination">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <li class="page-item <?php echo $i == $params['page'] ? 'active' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $i; ?>&limit=<?php echo $params['limit']; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
+        </nav>
 <?php
 // Procesar cobro de la venta
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cobrar_venta'])) {
@@ -103,3 +133,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cobrar_venta'])) {
 ?>
 
 <?php require_once 'views/shared/footer.php'; ?>
+<script>
+function agregarMetodoPago(idVenta) {
+    const container = document.getElementById('metodosPagoContainer' + idVenta);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'row mb-2 metodo-pago-row';
+    row.innerHTML = `<div class="col-6">
+        <select class="form-select metodo-pago-select" required>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Tarjeta">Tarjeta</option>
+        </select>
+    </div>
+    <div class="col-6">
+        <input type="number" min="1" class="form-control metodo-pago-monto" placeholder="Monto" required>
+    </div>`;
+    container.appendChild(row);
+}
+
+document.querySelectorAll('.formPagoVenta').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const idVenta = form.getAttribute('data-id-venta');
+        const metodoSelects = form.querySelectorAll('.metodo-pago-select');
+        const montoInputs = form.querySelectorAll('.metodo-pago-monto');
+        let pagos = [];
+        let totalPagado = 0;
+        for (let i = 0; i < metodoSelects.length; i++) {
+            const metodo = metodoSelects[i].value;
+            const monto = parseFloat(montoInputs[i].value);
+            if (!metodo || isNaN(monto) || monto <= 0) {
+                alert('Completa todos los métodos y montos correctamente.');
+                return;
+            }
+            pagos.push(`${metodo}:${monto}`);
+            totalPagado += monto;
+        }
+        const saldo = parseFloat(form.closest('.accordion-body').querySelector('span[id^="saldoPendiente"]').textContent.replace(/[^\d\.]/g, ''));
+        if (totalPagado > saldo) {
+            alert('El monto pagado excede el saldo pendiente.');
+            return;
+        }
+        // Limitar el string a 20 caracteres para Metodo_Pago
+        let metodoPagoStr = pagos.join(', ');
+        if (metodoPagoStr.length > 20) metodoPagoStr = metodoPagoStr.substring(0, 20);
+        const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+        fetch('views/ventas/registrar_pago.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                id_venta: idVenta,
+                metodo_pago: metodoPagoStr,
+                monto: totalPagado,
+                csrf_token: csrfToken
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Pago registrado correctamente.');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Error al registrar el pago.');
+            }
+        });
+    });
+});
+</script>

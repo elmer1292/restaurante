@@ -23,6 +23,8 @@ $router->add('ventas', 'VentaController', 'index');
 $router->add('detalleventa/actualizarEstado', 'DetalleVentaController', 'actualizarEstado');
 $router->add('detalleventa/eliminarProducto', 'DetalleVentaController', 'eliminarProducto');
 $router->add('comanda/agregarProductos', 'ComandaAjaxController', 'agregarProductos');
+$router->add('user/perfil', 'UserController', 'perfil');
+$router->add('user/update', 'UserController', 'actualizarPerfil');
 // Ejemplo:
 // $router->add('productos/crear', 'ProductoController', 'create');
 // $router->add('productos/editar', 'ProductoController', 'edit');

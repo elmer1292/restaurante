@@ -19,6 +19,13 @@ $baseUrl = '/restaurante';
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo $baseUrl; ?>/user/perfil">
+                    <i class="bi bi-person-circle"></i>
+                    Mi Perfil
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link text-white <?php echo $currentPage === '' || $currentPage === 'index.php' ? 'active' : ''; ?>" 
                    href="<?php echo $baseUrl; ?>/">
                     <i class="bi bi-speedometer2"></i>

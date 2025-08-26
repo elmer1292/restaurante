@@ -1,9 +1,10 @@
 <?php
+require_once 'config.php';
 class Database {
-    private $host = 'localhost';
-    private $db_name = 'rest_bar';
-    private $username = 'baruser';
-    private $password = 'root123';
+    private $host = DB_HOST;
+    private $db_name = DB_NAME;
+    private $username = DB_USER;
+    private $password = DB_PASS;
     private $conn;
 
     public function connect() {

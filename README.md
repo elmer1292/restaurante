@@ -149,6 +149,39 @@ Contraseña: cajero123
 - Control de acceso basado en roles
 - Sesiones seguras
 
+---
+
+## Seguridad CSRF Global
+
+Desde agosto 2025, el sistema implementa protección CSRF en todos los formularios y peticiones AJAX.
+
+### ¿Cómo funciona?
+- Se genera un token único por sesión y se inyecta automáticamente en el `<head>` de todas las vistas.
+- Todos los formularios HTML incluyen:
+  ```html
+  <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
+  ```
+- Todas las peticiones AJAX incluyen el token en el header:
+  ```js
+  headers: { 'X-CSRF-Token': csrfToken }
+  ```
+  Donde `csrfToken` se obtiene de:
+  ```js
+  window.csrfToken // o
+  document.querySelector('meta[name="csrf-token"]').content
+  ```
+
+### Validación en el backend
+- Los controladores validan el token antes de procesar cualquier acción que modifique datos.
+- Si el token es inválido o falta, la petición se rechaza con error 403.
+
+### Pruebas manuales
+- Enviar un POST/PUT/DELETE sin token → respuesta 403.
+- Enviar con token correcto → acción permitida.
+- AJAX con header correcto → acción permitida.
+
+---
+
 ## Mantenimiento
 
 - Realizar respaldos regulares de la base de datos

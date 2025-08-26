@@ -48,6 +48,8 @@ require_once 'views/shared/header.php';
                         <div class="d-flex justify-content-between align-items-center">
                             <span><b>Total:</b> $<?= number_format($venta['Total'], 2) ?></span>
                             <form method="post" style="margin:0;">
+                                <?php require_once '../../helpers/Csrf.php'; ?>
+                                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                                 <input type="hidden" name="cobrar_venta" value="<?= $venta['ID_Venta'] ?>">
                                 <button type="submit" class="btn btn-success">Cobrar Mesa</button>
                             </form>

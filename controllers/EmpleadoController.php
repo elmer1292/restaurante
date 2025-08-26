@@ -21,8 +21,15 @@ class EmpleadoController extends BaseController {
     }
 
     public function updateEmpleado() {
+        require_once __DIR__ . '/../helpers/Csrf.php';
         $userModel = new UserModel();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            if (!Csrf::validateToken($csrfToken)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+                exit;
+            }
             $action = $_POST['action'] ?? '';
             if ($action === 'update') {
                 $id = (int)$_POST['id'];

@@ -40,6 +40,8 @@
                 <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
             <form method="POST" action="/restaurante/login">
+                <?php require_once 'helpers/Csrf.php'; ?>
+                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                     <?php
                     // Generar token CSRF si no existe
                     if (empty($_SESSION['csrf_token'])) {

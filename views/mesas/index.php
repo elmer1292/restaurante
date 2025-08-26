@@ -53,6 +53,8 @@ if (isset($_SESSION['mensaje'])) {
                     </button>
                     <?php endif; ?>
                         <form method="get" action="views/mesas/ordenes.php" style="display:inline;">
+                            <?php require_once 'helpers/Csrf.php'; ?>
+                            <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                             <input type="hidden" name="id_mesa" value="<?php echo $mesa['ID_Mesa']; ?>">
                             <button type="submit" class="btn btn-sm btn-info">
                                 <i class="bi bi-list"></i> Ver Detalle
@@ -74,6 +76,8 @@ if (isset($_SESSION['mensaje'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="mesaForm" action="procesar_mesa.php" method="POST">
+                <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
+                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <div class="modal-body">
                     <input type="hidden" name="id_mesa" id="id_mesa">
                     <div class="mb-3">

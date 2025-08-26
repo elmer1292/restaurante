@@ -4,7 +4,14 @@ require_once __DIR__ . '/../models/VentaModel.php';
 
 class DetalleVentaController extends BaseController {
     public function actualizarEstado() {
+        require_once __DIR__ . '/../helpers/Csrf.php';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            if (!Csrf::validateToken($csrfToken)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+                exit;
+            }
             $idDetalle = isset($_POST['id_detalle']) ? (int)$_POST['id_detalle'] : null;
             $estado = isset($_POST['estado']) ? $_POST['estado'] : null;
             if ($idDetalle && $estado) {
@@ -19,25 +26,32 @@ class DetalleVentaController extends BaseController {
         echo json_encode(['success' => false, 'error' => 'Datos insuficientes']);
         exit;
     }
-        public function eliminarProducto() {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $idDetalle = isset($_POST['id_detalle']) ? (int)$_POST['id_detalle'] : null;
-                $cantidadEliminar = isset($_POST['cantidad']) ? (int)$_POST['cantidad'] : null;
-                if ($idDetalle) {
-                    $ventaModel = new VentaModel();
-                    // Obtener cantidad actual
-                    $conn = (new Database())->connect();
-                    $stmt = $conn->prepare('SELECT Cantidad FROM detalle_venta WHERE ID_Detalle = ?');
-                    $stmt->execute([$idDetalle]);
-                    $actual = $stmt->fetchColumn();
-                    if ($cantidadEliminar && $cantidadEliminar < $actual) {
-                        $result = $ventaModel->actualizarCantidadDetalle($idDetalle, $actual - $cantidadEliminar);
-                    } else {
-                        $result = $ventaModel->eliminarDetalle($idDetalle);
-                    }
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => $result]);
-                    exit;
+    public function eliminarProducto() {
+        require_once __DIR__ . '/../helpers/Csrf.php';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            if (!Csrf::validateToken($csrfToken)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+                exit;
+            }
+            $idDetalle = isset($_POST['id_detalle']) ? (int)$_POST['id_detalle'] : null;
+            $cantidadEliminar = isset($_POST['cantidad']) ? (int)$_POST['cantidad'] : null;
+            if ($idDetalle) {
+                $ventaModel = new VentaModel();
+                // Obtener cantidad actual
+                $conn = (new Database())->connect();
+                $stmt = $conn->prepare('SELECT Cantidad FROM detalle_venta WHERE ID_Detalle = ?');
+                $stmt->execute([$idDetalle]);
+                $actual = $stmt->fetchColumn();
+                if ($cantidadEliminar && $cantidadEliminar < $actual) {
+                    $result = $ventaModel->actualizarCantidadDetalle($idDetalle, $actual - $cantidadEliminar);
+                } else {
+                    $result = $ventaModel->eliminarDetalle($idDetalle);
+                }
+                header('Content-Type: application/json');
+                echo json_encode(['success' => $result]);
+                exit;
                 }
             }
             header('Content-Type: application/json');

@@ -77,6 +77,8 @@ $empleados = $userModel->getAllUsers();
             </div>
             <div class="modal-body">
             <form id="empleadoForm" action="/restaurante/controllers/EmpleadoController.php" method="POST">
+                <?php require_once '../../helpers/Csrf.php'; ?>
+                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                     <input type="hidden" name="action" value="create">
                     <input type="hidden" name="id" id="empleadoId">
                     

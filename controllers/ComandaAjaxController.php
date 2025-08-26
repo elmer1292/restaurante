@@ -4,7 +4,14 @@ require_once __DIR__ . '/../models/VentaModel.php';
 
 class ComandaAjaxController extends BaseController {
     public function agregarProductos() {
+        require_once __DIR__ . '/../helpers/Csrf.php';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+            if (!Csrf::validateToken($csrfToken)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+                exit;
+            }
             $idMesa = isset($_POST['id_mesa']) ? (int)$_POST['id_mesa'] : null;
             $productos = isset($_POST['productos']) ? json_decode($_POST['productos'], true) : [];
             if (!$idMesa || empty($productos)) {

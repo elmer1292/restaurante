@@ -81,6 +81,8 @@ if (isset($_SESSION['mensaje'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="productoForm" action="procesar_producto.php" method="POST">
+                <?php require_once '../../helpers/Csrf.php'; ?>
+                <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <div class="modal-body">
                     <input type="hidden" name="id_producto" id="id_producto">
                     <div class="mb-3">

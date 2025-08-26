@@ -70,11 +70,14 @@ function handleFetchError(error) {
 
 // Función para realizar peticiones fetch
 async function fetchData(url, options = {}) {
+    // Obtener el token CSRF desde una variable global o meta tag
+    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content;
     try {
         const response = await fetch(url, {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                ...(csrfToken ? {'X-CSRF-Token': csrfToken} : {}),
                 ...options.headers
             }
         });

@@ -1,6 +1,9 @@
 // Función para editar empleado
 function editarEmpleado(id) {
-    fetch(`/restaurante/empleados/get?id=${id}`)
+    const csrfToken = window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content;
+    fetch(`/restaurante/empleados/get?id=${id}`, {
+        headers: csrfToken ? {'X-CSRF-Token': csrfToken} : {}
+    })
         .then(response => response.json())
         .then(data => {
             document.getElementById('empleadoId').value = data.ID_usuario;

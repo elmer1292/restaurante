@@ -13,8 +13,8 @@ $baseUrl = '/restaurante';
         <div class="text-center mb-4">
             <h4 class="text-white">RestBar</h4>
             <div class="text-white">
-                <p class="mb-1"><?php echo htmlspecialchars($nombreCompleto); ?></p>
-                <small><?php echo htmlspecialchars($userRole); ?></small>
+                <p class="mb-1"><?php echo htmlspecialchars($nombreCompleto ?? ''); ?></p>
+                <small><?php echo htmlspecialchars($userRole ?? ''); ?></small>
             </div>
         </div>
         <ul class="nav flex-column">

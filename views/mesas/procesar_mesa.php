@@ -1,5 +1,5 @@
 <?php
-require_once 'config/Session.php';
+require_once __DIR__ . '/../../config/Session.php';
 require_once '../../models/MesaModel.php';
 
 Session::init();
@@ -24,7 +24,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'toggle_estado') {
 // Las siguientes operaciones solo están permitidas para Administradores
 if (Session::get('user_role') !== 'Administrador') {
     $_SESSION['mensaje'] = 'No tiene permisos para realizar esta operación.';
-    header('Location: index.php');
+    header('Location: /restaurante/mesas');
     exit();
 }
 
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validaciones básicas
     if ($numeroMesa <= 0 || $capacidad <= 0) {
         $_SESSION['mensaje'] = 'Por favor, ingrese valores válidos para el número de mesa y capacidad.';
-        header('Location: index.php');
+        header('Location: /restaurante/mesas');
         exit();
     }
 
@@ -60,5 +60,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['mensaje'] = $mensaje;
 }
 
-header('Location: index.php');
+header('Location: /restaurante/mesas');
 exit();

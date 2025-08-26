@@ -1,6 +1,7 @@
-<?php
-require_once 'config/Session.php';
 
+<?php
+require_once __DIR__ . '/../../config/Session.php';
+require_once __DIR__ . '/../../models/MesaModel.php';
 Session::init();
 Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
@@ -55,8 +56,8 @@ if (isset($_SESSION['mensaje'])) {
                         <i class="bi bi-pencil"></i>
                     </button>
                     <?php endif; ?>
-                        <form method="get" action="views/mesas/ordenes.php" style="display:inline;">
-                            <?php require_once 'helpers/Csrf.php'; ?>
+                        <form method="get" action="views/mesas/mesa.php" style="display:inline;">
+                            <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
                             <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                             <input type="hidden" name="id_mesa" value="<?php echo $mesa['ID_Mesa']; ?>">
                             <button type="submit" class="btn btn-sm btn-info">
@@ -78,7 +79,7 @@ if (isset($_SESSION['mensaje'])) {
                 <h5 class="modal-title" id="modalTitle">Nueva Mesa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="mesaForm" action="procesar_mesa.php" method="POST">
+            <form id="mesaForm" action="views/mesas/procesar_mesa.php" method="POST">
                 <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
                 <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <div class="modal-body">

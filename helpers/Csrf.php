@@ -17,7 +17,7 @@ class Csrf {
         return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token) && !self::isExpired();
     }
 
-    public static function isExpired($ttl = 3600) {
+    public static function isExpired($ttl = 86400) { // 24 horas
         return isset($_SESSION['csrf_token_time']) && (time() - $_SESSION['csrf_token_time'] > $ttl);
     }
 

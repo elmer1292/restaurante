@@ -22,7 +22,7 @@ if (empty($comandas)) {
         echo '<td>' . htmlspecialchars($mesa['Numero_Mesa']) . '</td>';
         echo '<td>' . htmlspecialchars($comanda['Fecha_Hora']) . '</td>';
         echo '<td>';
-        echo '<a href="/restaurante/views/mesas/ordenes.php?id_mesa=' . $comanda['ID_Mesa'] . '" class="btn btn-info btn-sm">Ver Detalle</a>';
+    echo '<a href="/restaurante/views/mesas/mesa.php?id_mesa=' . $comanda['ID_Mesa'] . '" class="btn btn-info btn-sm">Ver Detalle</a>';
         echo '</td>';
         echo '</tr>';
     }

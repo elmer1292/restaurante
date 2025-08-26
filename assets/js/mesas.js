@@ -31,13 +31,5 @@ $(document).ready(function() {
         $('#id_mesa').val('');
     });
 
-    /* $('.mesa-card').click(function() {
-        const idMesa = $(this).data('id');
-        const estado = $(this).data('estado');
-        if (estado === 0) {
-            window.location.href = '../comandas/nueva.php?mesa=' + idMesa;
-        } else {
-            window.location.href = '../comandas/agregar_productos.php?mesa=' + idMesa;
-        }
-    }); */
+    // Eliminado el evento click automático en la card de la mesa
 });

@@ -40,9 +40,14 @@ class VentaModel {
         try {
             // Log de los valores recibidos para depuración
             error_log('createSale params: idCliente=' . var_export($idCliente, true) . ', idMesa=' . var_export($idMesa, true) . ', metodoPago=' . var_export($metodoPago, true) . ', idEmpleado=' . var_export($idEmpleado, true));
+            // Log temporal para depuración
+            error_log('VentaModel::createSale - mesaId: ' . print_r($idMesa, true));
+            error_log('VentaModel::createSale - empleadoId: ' . print_r($idEmpleado, true));
+            //            error_log('VentaModel::createSale - productos: ' . print_r($productos, true));
             $stmt = $this->conn->prepare('CALL sp_CreateSale(?, ?, ?, ?)');
             $stmt->execute([$idCliente, $idMesa, $metodoPago, $idEmpleado]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            //            error_log('VentaModel::createSale - productosJson: ' . $productosJson);
             error_log('createSale result: ' . var_export($result, true));
             if ($result && isset($result['ID_Venta'])) {
                 return $result['ID_Venta'];
@@ -192,5 +197,15 @@ class VentaModel {
             error_log('Error en getVentaActivaByMesa: ' . $e->getMessage());
             return false;
         }
+    }
+
+    public function deleteSale($idVenta) {
+
+    // Eliminar detalles primero
+    $stmtDetalles = $this->conn->prepare("DELETE FROM detalle_venta WHERE ID_Venta = ?");
+    $stmtDetalles->execute([$idVenta]);
+    // Eliminar la venta principal
+    $stmtVenta = $this->conn->prepare("DELETE FROM ventas WHERE ID_Venta = ?");
+    return $stmtVenta->execute([$idVenta]);
     }
 }

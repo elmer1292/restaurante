@@ -82,7 +82,7 @@ CREATE TABLE `empleados` (
   CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15),(15,'elmer','elmer113.com','123456789','2025-07-14',15);
+INSERT INTO `empleados` VALUES (6,'Elmer Laguna','elmer@gmail.com','12345678','2025-03-18',1),(7,'Elvira Ojeda','elvira@gmail.com','12345678','2025-03-18',9),(8,'Katy Ramos','kramos@gmail.com','85987484','2025-03-18',10),(10,'Xiomara Chévez','xiomara@gmail.com','85988748','2025-03-18',12),(13,'Jose Agustin Arredondo','josearredondo@gmail.com','12346578','2025-03-18',15);
 CREATE TABLE `ventas` (
   `ID_Venta` int NOT NULL AUTO_INCREMENT,
   `ID_Cliente` int DEFAULT NULL,

@@ -12,7 +12,7 @@ $baseUrl = '/restaurante';
 <head>
     <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
     <meta name="csrf-token" content="<?= Csrf::getToken() ?>">
-    <?php require_once __DIR__ . '/../../config/base_url.php'; ?>
+    <?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
     <script>window.csrfToken = '<?= Csrf::getToken() ?>';
     const BASE_URL = '<?= BASE_URL ?>';
     </script>

@@ -60,6 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['mensaje'] = $mensaje;
 }
 
-require_once __DIR__ . '/../../config/base_url.php';
+require_once dirname(__DIR__, 2) . '/config/base_url.php';
 header('Location: ' . BASE_URL . 'mesas');
 exit();

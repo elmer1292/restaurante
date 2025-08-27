@@ -24,7 +24,7 @@ try {
     $totalPages = 1;
 }
 
-require_once 'views/shared/header.php';
+// ...existing code...
 ?>
 
 <h1 class="mb-4">Ventas Pendientes</h1>
@@ -132,8 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cobrar_venta'])) {
 }
 ?>
 
-<?php require_once 'views/shared/footer.php'; ?>
-<?php require_once __DIR__ . '/../../config/base_url.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <script>
 function agregarMetodoPago(idVenta) {
     const container = document.getElementById('metodosPagoContainer' + idVenta);

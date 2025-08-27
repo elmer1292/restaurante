@@ -5,7 +5,7 @@ $userRole = Session::get('user_role');
 $nombreCompleto = Session::get('nombre_completo');
 $currentPage = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $currentPage = str_replace('restaurante/', '', $currentPage);
-require_once __DIR__ . '/../../config/base_url.php';
+require_once dirname(__DIR__, 2) . '/config/base_url.php';
 ?>
 
 <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
@@ -19,8 +19,8 @@ require_once __DIR__ . '/../../config/base_url.php';
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/perfil.php">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>user/perfil">
                     <i class="bi bi-person-circle"></i>
                     Mi Perfil
                 </a>
@@ -35,15 +35,15 @@ require_once __DIR__ . '/../../config/base_url.php';
 
             <?php if ($userRole === 'Administrador'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'empleados') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/empleados/">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'empleados') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>empleados">
                     <i class="bi bi-people"></i>
                     Empleados
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'productos') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/productos/">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'productos') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>productos">
                     <i class="bi bi-box"></i>
                     Productos
                 </a>
@@ -52,15 +52,15 @@ require_once __DIR__ . '/../../config/base_url.php';
 
             <?php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'mesas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/mesas/">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'mesas') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>mesas">
                     <i class="bi bi-grid"></i>
                     Mesas
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'comandas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/comandas/">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'comandas') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>comandas">
                     <i class="bi bi-receipt"></i>
                     Comandas
                 </a>
@@ -69,8 +69,8 @@ require_once __DIR__ . '/../../config/base_url.php';
 
             <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?php echo strpos($currentPage, 'ventas') !== false ? 'active' : ''; ?>" 
-                   href="<?php echo BASE_URL; ?>views/ventas/">
+                     <a class="nav-link text-white <?php echo strpos($currentPage, 'ventas') !== false ? 'active' : ''; ?>" 
+                         href="<?php echo BASE_URL; ?>ventas">
                    <i class="bi bi-cash-coin"></i>
                    Ventas
                 </a>
@@ -87,5 +87,5 @@ require_once __DIR__ . '/../../config/base_url.php';
     </div>
 </nav>
 
-<?php require_once __DIR__ . '/../../config/base_url.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/styles.css">

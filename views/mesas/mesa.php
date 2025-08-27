@@ -4,8 +4,7 @@ require_once '../../config/Session.php';
 require_once '../../models/VentaModel.php';
 require_once '../../models/ProductModel.php';
 require_once '../../models/MesaModel.php';
-require_once '../../views/shared/header.php';
-require_once '../../views/shared/sidebar.php';
+// ...existing code...
 Session::init();
 Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
@@ -92,8 +91,8 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
         </div>
     </div>
 </div>
-<?php require_once '../../views/shared/footer.php'; ?>
-<?php require_once '../../config/base_url.php'; ?>
+// ...existing code...
+<?php require_once __DIR__ . '/../config/base_url.php'; ?>
 <script>
 document.getElementById('formCrearComanda')?.addEventListener('submit', function(e) {
     e.preventDefault();

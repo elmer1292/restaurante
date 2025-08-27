@@ -1,27 +1,6 @@
-<?php
-require_once 'config/Session.php';
-require_once dirname(__DIR__, 2) . '/helpers/Pagination.php';
-
-Session::init();
-if (!Session::isLoggedIn() || Session::getUserRole() !== 'Administrador') {
-    header('Location: login.php');
-    exit;
-}
-
-$userRole = Session::getUserRole();
-$mensaje = isset($_GET['mensaje']) ? $_GET['mensaje'] : '';
-
-$userModel = new UserModel();
-$params = getPageParams($_GET, 50);
-$empleados = $userModel->getAllUsersPaginated($params['offset'], $params['limit']);
-$totalEmpleados = $userModel->getTotalUsers();
-$totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmpleados / $params['limit']) : 1;
-
-?>
-
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">Gestión de Empleados</h1>
-    <button class="btn btn-primary" onclick="abrirEmpleadoModal()">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#empleadoModal">
         <i class="bi bi-plus-circle"></i> Nuevo Empleado
     </button>
 </div>
@@ -46,24 +25,18 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
             </tr>
         </thead>
         <tbody>
-            <?php if (empty($empleados)): ?>
+            <?php foreach ($empleados as $empleado): ?>
             <tr>
-                <td colspan="6" class="text-center text-muted">No hay empleados para mostrar.</td>
-            </tr>
-            <?php else: ?>
-                <?php foreach ($empleados as $empleado): ?>
-                <?php if ($empleado['ID_usuario'] != $_SESSION['user_id']): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($empleado['ID_usuario'] ?? ''); ?></td>
-                    <td><?php echo htmlspecialchars($empleado['Nombre'] ?? ''); ?></td>
-                    <td><?php echo htmlspecialchars($empleado['Usuario'] ?? ''); ?></td>
-                    <td><?php echo htmlspecialchars($empleado['Rol'] ?? ''); ?></td>
-                    <td>
-                        <span class="badge <?php echo ($empleado['Estado'] == 1) ? 'bg-success' : 'bg-danger'; ?>">
-                            <?php echo ($empleado['Estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
-                        </span>
-                    </td>
-                    <td>
+                <td><?php echo htmlspecialchars($empleado['ID_usuario']) ?? '';?></td>
+                <td><?php echo htmlspecialchars($empleado['Nombre'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($empleado['Usuario'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($empleado['Rol'] ?? ''); ?></td>
+                <td>
+                    <span class="badge <?php echo ($empleado['Estado'] == 1) ? 'bg-success' : 'bg-danger'; ?>">
+                        <?php echo ($empleado['Estado'] == 1) ? 'Activo' : 'Inactivo'; ?>
+                    </span>
+                </td>
+                <td>
                         <button class="btn btn-sm btn-warning" onclick="abrirEmpleadoModal(<?php echo htmlspecialchars($empleado['ID_usuario']); ?>)">
                             <i class="bi bi-pencil"></i>
                         </button>
@@ -77,10 +50,8 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                             </button>
                         <?php endif; ?>
                     </td>
-                </tr>
-                <?php endif; ?>
-                <?php endforeach; ?>
-            <?php endif; ?>
+            </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 </div>
@@ -106,13 +77,11 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-            <form id="empleadoForm" action="/restaurante/controllers/EmpleadoController.php" method="POST">
-                <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
+            <form id="empleadoForm" action="<?php echo BASE_URL; ?>controllers/EmpleadoController.php" method="POST">
+                <!-- El helper Csrf.php debe cargarse en el autoloader/controlador, no en la vista -->
                 <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
-                <input type="hidden" name="action" value="create">
-                <input type="hidden" name="id" id="empleadoId">
-                <!-- Actualizar la acción del formulario para usar el router -->
-                <!-- El script se moverá fuera del formulario para evitar errores de acceso a elementos nulos -->
+                    <input type="hidden" name="action" value="create">
+                    <input type="hidden" name="id" id="empleadoId">
                     
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
@@ -122,18 +91,6 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                     <div class="mb-3">
                         <label for="usuario" class="form-label">Usuario</label>
                         <input type="text" class="form-control" id="usuario" name="usuario" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="correo" class="form-label">Correo</label>
-                        <input type="email" class="form-control" id="correo" name="correo">
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="telefono" name="telefono">
-                    </div>
-                    <div class="mb-3">
-                        <label for="fecha_contratacion" class="form-label">Fecha de Contratación</label>
-                        <input type="date" class="form-control" id="fecha_contratacion" name="fecha_contratacion" value="<?= date('Y-m-d') ?>">
                     </div>
                     
                     <div class="mb-3">
@@ -148,8 +105,6 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
                             <option value="1">Administrador</option>
                             <option value="2">Mesero</option>
                             <option value="3">Cajero</option>
-                            <option value="4">Cocina</option>
-                            <option value="5">Barra</option>
                         </select>
                     </div>
                     
@@ -171,7 +126,7 @@ $totalPages = isset($totalEmpleados) && $params['limit'] > 0 ? ceil($totalEmplea
     </div>
 </div>
 
-<script src="/restaurante/assets/js/empleados.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/empleados.js"></script>
 <script>
 // Mover el foco al body al cerrar los modales para evitar el warning de accesibilidad
 document.addEventListener('DOMContentLoaded', function() {

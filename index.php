@@ -1,6 +1,4 @@
 <?php
-
-
 require_once 'config/base_url.php';
 require_once 'config/autoloader.php';
 require_once 'config/Session.php';

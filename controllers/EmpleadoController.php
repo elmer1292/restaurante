@@ -55,9 +55,18 @@ class EmpleadoController extends BaseController {
         }
     }
     public function index() {
-        // Aquí se manejará la lógica para la gestión de empleados
-        // Ahora se usa render para incluir header, sidebar y footer.
-        $this->render('views/empleados/index.php');
+        require_once __DIR__ . '/../helpers/Pagination.php';
+        $userModel = new UserModel();
+        $params = getPageParams($_GET, 50);
+        $empleados = $userModel->getAllUsersPaginated($params['offset'], $params['limit']);
+        $loggedUserId = Session::get('user_id');
+        $empleados = array_filter($empleados, function($empleado) use ($loggedUserId) {
+            return $empleado['ID_usuario'] != $loggedUserId;
+        });
+        $totalEmpleados = $userModel->getTotalUsers();
+        $totalPages = ($params['limit'] > 0) ? ceil($totalEmpleados / $params['limit']) : 1;
+        $mensaje = $_GET['mensaje'] ?? '';
+    $this->render('views/empleados/index.php', compact('empleados', 'totalPages', 'mensaje', 'params'));
     }
 
     /**

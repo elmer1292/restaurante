@@ -79,8 +79,8 @@ if (isset($_SESSION['mensaje'])) {
                 <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="productoForm" action="procesar_producto.php" method="POST">
-                <?php require_once '../../helpers/Csrf.php'; ?>
+            <form id="productoForm" action="<?php echo BASE_URL; ?>productos/procesar" method="POST">
+                <!-- El helper Csrf.php debe cargarse en el autoloader/controlador, no en la vista -->
                 <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <div class="modal-body">
                     <input type="hidden" name="id_producto" id="id_producto">
@@ -123,4 +123,4 @@ if (isset($_SESSION['mensaje'])) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-<script src="/restaurante/assets/js/productos.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/productos.js"></script>

@@ -1,7 +1,7 @@
 <?php
 $totalPages = isset($totalProductos) && isset($params['limit']) && $params['limit'] > 0 ? ceil($totalProductos / $params['limit']) : 1;
 $totalPages = isset($totalProductos) && $params['limit'] > 0 ? ceil($totalProductos / $params['limit']) : 1;
-require_once 'config/Session.php';
+require_once dirname(__DIR__, 2) . '/config/Session.php';
 require_once dirname(__DIR__, 2) . '/helpers/View.php';
 
 Session::init();

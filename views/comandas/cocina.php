@@ -1,15 +1,7 @@
 <?php
-require_once dirname(__DIR__, 2) . '/config/Session.php';
-require_once dirname(__DIR__, 2) . '/models/VentaModel.php';
-
-Session::init();
-
-$ventaModel = new VentaModel();
-$comandas = $ventaModel->getVentasPendientesCocina();
-
-// Agrupar comandas por mesa
+// Ahora $comandasCocina viene agrupado desde el controlador
 $comandasPorMesa = [];
-foreach ($comandas as $comanda) {
+foreach ($comandasCocina as $comanda) {
     $idMesa = $comanda['ID_Mesa'];
     if (!isset($comandasPorMesa[$idMesa])) {
         $comandasPorMesa[$idMesa] = [

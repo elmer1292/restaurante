@@ -1,26 +1,5 @@
 <?php
-require_once 'config/Session.php';
-require_once 'models/VentaModel.php';
-
-Session::init();
-
-$ventaModel = new VentaModel();
-$comandas = $ventaModel->getVentasPendientesBarra();
-
-// Agrupar comandas por mesa
-$comandasPorMesa = [];
-foreach ($comandas as $comanda) {
-    $idMesa = $comanda['ID_Mesa'];
-    if (!isset($comandasPorMesa[$idMesa])) {
-        $comandasPorMesa[$idMesa] = [
-            'numero_mesa' => $comanda['Numero_Mesa'],
-            'fecha_hora' => $comanda['Fecha_Hora'],
-            'items' => []
-        ];
-    }
-    $comandasPorMesa[$idMesa]['items'][] = $comanda;
-}
-
+// Ahora $comandasPorMesa viene del controlador
 ?>
     <div class="container-fluid">
         <div class="row">

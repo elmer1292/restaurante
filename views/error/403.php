@@ -34,7 +34,7 @@
             </div>
             <h2 class="mb-4">Acceso Denegado</h2>
             <p>No tiene permisos para acceder a esta sección.</p>
-            <a href="/" class="btn btn-primary">Volver al Inicio</a>
+            <a href="<?php echo BASE_URL; ?>" class="btn btn-primary">Volver al Inicio</a>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

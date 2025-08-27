@@ -18,8 +18,6 @@ define('SESSION_NAME', 'RESTBAR_SESSION');
 define('ROL_ADMIN', 'Administrador');
 define('ROL_MESERO', 'Mesero');
 define('ROL_CAJERO', 'Cajero');
-define('ROL_COCINA', 'Cocina');
-define('ROL_BARRA', 'Barra');
 
 // Estados de mesas
 define('MESA_LIBRE', 0);

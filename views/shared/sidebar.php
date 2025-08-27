@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/Session.php';
 Session::init();
-$userRole = Session::get('user_role');
+$userRole = Session::getUserRole();
 $nombreCompleto = Session::get('nombre_completo');
 $currentPage = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $currentPage = str_replace('restaurante/', '', $currentPage);
@@ -19,8 +19,8 @@ require_once dirname(__DIR__, 2) . '/config/base_url.php';
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                     <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
-                         href="<?php echo BASE_URL; ?>user/perfil">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 
+                    href="<?php echo BASE_URL; ?>user/perfil">
                     <i class="bi bi-person-circle"></i>
                     Mi Perfil
                 </a>
@@ -46,6 +46,13 @@ require_once dirname(__DIR__, 2) . '/config/base_url.php';
                          href="<?php echo BASE_URL; ?>productos">
                     <i class="bi bi-box"></i>
                     Productos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'configuracion') !== false ? 'active' : ''; ?>" 
+                    href="<?php echo BASE_URL; ?>configuracion">
+                    <i class="bi bi-gear"></i>
+                    Configuración
                 </a>
             </li>
             <?php endif; ?>

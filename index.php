@@ -27,6 +27,5 @@ if (!Session::isLoggedIn() && $uri !== 'login') {
     exit();
 }
 
-// La lógica de autenticación y carga de vistas compartidas se maneja dentro de los controladores a través de BaseController.
-// El Router se encarga de despachar la solicitud al controlador y acción correctos.
+// $uri = isset($_GET['url']) ? $_GET['url'] : '/';
 $router->dispatch($uri);

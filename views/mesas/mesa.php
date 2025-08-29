@@ -1,25 +1,9 @@
 <?php
-// Vista principal de mesa
-require_once '../../config/Session.php';
-require_once '../../models/VentaModel.php';
-require_once '../../models/ProductModel.php';
-require_once '../../models/MesaModel.php';
-// ...existing code...
-Session::init();
-Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
-
-$idMesa = $_GET['id_mesa'] ?? null;
-if (!$idMesa) {
-    echo '<div class="alert alert-danger">Mesa no especificada.</div>';
-    exit;
+// Solo HTML y variables recibidas del controlador
+if (isset($mensaje)) {
+    echo '<div class="alert alert-danger">' . htmlspecialchars($mensaje) . '</div>';
+    return;
 }
-
-$ventaModel = new VentaModel();
-$productModel = new ProductModel();
-$mesaModel = new MesaModel();
-$mesa = $mesaModel->getTableById($idMesa);
-$comanda = $ventaModel->getVentaActivaByMesa($idMesa);
-$mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
 ?>
 <div class="row g-4">
     <div class="col-md-4">
@@ -30,11 +14,11 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
                     <div class="alert alert-info">La mesa está libre. Debe crear una comanda para poder agregar productos.</div>
                     <form id="formCrearComanda" autocomplete="off">
                         <input type="hidden" name="id_mesa" value="<?php echo htmlspecialchars($idMesa); ?>">
-                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(Csrf::getToken()); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                         <button type="submit" class="btn btn-primary w-100">Crear Comanda</button>
                     </form>
                 <?php } else { ?>
-                    <?php include '../../views/shared/menu_productos.php'; ?>
+                    <?php include dirname(__DIR__, 2) . '/views/shared/menu_productos.php'; ?>
                 <?php } ?>
             </div>
         </div>
@@ -57,12 +41,11 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
                 <h2>Detalle de Mesa #<?php echo htmlspecialchars($mesa['Numero_Mesa']); ?></h2>
                 <p>Capacidad: <?php echo htmlspecialchars($mesa['Capacidad']); ?> personas</p>
                 <?php if ($comanda) {
-                    $detalles = $ventaModel->getSaleDetails($comanda['ID_Venta']);
                     if (!$detalles || count($detalles) === 0) { ?>
                         <form id="formLiberarMesa" method="post" style="margin-bottom: 1em;">
                             <input type="hidden" name="id_mesa" value="<?php echo htmlspecialchars($idMesa); ?>">
                             <input type="hidden" name="id_venta" value="<?php echo htmlspecialchars($comanda['ID_Venta']); ?>">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(Csrf::getToken()); ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                             <button type="submit" class="btn btn-danger w-100">Liberar Mesa</button>
                         </form>
                     <?php } else { ?>
@@ -91,8 +74,7 @@ $mostrarCrearComanda = (!$comanda && $mesa && $mesa['Estado'] == 0);
         </div>
     </div>
 </div>
-// ...existing code...
-<?php require_once __DIR__ . '/../config/base_url.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <script>
 document.getElementById('formCrearComanda')?.addEventListener('submit', function(e) {
     e.preventDefault();

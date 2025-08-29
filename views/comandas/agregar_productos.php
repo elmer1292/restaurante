@@ -1,29 +1,63 @@
+
 <?php
 require_once 'config/Session.php';
 Session::init();
 require_once '../../models/MesaModel.php';
 require_once '../../models/ProductModel.php';
 require_once '../../models/VentaModel.php';
+// ...existing code...
+?>
 
-// DEBUG: Mostrar el contenido de la sesión en pantalla
-<script src="/restaurante/assets/js/agregar_productos.js"></script>
-                                                            Precio: $<?php echo number_format($producto['Precio_Venta'], 2); ?><br>
-                                                            Stock: <?php echo $producto['Stock']; ?>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <?php 
-                                                endforeach; 
-                                            }
-                                            ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
+    <div class="container-fluid">
+        <div class="row">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="row">
+<?php foreach ($productos as $producto): ?>
+    <div class="col-md-4 mb-3">
+        <div class="producto-card card h-100" data-producto='<?php echo json_encode($producto); ?>'>
+            <div class="card-body">
+                <h5 class="card-title"><?php echo $producto['Nombre_Producto']; ?></h5>
+                <p>
+                    Precio: $<?php echo number_format($producto['Precio_Venta'], 2); ?><br>
+                    Stock: <?php echo $producto['Stock']; ?>
+                </p>
+            </div>
+        </div>
+    </div>
+<?php endforeach; ?>
                         </div>
                     </div>
+                    <!-- Resumen de Productos a Agregar -->
+                    <div class="col-md-4">
+                        <div class="card comanda-preview">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Productos a Agregar</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="items-comanda"></div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <h5>Total:</h5>
+                                    <h5 id="total-comanda">$0.00</h5>
+                                </div>
+                                <button class="btn btn-primary w-100 mt-3" onclick="procesarProductos()">Agregar Productos</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/restaurante/assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/restaurante/assets/js/agregar_productos.js"></script>
+    <script>
+        // ...JS existente...
+    </script>
+</body>
+</html>
 
                     <!-- Resumen de Productos a Agregar -->
                     <div class="col-md-4">
@@ -48,7 +82,8 @@ require_once '../../models/VentaModel.php';
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/restaurante/assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/restaurante/assets/js/agregar_productos.js"></script>
     <script>
         // Inicialización de variables globales
         let comandaItems = {};

@@ -1,3 +1,4 @@
+
 <?php
 
 // Definir las rutas de la aplicación
@@ -16,6 +17,7 @@ $router->add('empleados/delete', 'EmpleadoController', 'deleteEmpleado');
 $router->add('productos', 'ProductoController', 'index');
 $router->add('mesas', 'MesaController', 'index');
 $router->add('comandas', 'ComandaController', 'index');
+$router->add('mesa', 'MesaController', 'detalle');
 $router->add('ventas', 'VentaController', 'index');
 
 // Puedes añadir más rutas aquí para otras acciones como crear, editar, eliminar, etc.

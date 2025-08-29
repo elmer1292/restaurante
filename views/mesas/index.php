@@ -1,12 +1,4 @@
 <?php
-require_once 'config/Session.php';
-
-Session::init();
-Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
-
-$userRole = Session::get('user_role');
-
-
 $mesaModel = new MesaModel();
 $mesas = $mesaModel->getAllTables();
 $totalMesas = $mesaModel->getTotalTables();
@@ -55,8 +47,7 @@ if (isset($_SESSION['mensaje'])) {
                         <i class="bi bi-pencil"></i>
                     </button>
                     <?php endif; ?>
-                        <form method="get" action="views/mesas/ordenes.php" style="display:inline;">
-                            <?php require_once 'helpers/Csrf.php'; ?>
+                        <form method="get" action="<?php echo BASE_URL; ?>mesa" style="display:inline;">
                             <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                             <input type="hidden" name="id_mesa" value="<?php echo $mesa['ID_Mesa']; ?>">
                             <button type="submit" class="btn btn-sm btn-info">
@@ -102,4 +93,4 @@ if (isset($_SESSION['mensaje'])) {
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="/restaurante/assets/js/mesas.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/mesas.js"></script>

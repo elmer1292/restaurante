@@ -1,17 +1,20 @@
 <?php
 require_once dirname(__DIR__, 2) . '/config/Session.php';
+require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
 Session::init();
 $userRole = Session::getUserRole();
 $nombreCompleto = Session::get('nombre_completo');
 $currentPage = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $currentPage = str_replace('restaurante/', '', $currentPage);
 require_once dirname(__DIR__, 2) . '/config/base_url.php';
+$configModel = new ConfigModel();
+$nombreApp = $configModel->get('nombre_app');
 ?>
 
 <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
     <div class="position-sticky pt-3">
         <div class="text-center mb-4">
-            <h4 class="text-white">RestBar</h4>
+            <h4 class="text-white"><?php echo htmlspecialchars($nombreApp ?: 'RestBar'); ?></h4>
             <div class="text-white">
                 <p class="mb-1"><?php echo htmlspecialchars($nombreCompleto ?? ''); ?></p>
                 <small><?php echo htmlspecialchars($userRole ?? ''); ?></small>

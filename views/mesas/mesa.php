@@ -141,7 +141,8 @@ function eliminarProductoComanda(idDetalle) {
     let cantidad = prompt('¿Cuántos deseas eliminar? (deja vacío para eliminar todos)');
     if (cantidad === null) return;
     cantidad = cantidad.trim();
-    let body = 'id_detalle=' + idDetalle;
+    let csrfToken = '<?php echo htmlspecialchars($csrf_token); ?>';
+    let body = 'id_detalle=' + idDetalle + '&csrf_token=' + encodeURIComponent(csrfToken);
     if (cantidad !== '') {
         body += '&cantidad=' + encodeURIComponent(cantidad);
     }

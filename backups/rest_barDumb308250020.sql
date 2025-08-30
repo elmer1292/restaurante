@@ -80,7 +80,7 @@ CREATE TABLE `config` (
   `valor` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `clave` (`clave`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -89,7 +89,7 @@ CREATE TABLE `config` (
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
-INSERT INTO `config` VALUES (1,'nombre_app','Restaurante El Sabor'),(2,'usar_impresora_cocina','1'),(3,'impresora_cocina','EPSON-TM-U220'),(4,'usar_impresora_barra','0'),(5,'impresora_barra','');
+INSERT INTO `config` VALUES (1,'nombre_app','Rincon Chinandegano'),(2,'usar_impresora_cocina','1'),(3,'impresora_cocina','EPSON-TM-U220'),(4,'usar_impresora_barra','0'),(5,'impresora_barra',''),(6,'moneda','C$'),(7,'IVA','12%');
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -112,7 +112,7 @@ CREATE TABLE `detalle_venta` (
   KEY `ID_Producto` (`ID_Producto`),
   CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
   CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,7 +121,7 @@ CREATE TABLE `detalle_venta` (
 
 LOCK TABLES `detalle_venta` WRITE;
 /*!40000 ALTER TABLE `detalle_venta` DISABLE KEYS */;
-INSERT INTO `detalle_venta` VALUES (1,48,1,42.00,3,126.00),(2,49,1,42.00,3,126.00),(4,48,11,290.00,1,290.00),(5,50,4,40.00,1,40.00),(6,50,7,80.00,1,80.00),(7,50,1,42.00,1,42.00),(8,50,3,40.00,1,40.00),(9,48,11,290.00,1,290.00),(10,48,5,560.00,1,560.00),(11,48,10,520.00,2,1040.00),(12,48,2,40.00,3,120.00),(13,48,1,42.00,1,42.00),(14,48,6,270.00,1,270.00),(15,48,6,270.00,1,270.00),(16,51,10,520.00,1,520.00),(17,51,9,250.00,1,250.00),(18,51,4,40.00,1,40.00),(19,51,11,290.00,1,290.00);
+INSERT INTO `detalle_venta` VALUES (1,48,1,42.00,1,126.00),(2,49,1,42.00,3,126.00),(4,48,11,290.00,1,290.00),(9,48,11,290.00,1,290.00),(10,48,5,560.00,1,560.00),(11,48,10,520.00,2,1040.00),(12,48,2,40.00,3,120.00),(13,48,1,42.00,1,42.00),(14,48,6,270.00,1,270.00),(15,48,6,270.00,1,270.00),(17,51,9,250.00,1,250.00),(18,51,4,40.00,1,40.00),(19,51,11,290.00,1,290.00),(21,50,4,40.00,4,280.00),(22,50,7,80.00,1,80.00),(23,50,6,270.00,1,270.00),(24,50,5,560.00,1,560.00);
 /*!40000 ALTER TABLE `detalle_venta` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -178,7 +178,7 @@ CREATE TABLE `mesas` (
 
 LOCK TABLES `mesas` WRITE;
 /*!40000 ALTER TABLE `mesas` DISABLE KEYS */;
-INSERT INTO `mesas` VALUES (1,1,4,1),(2,2,2,1),(3,3,3,1),(4,4,1,1),(5,5,8,0);
+INSERT INTO `mesas` VALUES (1,1,4,0),(2,2,2,0),(3,3,3,0),(4,4,1,0),(5,5,8,0);
 /*!40000 ALTER TABLE `mesas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -262,7 +262,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'superadmin','$2y$10$t/mD.Wc7Fo3Ot.nU0Q9XxuLMDHzF4bYM0QZXgBUM0OPITQzL4JSxS',1,1),(8,'elaguna','$2y$10$NiN5s3BGkBuQqwkeX1TjiOL1PBXSeLmrX6EYavDYW8B3zhCWdyg.u',3,1),(9,'eojeda1','$2y$10$6V0h8ioF855oKKRMhkJMPu/WmyAvnvokAGzvr0.EDABWLFGztU6Pe',2,1),(10,'kramos','$2y$10$mIFjirasRfhBIZ3txBUL5OnBoF40nbMjaH1AmM79I1M8RRJ71dBza',3,0),(12,'xchevez','$2y$10$8q/QVWblz1kOyDnDhc0yDOyg2DsOKcbTcgCwquyd/oLtbKwihqQgO',3,1),(15,'jarredondo','$2y$10$SCPMsHuh7XqoFuFkOw1DHO/VmqiyVcSjRfMcoqscspw3t37ZQ/25m',3,1);
+INSERT INTO `usuarios` VALUES (1,'superadmin','$2y$10$t/mD.Wc7Fo3Ot.nU0Q9XxuLMDHzF4bYM0QZXgBUM0OPITQzL4JSxS',1,1),(8,'elaguna','$2y$10$NiN5s3BGkBuQqwkeX1TjiOL1PBXSeLmrX6EYavDYW8B3zhCWdyg.u',1,1),(9,'eojeda1','$2y$10$6V0h8ioF855oKKRMhkJMPu/WmyAvnvokAGzvr0.EDABWLFGztU6Pe',2,1),(10,'kramos','$2y$10$mIFjirasRfhBIZ3txBUL5OnBoF40nbMjaH1AmM79I1M8RRJ71dBza',3,0),(12,'xchevez','$2y$10$8q/QVWblz1kOyDnDhc0yDOyg2DsOKcbTcgCwquyd/oLtbKwihqQgO',3,1),(15,'jarredondo','$2y$10$SCPMsHuh7XqoFuFkOw1DHO/VmqiyVcSjRfMcoqscspw3t37ZQ/25m',3,1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -279,7 +279,7 @@ CREATE TABLE `ventas` (
   `ID_Mesa` int DEFAULT NULL,
   `Fecha_Hora` datetime NOT NULL,
   `Total` decimal(10,2) DEFAULT NULL,
-  `Metodo_Pago` varchar(20) DEFAULT NULL,
+  `Metodo_Pago` varchar(200) DEFAULT NULL,
   `ID_Empleado` int DEFAULT NULL,
   `Estado` varchar(20) NOT NULL DEFAULT 'Pendiente',
   PRIMARY KEY (`ID_Venta`),
@@ -298,7 +298,7 @@ CREATE TABLE `ventas` (
 
 LOCK TABLES `ventas` WRITE;
 /*!40000 ALTER TABLE `ventas` DISABLE KEYS */;
-INSERT INTO `ventas` VALUES (48,1,1,'2025-08-22 22:16:29',3008.00,'Efectivo',6,'Pendiente'),(49,1,2,'2025-08-24 00:28:17',126.00,'Efectivo',6,'Pendiente'),(50,1,4,'2025-08-24 01:08:25',492.00,'Efectivo',6,'Pendiente'),(51,1,3,'2025-08-26 00:29:25',1100.00,'Efectivo',6,'Pendiente');
+INSERT INTO `ventas` VALUES (48,1,1,'2025-08-22 22:16:29',3008.00,'Efectivo:3000, Tarje',6,'Pagada'),(49,1,2,'2025-08-24 00:28:17',126.00,'Efectivo:100, Efecti',6,'Pagada'),(50,1,4,'2025-08-24 01:08:25',1190.00,'Efectivo:1100, Tarjeta:90',6,'Pagada'),(51,1,3,'2025-08-26 00:29:25',580.00,'Efectivo:500, Tarjet',6,'Pagada');
 /*!40000 ALTER TABLE `ventas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -345,15 +345,28 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_AddSaleDetail`(
-    IN p_idVenta INT,
-    IN p_idProducto INT,
+CREATE DEFINER=`baruser`@`localhost` PROCEDURE `sp_AddSaleDetail`(
+    IN p_id_venta INT,
+    IN p_id_producto INT,
     IN p_cantidad INT,
-    IN p_precioVenta DECIMAL(10,2)
+    IN p_precio DECIMAL(10,2)
 )
 BEGIN
-    INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal)
-    VALUES (p_idVenta, p_idProducto, p_cantidad, p_precioVenta, p_cantidad * p_precioVenta);
+    DECLARE detalle_id INT;
+    SELECT ID_Detalle INTO detalle_id
+    FROM detalle_venta
+    WHERE ID_Venta = p_id_venta AND ID_Producto = p_id_producto
+    LIMIT 1;
+
+    IF detalle_id IS NOT NULL THEN
+        UPDATE detalle_venta
+        SET Cantidad = Cantidad + p_cantidad,
+            Subtotal = (Cantidad + p_cantidad) * p_precio
+        WHERE ID_Detalle = detalle_id;
+    ELSE
+        INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal)
+        VALUES (p_id_venta, p_id_producto, p_cantidad, p_precio, p_cantidad * p_precio);
+    END IF;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -883,4 +896,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-27  1:19:40
+-- Dump completed on 2025-08-30  0:20:24

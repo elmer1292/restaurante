@@ -2,10 +2,54 @@
 
 require_once 'BaseController.php';
 
+
 class VentaController extends BaseController {
     public function index() {
-        // Aquí se manejará la lógica para la gestión de ventas
-        // Por ahora, simplemente cargamos la vista.
         $this->render('views/ventas/index.php');
+    }
+
+    public function registrarPago() {
+        require_once __DIR__ . '/../config/Session.php';
+        require_once __DIR__ . '/../models/VentaModel.php';
+        Session::init();
+        Session::checkRole(['Administrador', 'Cajero']);
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            exit;
+        }
+        require_once __DIR__ . '/../helpers/Csrf.php';
+        $csrfToken = $_POST['csrf_token'] ?? '';
+        if (!Csrf::validateToken($csrfToken)) {
+            echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+            exit;
+        }
+        $idVenta = isset($_POST['id_venta']) ? (int)$_POST['id_venta'] : 0;
+        $metodoPago = isset($_POST['metodo_pago']) ? substr(trim($_POST['metodo_pago']), 0, 200) : '';
+        $monto = isset($_POST['monto']) ? (float)$_POST['monto'] : 0;
+        if (!$idVenta || !$metodoPago || $monto <= 0) {
+            echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+            exit;
+        }
+        $ventaModel = new VentaModel();
+        $conn = (new Database())->connect();
+        try {
+            $stmt = $conn->prepare('SELECT Total FROM ventas WHERE ID_Venta = ?');
+            $stmt->execute([$idVenta]);
+            $venta = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$venta) throw new Exception('Venta no encontrada');
+            $total = (float)$venta['Total'];
+            if ($monto > $total) throw new Exception('El monto pagado excede el total de la venta');
+            if ($monto < $total) throw new Exception('El monto pagado es menor al total de la venta');
+            // Registrar el pago y marcar como pagada
+            $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada" WHERE ID_Venta = ?');
+            $stmtUp->execute([$metodoPago, $idVenta]);
+            // Liberar la mesa
+            $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
+            $stmtMesa->execute([$idVenta]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
     }
 }

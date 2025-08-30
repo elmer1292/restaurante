@@ -6,7 +6,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
-    <form method="POST" action="<?php echo BASE_URL; ?>config/update">
+    <form method="POST" action="<?php echo BASE_URL; ?>configuracion/update">
         <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
         <div class="mb-3">
             <label for="nombre_app" class="form-label">Nombre de la aplicación</label>

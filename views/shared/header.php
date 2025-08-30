@@ -21,7 +21,7 @@ $baseUrl = '/restaurante';
     <title>RestBar</title>
     <link href="<?php echo BASE_URL; ?>assets/bootstrap/bootstrap-5.3.0-dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo BASE_URL; ?>assets/icons/bootstrap-icons-1.7.2/bootstrap-icons.css" rel="stylesheet">
-    <link href="<?php echo $baseUrl; ?>/assets/css/styles.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
     <div class="container-fluid">

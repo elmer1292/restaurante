@@ -51,11 +51,8 @@ require_once '../../models/VentaModel.php';
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/restaurante/assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/restaurante/assets/js/agregar_productos.js"></script>
-    <script>
-        // ...JS existente...
-    </script>
+    <script src="<?php BASE_URL ?>assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php BASE_URL ?>assets/js/agregar_productos.js"></script>
 </body>
 </html>
 
@@ -82,8 +79,8 @@ require_once '../../models/VentaModel.php';
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/restaurante/assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/restaurante/assets/js/agregar_productos.js"></script>
+    <script src="<?php BASE_URL ?>assets/bootstrap/bootstrap-5.3.0-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php BASE_URL ?>assets/js/agregar_productos.js"></script>
     <script>
         // Inicialización de variables globales
         let comandaItems = {};

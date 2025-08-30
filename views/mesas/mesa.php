@@ -60,7 +60,11 @@ if (isset($mensaje)) {
                                         <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>)">Eliminar</button>
+                                        <?php if ($detalle['Cantidad'] > 1): ?>
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
+                                        <?php else: ?>
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, 1)">Eliminar</button>
+                                        <?php endif; ?>
                                     </div>
                                 </li>
                             <?php } ?>
@@ -137,14 +141,18 @@ function enviarProductosComanda() {
         window.location.reload();
     });
 }
-function eliminarProductoComanda(idDetalle) {
-    let cantidad = prompt('¿Cuántos deseas eliminar? (deja vacío para eliminar todos)');
-    if (cantidad === null) return;
-    cantidad = cantidad.trim();
+function eliminarProductoComanda(idDetalle, cantidad) {
     let csrfToken = '<?php echo htmlspecialchars($csrf_token); ?>';
     let body = 'id_detalle=' + idDetalle + '&csrf_token=' + encodeURIComponent(csrfToken);
-    if (cantidad !== '') {
-        body += '&cantidad=' + encodeURIComponent(cantidad);
+    if (cantidad > 1) {
+        let cantPrompt = prompt('¿Cuántos deseas eliminar? (deja vacío para eliminar todos)', cantidad);
+        if (cantPrompt === null) return;
+        cantPrompt = cantPrompt.trim();
+        if (cantPrompt !== '') {
+            body += '&cantidad=' + encodeURIComponent(cantPrompt);
+        }
+    } else {
+        body += '&cantidad=1';
     }
     fetch('<?php echo BASE_URL; ?>detalleventa/eliminarProducto', {
         method: 'POST',

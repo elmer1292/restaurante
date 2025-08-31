@@ -188,7 +188,7 @@ class VentaModel {
         try {
             $stmt = $this->conn->prepare(
                 'SELECT * FROM ventas 
-                WHERE ID_Mesa = ?
+                WHERE ID_Mesa = ? AND Estado = "Pendiente"
                 ORDER BY Fecha_Hora DESC LIMIT 1'
             );
             $stmt->execute([$idMesa]);

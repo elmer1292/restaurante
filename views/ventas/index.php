@@ -71,7 +71,7 @@ try {
                                                         </select>
                                                     </div>
                                                     <div class="col-6">
-                                                        <input type="number" min="1" max="<?= $venta['Total'] ?>" class="form-control metodo-pago-monto" placeholder="Monto" required>
+                                                        <input type="number" min="1" class="form-control metodo-pago-monto" placeholder="Monto" required>
                                                     </div>
                                                 </div>
                                             </div>
@@ -138,17 +138,42 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
             pagos.push(`${metodo}:${monto}`);
             totalPagado += monto;
         }
-        const saldo = parseFloat(form.closest('.accordion-body').querySelector('span[id^="saldoPendiente"]').textContent.replace(/[^\d\.]/g, ''));
+        const saldo = parseFloat(form.closest('.accordion-body').querySelector('span[id^="saldoPendiente"]').textContent.replace(/[^0-9\.]/g, ''));
         // Eliminar mensajes previos
         form.parentNode.querySelectorAll('.alert-danger').forEach(e => e.remove());
-        if (totalPagado > saldo) {
+        // Verificar si hay pago en efectivo y el monto entregado es mayor al saldo
+        let tieneEfectivo = false;
+        let montoEfectivo = 0;
+        for (let i = 0; i < metodoSelects.length; i++) {
+            if (metodoSelects[i].value === 'Efectivo') {
+                tieneEfectivo = true;
+                montoEfectivo += parseFloat(montoInputs[i].value);
+            }
+        }
+        // Permitir exceso solo si el único método con monto > 0 es efectivo
+        let metodosConMonto = 0;
+        let metodoUnico = '';
+        for (let i = 0; i < metodoSelects.length; i++) {
+            if (parseFloat(montoInputs[i].value) > 0) {
+                metodosConMonto++;
+                metodoUnico = metodoSelects[i].value;
+            }
+        }
+        let permitirExceso = false;
+        if (totalPagado > saldo && metodosConMonto === 1 && metodoUnico === 'Efectivo') {
+            const cambio = totalPagado - saldo;
+            if (!window.confirm(`El cliente entregó $${totalPagado.toFixed(2)} en efectivo.\nCambio a devolver: $${cambio.toFixed(2)}\n¿Registrar pago?`)) {
+                return;
+            }
+            permitirExceso = true;
+        }
+        if (totalPagado > saldo && !permitirExceso) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3 alert alert-danger';
             msgDiv.textContent = 'El monto pagado excede el saldo pendiente.';
             form.parentNode.appendChild(msgDiv);
             return;
-        }
-        if (totalPagado < saldo) {
+        } else if (totalPagado < saldo) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3 alert alert-danger';
             msgDiv.textContent = 'El monto pagado es menor al saldo pendiente.';
@@ -174,8 +199,12 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3';
             if (data.success) {
-                msgDiv.innerHTML = '<div class="alert alert-success">Pago registrado correctamente.</div>';
-                setTimeout(() => window.location.reload(), 1200);
+                let mensaje = 'Pago registrado correctamente.';
+                if (data.cambio) {
+                    mensaje += `<br><b>Cambio a devolver:</b> $${parseFloat(data.cambio).toFixed(2)}`;
+                }
+                msgDiv.innerHTML = `<div class="alert alert-success">${mensaje}</div>`;
+                setTimeout(() => window.location.reload(), 2000);
             } else {
                 msgDiv.innerHTML = '<div class="alert alert-danger">' + (data.error || 'Error al registrar el pago.') + '</div>';
             }

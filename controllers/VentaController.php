@@ -39,7 +39,15 @@ class VentaController extends BaseController {
             $venta = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$venta) throw new Exception('Venta no encontrada');
             $total = (float)$venta['Total'];
-            if ($monto > $total) throw new Exception('El monto pagado excede el total de la venta');
+            $metodoPagoLower = strtolower($metodoPago);
+            // Permitir exceso solo si el método es efectivo
+            if ($monto > $total) {
+                if (strpos($metodoPagoLower, 'efectivo') !== false) {
+                    $cambio = $monto - $total;
+                } else {
+                    throw new Exception('El monto pagado excede el total de la venta');
+                }
+            }
             if ($monto < $total) throw new Exception('El monto pagado es menor al total de la venta');
             // Registrar el pago y marcar como pagada
             $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada" WHERE ID_Venta = ?');
@@ -47,7 +55,11 @@ class VentaController extends BaseController {
             // Liberar la mesa
             $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
             $stmtMesa->execute([$idVenta]);
-            echo json_encode(['success' => true]);
+            $response = ['success' => true];
+            if (isset($cambio)) {
+                $response['cambio'] = $cambio;
+            }
+            echo json_encode($response);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }

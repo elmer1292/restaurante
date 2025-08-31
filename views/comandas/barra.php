@@ -32,6 +32,7 @@
                                 ?>
                             </small>
                         </div>
+                        <button class="btn btn-outline-info mt-3" onclick="imprimirComandaBarra(<?php echo $idMesa; ?>)"><i class="bi bi-printer"></i> Imprimir Comanda</button>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
                                 <?php foreach ($comanda['items'] as $item): ?>
@@ -67,6 +68,25 @@
         setInterval(() => {
             location.reload();
         }, 30000);
+
+        function imprimirComandaBarra(idMesa) {
+            fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Comanda enviada a la impresora de barra.');
+                } else {
+                    alert(data.error || 'Error al imprimir comanda.');
+                }
+            })
+            .catch(err => {
+                alert('Error de comunicación: ' + err);
+            });
+        }
     </script>
 
 <?php

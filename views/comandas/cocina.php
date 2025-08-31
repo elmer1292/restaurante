@@ -55,6 +55,7 @@ foreach ($comandasCocina as $comanda) {
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
+                            <button class="btn btn-outline-success mt-3" onclick="imprimirComandaCocina(<?php echo $idMesa; ?>)"><i class="bi bi-printer"></i> Imprimir Comanda</button>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -79,6 +80,27 @@ foreach ($comandasCocina as $comanda) {
         setInterval(() => {
             location.reload();
         }, 30000);
+
+        function imprimirComandaCocina(idMesa) {
+            fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Comanda enviada a la impresora de cocina.');
+                } else {
+                    alert(data.error || 'Error al imprimir comanda.');
+                }
+            })
+            .catch(err => {
+                alert('Error de comunicación: ' + err);
+            });
+        }
+
+    // Solo función para cocina
     </script>
 
 <?php

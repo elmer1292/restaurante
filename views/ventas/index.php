@@ -27,6 +27,9 @@ try {
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $venta['ID_Venta'] ?>">
                         Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?> | Venta #<?= $venta['ID_Venta'] ?> | Total: $<?= number_format($venta['Total'], 2) ?> | Fecha: <?= $venta['Fecha_Hora'] ?>
                     </button>
+                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="window.open('<?php echo BASE_URL; ?>ventas/ticket.php?id=<?= $venta['ID_Venta'] ?>', '_blank', 'width=300,height=600')">
+                        <i class="bi bi-printer"></i> Imprimir Ticket
+                    </button>
                 </h2>
                 <div id="collapse<?= $venta['ID_Venta'] ?>" class="accordion-collapse collapse" data-bs-parent="#ventasAccordion">
                     <div class="accordion-body">

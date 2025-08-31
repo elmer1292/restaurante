@@ -3,6 +3,8 @@ require_once 'BaseController.php';
 require_once dirname(__DIR__, 1) . '/models/ConfigModel.php';
 require_once dirname(__DIR__, 1) . '/helpers/Csrf.php';
 
+require_once dirname(__DIR__, 1) . '/helpers/ImpresoraHelper.php';
+
 class ConfigController extends BaseController {
     public function index() {
         Session::init();
@@ -43,6 +45,24 @@ class ConfigController extends BaseController {
             header('Location: ' . BASE_URL . 'configuracion');
             exit;
         }
+    }
+
+    public function buscarImpresoras() {
+        Session::init();
+        $userRole = Session::getUserRole();
+        header('Content-Type: application/json');
+        if ($userRole !== 'Administrador') {
+            echo json_encode(['impresoras' => [], 'error' => 'Acceso denegado']);
+            exit;
+        }
+        // Solo POST por seguridad
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['impresoras' => [], 'error' => 'Método no permitido']);
+            exit;
+        }
+        $impresoras = ImpresoraHelper::buscarImpresoras();
+        echo json_encode(['impresoras' => $impresoras]);
+        exit;
     }
 
     public function backup() {

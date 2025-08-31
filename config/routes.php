@@ -17,6 +17,7 @@ $router->add('empleados/delete', 'EmpleadoController', 'deleteEmpleado');
 $router->add('productos', 'ProductoController', 'index');
 $router->add('mesas', 'MesaController', 'index');
 $router->add('comandas', 'ComandaController', 'index');
+$router->add('comandas/imprimirComanda', 'ComandaController', 'imprimirComanda');
 $router->add('mesa', 'MesaController', 'detalle');
 $router->add('ventas', 'VentaController', 'index');
 $router->add('ventas/registrarPago', 'VentaController', 'registrarPago');
@@ -24,6 +25,7 @@ $router->add('ventas/registrarPago', 'VentaController', 'registrarPago');
 // Puedes añadir más rutas aquí para otras acciones como crear, editar, eliminar, etc.
 $router->add('configuracion', 'ConfigController', 'index');
 $router->add('configuracion/update', 'ConfigController', 'update');
+$router->add('configuracion/buscarImpresoras', 'ConfigController', 'buscarImpresoras');
 $router->add('configuracion/backup', 'ConfigController', 'backup');
 $router->add('productos/procesar', 'ProductoController', 'procesar');
 // Ruta para AJAX de agregar productos a la comanda

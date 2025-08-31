@@ -132,16 +132,17 @@ class VentaModel {
 
     public function getVentasPendientesCocina() {
         try {
-            $stmt = $this->conn->prepare(
-                'SELECT dv.*, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
-                FROM detalle_venta dv 
-                INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto 
-                INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
-                INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
-                INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
-                WHERE c.Nombre_Categoria = "Buffet" OR c.Nombre_Categoria = "Carnes" OR c.Nombre_Categoria = "Sopas" 
-                ORDER BY v.Fecha_Hora DESC'
-            );
+                        $stmt = $this->conn->prepare(
+                                'SELECT dv.*, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
+                                FROM detalle_venta dv 
+                                INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto 
+                                INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
+                                INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
+                                INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
+                                WHERE (c.Nombre_Categoria = "Buffet" OR c.Nombre_Categoria = "Carnes" OR c.Nombre_Categoria = "Sopas") 
+                                    AND v.Estado = "Pendiente" 
+                                ORDER BY v.Fecha_Hora DESC'
+                        );
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -152,16 +153,17 @@ class VentaModel {
 
     public function getVentasPendientesBarra() {
         try {
-            $stmt = $this->conn->prepare(
-                'SELECT dv.*, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
-                FROM detalle_venta dv 
-                INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto 
-                INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
-                INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
-                INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
-                WHERE c.Nombre_Categoria = "Bebidas" 
-                ORDER BY v.Fecha_Hora DESC'
-            );
+                        $stmt = $this->conn->prepare(
+                                'SELECT dv.*, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
+                                FROM detalle_venta dv 
+                                INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto 
+                                INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
+                                INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
+                                INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
+                                WHERE c.Nombre_Categoria = "Bebidas" 
+                                    AND v.Estado = "Pendiente" 
+                                ORDER BY v.Fecha_Hora DESC'
+                        );
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {

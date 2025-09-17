@@ -1,5 +1,4 @@
 <?php
-
 require_once 'BaseController.php';
 
 
@@ -9,8 +8,9 @@ class VentaController extends BaseController {
     }
 
     public function registrarPago() {
-        require_once __DIR__ . '/../config/Session.php';
-        require_once __DIR__ . '/../models/VentaModel.php';
+    require_once __DIR__ . '/../config/Session.php';
+    require_once __DIR__ . '/../models/VentaModel.php';
+    require_once __DIR__ . '/../models/MovimientoModel.php';
         Session::init();
         Session::checkRole(['Administrador', 'Cajero']);
         header('Content-Type: application/json');
@@ -32,6 +32,7 @@ class VentaController extends BaseController {
             exit;
         }
         $ventaModel = new VentaModel();
+        $movimientoModel = new MovimientoModel();
         $conn = (new Database())->connect();
         try {
             $stmt = $conn->prepare('SELECT Total FROM ventas WHERE ID_Venta = ?');
@@ -55,6 +56,16 @@ class VentaController extends BaseController {
             // Liberar la mesa
             $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
             $stmtMesa->execute([$idVenta]);
+
+            // Registrar movimiento de caja
+            $idUsuario = null;
+            if (isset($_SESSION['user_id'])) {
+                $idUsuario = $_SESSION['user_id'];
+            } elseif (isset($_SESSION['user']['ID_usuario'])) {
+                $idUsuario = $_SESSION['user']['ID_usuario'];
+            }
+            $descripcion = 'Pago de venta ID ' . $idVenta . ' (' . $metodoPago . ')';
+            $movimientoModel->registrarMovimiento('Ingreso', $total, $descripcion, $idUsuario, $idVenta);
             $response = ['success' => true];
             if (isset($cambio)) {
                 $response['cambio'] = $cambio;

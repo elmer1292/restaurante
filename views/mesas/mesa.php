@@ -72,6 +72,10 @@ if (isset($mensaje)) {
                                 <span>Total</span><span class="text-primary">$<?php echo number_format($total, 2); ?></span>
                             </li>
                         </ul>
+                        <a href="<?php echo BASE_URL; ?>mesas/dividir_cuenta?id_mesa=<?php echo $mesa['ID_Mesa']; ?>" class="btn btn-outline-primary mb-3">
+                            <i class="bi bi-scissors"></i> Dividir cuenta
+                        </a>
+                        </ul>
                     <?php }
                 } ?>
             </div>
@@ -212,22 +216,5 @@ function agregarProductoMenu(id, nombre, precio) {
     renderListaProductosAgregados();
 }
 
-// Accesibilidad robusta: mueve el foco al botón 'Nueva Mesa' al cerrar el modal
-function focusNuevaMesaBtn() {
-    const btn = document.querySelector('[data-bs-toggle="modal"]');
-    if (btn) btn.focus();
-}
-
-const mesaModal = document.getElementById('mesaModal');
-if (mesaModal) {
-    mesaModal.addEventListener('hidden.bs.modal', focusNuevaMesaBtn);
-
-    // Fallback: detecta cierre manual del modal
-    const observer = new MutationObserver(() => {
-        if (mesaModal.style.display === 'none' || mesaModal.getAttribute('aria-hidden') === 'true') {
-            focusNuevaMesaBtn();
-        }
-    });
-    observer.observe(mesaModal, { attributes: true, attributeFilter: ['style', 'aria-hidden'] });
-}
+// Eliminado: lógica y referencias al modal de dividir cuenta y parciales
 </script>

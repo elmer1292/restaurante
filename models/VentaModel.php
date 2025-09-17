@@ -2,6 +2,38 @@
 require_once __DIR__ . '/../config/database.php';
 
 class VentaModel {
+    /**
+     * Divide la cuenta en parciales y asigna productos a cada parcial
+     * @param int $idVenta
+     * @param array $parciales Ej: [1 => [id_detalle => cantidad, ...], ...]
+     * @return bool
+     */
+    public function dividirCuenta($idVenta, $parciales) {
+        try {
+            // 1. Crear parciales en tabla parciales_venta
+            $idsParciales = [];
+            foreach ($parciales as $num => $productos) {
+                $stmt = $this->conn->prepare('INSERT INTO parciales_venta (ID_Venta, nombre_cliente) VALUES (?, ?)');
+                $stmt->execute([$idVenta, 'Parcial ' . $num]);
+                $idsParciales[$num] = $this->conn->lastInsertId();
+            }
+            // 2. Asignar productos a parciales (actualizar detalle_venta)
+            foreach ($parciales as $num => $productos) {
+                $idParcial = $idsParciales[$num];
+                foreach ($productos as $idDetalle => $cantidad) {
+                    if ($cantidad > 0) {
+                        // Actualizar el detalle con el ID_Parcial y la cantidad
+                        $stmt = $this->conn->prepare('UPDATE detalle_venta SET ID_Parcial = ?, Cantidad = ? WHERE ID_Detalle = ?');
+                        $stmt->execute([$idParcial, $cantidad, $idDetalle]);
+                    }
+                }
+            }
+            return true;
+        } catch (PDOException $e) {
+            error_log('Error en dividirCuenta: ' . $e->getMessage());
+            return false;
+        }
+    }
     public function actualizarCantidadDetalle($idDetalle, $nuevaCantidad) {
         try {
             $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = ? WHERE ID_Detalle = ?');

@@ -1,6 +1,4 @@
-
 <?php
-
 // Definir las rutas de la aplicación
 // El método add() del router toma tres argumentos:
 // 1. La ruta (la URL que el usuario visitará)
@@ -36,6 +34,14 @@ $router->add('comanda/crear', 'ComandaAjaxController', 'crearComanda');
 $router->add('comanda/liberar', 'ComandaAjaxController', 'liberarMesa');
 $router->add('user/perfil', 'UserController', 'perfil');
 $router->add('user/update', 'UserController', 'actualizarPerfil');
+
+$router->add('mesas/dividir_cuenta', 'MesaController', 'dividirCuenta');
+
+$router->add('caja/apertura', 'CajaController', 'apertura');
+$router->add('caja/cierre', 'CajaController', 'cierre');
+
+$router->add('movimientos', 'MovimientoController', 'index');
+$router->add('movimientos/registrar', 'MovimientoController', 'registrar');
 // Ejemplo:
 // $router->add('productos/crear', 'ProductoController', 'create');
 // $router->add('productos/editar', 'ProductoController', 'edit');

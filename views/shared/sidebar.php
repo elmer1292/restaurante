@@ -36,6 +36,33 @@ $nombreApp = $configModel->get('nombre_app');
                 </a>
             </li>
 
+            <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
+            <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'caja/apertura') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo BASE_URL; ?>caja/apertura">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                    Apertura de Caja
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'caja/cierre') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo BASE_URL; ?>caja/cierre">
+                    <i class="bi bi-box-arrow-up"></i>
+                    Cierre de Caja
+                </a>
+            </li>
+            <?php endif; ?>
+
+            <?php if (in_array($userRole, ['Administrador', 'Cajero'])): ?>
+            <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos($currentPage, 'movimientos') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo BASE_URL; ?>movimientos">
+                    <i class="bi bi-journal-arrow-up"></i>
+                    Movimientos
+                </a>
+            </li>
+            <?php endif; ?>
+
             <?php if ($userRole === 'Administrador'): ?>
             <li class="nav-item">
                      <a class="nav-link text-white <?php echo strpos($currentPage, 'empleados') !== false ? 'active' : ''; ?>" 

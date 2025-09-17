@@ -107,12 +107,15 @@ CREATE TABLE `detalle_venta` (
   `Precio_Venta` decimal(10,2) NOT NULL,
   `Cantidad` int NOT NULL,
   `Subtotal` decimal(10,2) DEFAULT NULL,
+  `ID_Parcial` int DEFAULT NULL,
   PRIMARY KEY (`ID_Detalle`),
   KEY `ID_Venta` (`ID_Venta`),
   KEY `ID_Producto` (`ID_Producto`),
+  KEY `fk_detalle_parcial` (`ID_Parcial`),
   CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
-  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`),
+  CONSTRAINT `fk_detalle_parcial` FOREIGN KEY (`ID_Parcial`) REFERENCES `parciales_venta` (`ID_Parcial`)
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,7 +124,7 @@ CREATE TABLE `detalle_venta` (
 
 LOCK TABLES `detalle_venta` WRITE;
 /*!40000 ALTER TABLE `detalle_venta` DISABLE KEYS */;
-INSERT INTO `detalle_venta` VALUES (1,48,1,42.00,1,126.00),(2,49,1,42.00,3,126.00),(4,48,11,290.00,1,290.00),(9,48,11,290.00,1,290.00),(10,48,5,560.00,1,560.00),(11,48,10,520.00,2,1040.00),(12,48,2,40.00,3,120.00),(13,48,1,42.00,1,42.00),(14,48,6,270.00,1,270.00),(15,48,6,270.00,1,270.00),(17,51,9,250.00,1,250.00),(18,51,4,40.00,1,40.00),(19,51,11,290.00,1,290.00),(21,50,4,40.00,4,280.00),(22,50,7,80.00,1,80.00),(23,50,6,270.00,1,270.00),(24,50,5,560.00,1,560.00);
+INSERT INTO `detalle_venta` VALUES (1,48,1,42.00,1,126.00,NULL),(2,49,1,42.00,3,126.00,NULL),(4,48,11,290.00,1,290.00,NULL),(9,48,11,290.00,1,290.00,NULL),(10,48,5,560.00,1,560.00,NULL),(11,48,10,520.00,2,1040.00,NULL),(12,48,2,40.00,3,120.00,NULL),(13,48,1,42.00,1,42.00,NULL),(14,48,6,270.00,1,270.00,NULL),(15,48,6,270.00,1,270.00,NULL),(17,51,9,250.00,1,250.00,NULL),(18,51,4,40.00,1,40.00,NULL),(19,51,11,290.00,1,290.00,NULL),(21,50,4,40.00,4,280.00,NULL),(22,50,7,80.00,1,80.00,NULL),(23,50,6,270.00,1,270.00,NULL),(24,50,5,560.00,1,560.00,NULL),(25,52,11,290.00,1,290.00,NULL),(26,52,5,560.00,1,560.00,NULL),(32,54,1,40.00,1,40.00,NULL),(33,56,11,290.00,1,290.00,NULL),(34,56,8,40.00,1,40.00,NULL),(35,55,2,40.00,1,40.00,NULL),(36,55,6,270.00,1,270.00,NULL);
 /*!40000 ALTER TABLE `detalle_venta` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -169,7 +172,7 @@ CREATE TABLE `mesas` (
   `Capacidad` int DEFAULT NULL,
   `Estado` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`ID_Mesa`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,8 +181,67 @@ CREATE TABLE `mesas` (
 
 LOCK TABLES `mesas` WRITE;
 /*!40000 ALTER TABLE `mesas` DISABLE KEYS */;
-INSERT INTO `mesas` VALUES (1,1,4,0),(2,2,2,0),(3,3,3,0),(4,4,1,0),(5,5,8,0);
+INSERT INTO `mesas` VALUES (1,1,4,1),(2,2,2,1),(3,3,3,0),(4,4,1,0),(5,5,8,0),(6,6,2,0);
 /*!40000 ALTER TABLE `mesas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `movimientos`
+--
+
+DROP TABLE IF EXISTS `movimientos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `movimientos` (
+  `ID_Movimiento` int NOT NULL AUTO_INCREMENT,
+  `Fecha_Hora` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Tipo` varchar(30) NOT NULL,
+  `Monto` decimal(10,2) NOT NULL,
+  `Descripcion` varchar(255) DEFAULT NULL,
+  `ID_Usuario` int DEFAULT NULL,
+  `ID_Venta` int DEFAULT NULL,
+  PRIMARY KEY (`ID_Movimiento`),
+  KEY `ID_Usuario` (`ID_Usuario`),
+  KEY `ID_Venta` (`ID_Venta`),
+  CONSTRAINT `movimientos_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`),
+  CONSTRAINT `movimientos_ibfk_2` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `movimientos`
+--
+
+LOCK TABLES `movimientos` WRITE;
+/*!40000 ALTER TABLE `movimientos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `movimientos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `parciales_venta`
+--
+
+DROP TABLE IF EXISTS `parciales_venta`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `parciales_venta` (
+  `ID_Parcial` int NOT NULL AUTO_INCREMENT,
+  `ID_Venta` int NOT NULL,
+  `nombre_cliente` varchar(100) DEFAULT NULL,
+  `pagado` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID_Parcial`),
+  KEY `ID_Venta` (`ID_Venta`),
+  CONSTRAINT `parciales_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `parciales_venta`
+--
+
+LOCK TABLES `parciales_venta` WRITE;
+/*!40000 ALTER TABLE `parciales_venta` DISABLE KEYS */;
+/*!40000 ALTER TABLE `parciales_venta` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -289,7 +351,7 @@ CREATE TABLE `ventas` (
   CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`ID_Cliente`) REFERENCES `clientes` (`ID_Cliente`),
   CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`ID_Mesa`) REFERENCES `mesas` (`ID_Mesa`),
   CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`ID_Empleado`) REFERENCES `empleados` (`ID_Empleado`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -298,7 +360,7 @@ CREATE TABLE `ventas` (
 
 LOCK TABLES `ventas` WRITE;
 /*!40000 ALTER TABLE `ventas` DISABLE KEYS */;
-INSERT INTO `ventas` VALUES (48,1,1,'2025-08-22 22:16:29',3008.00,'Efectivo:3000, Tarje',6,'Pagada'),(49,1,2,'2025-08-24 00:28:17',126.00,'Efectivo:100, Efecti',6,'Pagada'),(50,1,4,'2025-08-24 01:08:25',1190.00,'Efectivo:1100, Tarjeta:90',6,'Pagada'),(51,1,3,'2025-08-26 00:29:25',580.00,'Efectivo:500, Tarjet',6,'Pagada');
+INSERT INTO `ventas` VALUES (48,1,1,'2025-08-22 22:16:29',3008.00,'Efectivo:3000, Tarje',6,'Pagada'),(49,1,2,'2025-08-24 00:28:17',126.00,'Efectivo:100, Efecti',6,'Pagada'),(50,1,4,'2025-08-24 01:08:25',1190.00,'Efectivo:1100, Tarjeta:90',6,'Pagada'),(51,1,3,'2025-08-26 00:29:25',580.00,'Efectivo:500, Tarjet',6,'Pagada'),(52,1,1,'2025-08-31 15:43:30',850.00,'Efectivo:400, Tarjet',6,'Pagada'),(54,1,1,'2025-08-31 16:49:46',40.00,'Efectivo:100',NULL,'Pagada'),(55,1,1,'2025-09-11 19:03:34',310.00,'Efectivo',NULL,'Pendiente'),(56,1,2,'2025-09-11 19:03:45',330.00,'Efectivo',NULL,'Pendiente');
 /*!40000 ALTER TABLE `ventas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -896,4 +958,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-30  0:20:24
+-- Dump completed on 2025-09-16 21:41:21

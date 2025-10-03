@@ -1,5 +1,4 @@
-<?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
-<div class="container py-4">
+
     <h2>Cierre de Caja</h2>
     <?php if (!empty($mensaje)): ?>
         <div class="alert alert-success"> <?= htmlspecialchars($mensaje) ?> </div>
@@ -27,4 +26,3 @@
     <?php else: ?>
         <div class="alert alert-info">No hay caja abierta para cerrar.</div>
     <?php endif; ?>
-</div>

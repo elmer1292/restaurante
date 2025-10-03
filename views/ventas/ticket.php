@@ -1,9 +1,14 @@
 <?php
 // ticket.php: Vista para imprimir el ticket de una venta
 // Recibe ?id=ID_Venta
+$configPath = dirname(__DIR__, 2) . '/models/ConfigModel.php';
+if (file_exists($configPath)) require_once $configPath;
 require_once dirname(__DIR__, 2) . '/models/VentaModel.php';
 require_once dirname(__DIR__, 2) . '/models/MesaModel.php';
 require_once dirname(__DIR__, 2) . '/models/UserModel.php';
+$configModel = class_exists('ConfigModel') ? new ConfigModel() : null;
+$nombreApp = $configModel ? ($configModel->get('nombre_app') ?: 'RESTAURANTE') : 'RESTAURANTE';
+$moneda = $configModel ? ($configModel->get('moneda') ?: '$') : '$';
 $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $ventaModel = new VentaModel();
 $venta = $ventaModel->getVentaById($idVenta);
@@ -78,7 +83,7 @@ $productos = $ventaModel->getProductosDeVenta($idVenta);
 <body onload="window.print()">
     <div class="ticket">
         <div class="ticket-header">
-            RESTAURANTE BAR<br>
+            <?php echo htmlspecialchars($nombreApp); ?><br>
             Ticket de Venta
         </div>
         <div class="ticket-info">
@@ -99,13 +104,13 @@ $productos = $ventaModel->getProductosDeVenta($idVenta);
                 <tr>
                     <td><?php echo htmlspecialchars($prod['Nombre_Producto']); ?></td>
                     <td><?php echo $prod['Cantidad']; ?></td>
-                    <td>$<?php echo number_format($prod['Cantidad'] * $prod['Precio_Venta'], 2); ?></td>
+                    <td><?php echo $moneda . number_format($prod['Cantidad'] * $prod['Precio_Venta'], 2); ?></td>
                 </tr>
                 <?php $total += $prod['Cantidad'] * $prod['Precio_Venta']; endforeach; ?>
             </tbody>
         </table>
         <div class="ticket-total">
-            TOTAL: $<?php echo number_format($total, 2); ?>
+            TOTAL: <?php echo $moneda . number_format($total, 2); ?>
         </div>
         <div class="ticket-footer">
             ¡Gracias por su compra!<br>

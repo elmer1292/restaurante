@@ -18,7 +18,9 @@ $router->add('comandas', 'ComandaController', 'index');
 $router->add('comandas/imprimirComanda', 'ComandaController', 'imprimirComanda');
 $router->add('mesa', 'MesaController', 'detalle');
 $router->add('ventas', 'VentaController', 'index');
+
 $router->add('ventas/registrarPago', 'VentaController', 'registrarPago');
+$router->add('ventas/ticket', 'VentaController', 'ticket');
 
 // Puedes añadir más rutas aquí para otras acciones como crear, editar, eliminar, etc.
 $router->add('configuracion', 'ConfigController', 'index');

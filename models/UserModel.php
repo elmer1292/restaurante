@@ -59,7 +59,7 @@ class UserModel {
         }
     }
 
-    public function updateUser($userId, $username, $password = null, $roleId) {
+    public function updateUser($userId, $username, $roleId, $password = null) {
         try {
             if ($password) {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);

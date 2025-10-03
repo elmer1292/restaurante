@@ -1,9 +1,29 @@
-<?php
-require_once dirname(__DIR__, 2) . '/config/Session.php';
+<!-- Modal de confirmación de pago (dinámico, reutilizable) -->
+<div class="modal fade" id="confirmPagoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmPagoBody">
+                <!-- Aquí se inserta el detalle dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelarConfirmPago">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmarPagoBtn">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<?php
+// Iniciar sesión y verificar permisos de usuario
+require_once dirname(__DIR__, 2) . '/config/Session.php';
 Session::init();
 Session::checkRole(['Administrador', 'Cajero']);
 
+// Obtener ventas pendientes desde la base de datos
 $ventaModel = new VentaModel();
 $ventasPendientes = [];
 try {
@@ -16,26 +36,29 @@ try {
 }
 ?>
 
+
 <h1 class="mb-4">Ventas Pendientes</h1>
 <?php if (empty($ventasPendientes)): ?>
+    <!-- Si no hay ventas pendientes, mostrar mensaje informativo -->
     <div class="alert alert-info">No hay ventas pendientes.</div>
 <?php else: ?>
+    <!-- Listado de ventas pendientes en formato acordeón -->
     <div class="accordion" id="ventasAccordion">
         <?php foreach ($ventasPendientes as $venta): ?>
             <div class="accordion-item mb-2">
                 <h2 class="accordion-header" id="heading<?= $venta['ID_Venta'] ?>">
+                    <!-- Encabezado con datos de la venta y botón para imprimir ticket -->
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $venta['ID_Venta'] ?>">
                         Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?> | Venta #<?= $venta['ID_Venta'] ?> | Total: $<?= number_format($venta['Total'], 2) ?> | Fecha: <?= $venta['Fecha_Hora'] ?>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="window.open('<?php echo BASE_URL; ?>ventas/ticket.php?id=<?= $venta['ID_Venta'] ?>', '_blank', 'width=300,height=600')">
-                        <i class="bi bi-printer"></i> Imprimir Ticket
-                    </button>
+                    <!-- Botón de imprimir ticket removido temporalmente -->
                 </h2>
                 <div id="collapse<?= $venta['ID_Venta'] ?>" class="accordion-collapse collapse" data-bs-parent="#ventasAccordion">
                     <div class="accordion-body">
                         <h5>Detalle de la Comanda</h5>
                         <ul class="list-group mb-3">
                             <?php 
+                            // Obtener detalles de productos de la venta
                             $detalles = $ventaModel->getSaleDetails($venta['ID_Venta']);
                             if (empty($detalles)): ?>
                                 <li class="list-group-item text-danger">No hay productos registrados en esta venta.</li>
@@ -49,9 +72,10 @@ try {
                         </ul>
                         <div class="d-flex justify-content-between align-items-center">
                             <span><b>Total:</b> $<?= number_format($venta['Total'], 2) ?></span>
+                            <!-- Botón para abrir el modal de pago -->
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pagoModal<?= $venta['ID_Venta'] ?>">Registrar Pago</button>
                         </div>
-                        <!-- Modal de pago -->
+                        <!-- Modal de pago para registrar el pago de la venta -->
                         <div class="modal fade" id="pagoModal<?= $venta['ID_Venta'] ?>" tabindex="-1">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -61,6 +85,7 @@ try {
                                     </div>
                                     <form class="formPagoVenta" data-id-venta="<?= $venta['ID_Venta'] ?>">
                                         <div class="modal-body">
+                                            <!-- Contenedor de métodos de pago -->
                                             <div id="metodosPagoContainer<?= $venta['ID_Venta'] ?>">
                                                 <div class="row mb-2 metodo-pago-row">
                                                     <div class="col-6">
@@ -75,6 +100,7 @@ try {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <!-- Botón para agregar otro método de pago -->
                                             <button type="button" class="btn btn-link" onclick="agregarMetodoPago(<?= $venta['ID_Venta'] ?>)">+ Agregar otro método</button>
                                             <div class="mt-3"><b>Saldo pendiente:</b> $<span id="saldoPendiente<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'], 2) ?></span></div>
                                             <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
@@ -94,8 +120,10 @@ try {
     </div>
 <?php endif; ?>
 
+
 <?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <script>
+// Función para agregar dinámicamente otro método de pago al formulario
 function agregarMetodoPago(idVenta) {
     const container = document.getElementById('metodosPagoContainer' + idVenta);
     if (!container) return;
@@ -115,11 +143,13 @@ function agregarMetodoPago(idVenta) {
         <button type="button" class="btn btn-sm btn-outline-danger eliminar-metodo-pago" title="Eliminar método">&times;</button>
     </div>`;
     container.appendChild(row);
+    // Permite eliminar el método de pago agregado
     row.querySelector('.eliminar-metodo-pago').addEventListener('click', function() {
         row.remove();
     });
 }
 
+// Lógica principal para el registro de pagos
 document.querySelectorAll('.formPagoVenta').forEach(function(form) {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -128,6 +158,8 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         const montoInputs = form.querySelectorAll('.metodo-pago-monto');
         let pagos = [];
         let totalPagado = 0;
+        let metodos = {};
+        // Recolectar métodos y montos de pago
         for (let i = 0; i < metodoSelects.length; i++) {
             const metodo = metodoSelects[i].value;
             const monto = parseFloat(montoInputs[i].value);
@@ -137,79 +169,166 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
             }
             pagos.push(`${metodo}:${monto}`);
             totalPagado += monto;
+            if (!metodos[metodo]) metodos[metodo] = 0;
+            metodos[metodo] += monto;
         }
+        // Obtener saldo pendiente de la venta
         const saldo = parseFloat(form.closest('.accordion-body').querySelector('span[id^="saldoPendiente"]').textContent.replace(/[^0-9\.]/g, ''));
-        // Eliminar mensajes previos
+        // Eliminar mensajes previos de error
         form.parentNode.querySelectorAll('.alert-danger').forEach(e => e.remove());
-        // Verificar si hay pago en efectivo y el monto entregado es mayor al saldo
-        let tieneEfectivo = false;
-        let montoEfectivo = 0;
-        for (let i = 0; i < metodoSelects.length; i++) {
-            if (metodoSelects[i].value === 'Efectivo') {
-                tieneEfectivo = true;
-                montoEfectivo += parseFloat(montoInputs[i].value);
-            }
-        }
-        // Permitir exceso solo si el único método con monto > 0 es efectivo
-        let metodosConMonto = 0;
-        let metodoUnico = '';
-        for (let i = 0; i < metodoSelects.length; i++) {
-            if (parseFloat(montoInputs[i].value) > 0) {
-                metodosConMonto++;
-                metodoUnico = metodoSelects[i].value;
-            }
-        }
-        let permitirExceso = false;
-        if (totalPagado > saldo && metodosConMonto === 1 && metodoUnico === 'Efectivo') {
-            const cambio = totalPagado - saldo;
-            if (!window.confirm(`El cliente entregó $${totalPagado.toFixed(2)} en efectivo.\nCambio a devolver: $${cambio.toFixed(2)}\n¿Registrar pago?`)) {
-                return;
-            }
-            permitirExceso = true;
-        }
-        if (totalPagado > saldo && !permitirExceso) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'mt-3 alert alert-danger';
-            msgDiv.textContent = 'El monto pagado excede el saldo pendiente.';
-            form.parentNode.appendChild(msgDiv);
-            return;
-        } else if (totalPagado < saldo) {
+
+        // Validaciones de monto
+        if (totalPagado < saldo) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3 alert alert-danger';
             msgDiv.textContent = 'El monto pagado es menor al saldo pendiente.';
             form.parentNode.appendChild(msgDiv);
             return;
         }
-        // Limitar el string a 20 caracteres para Metodo_Pago
-        let metodoPagoStr = pagos.join(', ');
-        if (metodoPagoStr.length > 20) metodoPagoStr = metodoPagoStr.substring(0, 20);
-        const csrfToken = form.querySelector('input[name="csrf_token"]').value;
-    fetch('<?php echo BASE_URL; ?>ventas/registrarPago', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                id_venta: idVenta,
-                metodo_pago: metodoPagoStr,
-                monto: totalPagado,
-                csrf_token: csrfToken
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'mt-3';
-            if (data.success) {
-                let mensaje = 'Pago registrado correctamente.';
-                if (data.cambio) {
-                    mensaje += `<br><b>Cambio a devolver:</b> $${parseFloat(data.cambio).toFixed(2)}`;
-                }
-                msgDiv.innerHTML = `<div class="alert alert-success">${mensaje}</div>`;
-                setTimeout(() => window.location.reload(), 2000);
+        // Solo un método de pago
+        const metodosUnicos = Object.keys(metodos);
+        // Función para mostrar el modal de confirmación y continuar si acepta
+        function mostrarModalConfirmacion(detalle, onConfirm) {
+            const confirmModalEl = document.getElementById('confirmPagoModal');
+            const confirmModal = new bootstrap.Modal(confirmModalEl);
+            document.getElementById('confirmPagoBody').innerHTML = detalle;
+            // Remover listeners previos
+            const btnConfirmar = document.getElementById('confirmarPagoBtn');
+            const btnCancelar = document.getElementById('cancelarConfirmPago');
+            btnConfirmar.onclick = null;
+            btnCancelar.onclick = null;
+
+            btnConfirmar.onclick = function() {
+                // Ejecuta la acción de confirmación inmediatamente y luego cierra el modal
+                onConfirm();
+                confirmModal.hide();
+            };
+            btnCancelar.onclick = function() {
+                confirmModal.hide();
+            };
+
+            // Si hay un modal de registro de pago abierto, ciérralo primero
+            const registroModal = document.querySelector('.modal.show');
+            if (registroModal && registroModal !== confirmModalEl) {
+                const registroInstance = bootstrap.Modal.getOrCreateInstance(registroModal);
+                registroModal.addEventListener('hidden.bs.modal', function handler() {
+                    registroModal.removeEventListener('hidden.bs.modal', handler);
+                    confirmModal.show();
+                });
+                registroInstance.hide();
             } else {
-                msgDiv.innerHTML = '<div class="alert alert-danger">' + (data.error || 'Error al registrar el pago.') + '</div>';
+                confirmModal.show();
             }
-            form.parentNode.appendChild(msgDiv);
-        });
+        }
+
+        if (metodosUnicos.length === 1) {
+            const metodo = metodosUnicos[0];
+            // Solo efectivo
+            if (metodo === 'Efectivo') {
+                if (totalPagado > saldo) {
+                    const cambio = totalPagado - saldo;
+                    // Cerrar primero el modal de registro de pago, luego mostrar el de confirmación
+                    const modal = form.closest('.modal');
+                    if (modal) {
+                        const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+                        modal.addEventListener('hidden.bs.modal', function handler() {
+                            modal.removeEventListener('hidden.bs.modal', handler);
+                            mostrarModalConfirmacion(
+                                `<p>El cliente entregó <b>$${totalPagado.toFixed(2)}</b> en efectivo.<br> <b>Cambio a devolver:</b> $${cambio.toFixed(2)}</p><p>¿Registrar pago?</p>`,
+                                registrarPago
+                            );
+                        });
+                        modalInstance.hide();
+                    } else {
+                        mostrarModalConfirmacion(
+                            `<p>El cliente entregó <b>$${totalPagado.toFixed(2)}</b> en efectivo.<br> <b>Cambio a devolver:</b> $${cambio.toFixed(2)}</p><p>¿Registrar pago?</p>`,
+                            registrarPago
+                        );
+                    }
+                    return;
+                }
+                // Registrar pago y luego redirigir a ticket
+                registrarPago();
+            } else {
+                // Solo transferencia o solo tarjeta
+                if (totalPagado > saldo) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'mt-3 alert alert-danger';
+                    msgDiv.textContent = 'El monto pagado excede el saldo pendiente.';
+                    form.parentNode.appendChild(msgDiv);
+                    return;
+                }
+                // Registrar pago y luego redirigir a ticket
+                registrarPago();
+            }
+        } else {
+            // Múltiples métodos de pago (mixto)
+            if (totalPagado > saldo) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'mt-3 alert alert-danger';
+                msgDiv.textContent = 'El monto pagado excede el saldo pendiente.';
+                form.parentNode.appendChild(msgDiv);
+                return;
+            }
+            // Mostrar confirmación detallando los métodos y montos
+            let detalle = '<p>Está pagando:</p><ul>';
+            for (const [met, monto] of Object.entries(metodos)) {
+                detalle += `<li><b>${met}:</b> $${monto.toFixed(2)}</li>`;
+            }
+            detalle += `</ul><p><b>Total:</b> $${totalPagado.toFixed(2)}</p><p>¿Registrar pago?</p>`;
+            mostrarModalConfirmacion(detalle, registrarPago);
+            return;
+        }
+
+        // Función para registrar el pago y recargar la página tras éxito
+        function registrarPago() {
+            let metodoPagoStr = pagos.join(', ');
+            if (metodoPagoStr.length > 20) metodoPagoStr = metodoPagoStr.substring(0, 20);
+            const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+            form.querySelectorAll('button, input[type="submit"]').forEach(btn => btn.disabled = true);
+            fetch('<?php echo BASE_URL; ?>ventas/registrarPago', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    id_venta: idVenta,
+                    metodo_pago: metodoPagoStr,
+                    monto: totalPagado,
+                    csrf_token: csrfToken
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'mt-3';
+                if (data.success) {
+                    let mensaje = 'Pago registrado correctamente.';
+                    if (data.cambio && metodosUnicos.length === 1 && metodosUnicos[0] === 'Efectivo') {
+                        mensaje += `<br><b>Cambio a devolver:</b> $${parseFloat(data.cambio).toFixed(2)}`;
+                    }
+                    msgDiv.innerHTML = `<div class=\"alert alert-success\">${mensaje}</div>`;
+                    form.parentNode.appendChild(msgDiv);
+                    setTimeout(() => {
+                        // Cierra cualquier modal abierto antes de redirigir a ticket
+                        const openModal = document.querySelector('.modal.show');
+                        if (openModal) {
+                            const modalInstance = bootstrap.Modal.getOrCreateInstance(openModal);
+                            modalInstance.hide();
+                            setTimeout(function() {
+                                window.location.href = '<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta;
+                            }, 350);
+                        } else {
+                            window.location.href = '<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta;
+                        }
+                    }, 200);
+                } else {
+                    msgDiv.innerHTML = '<div class=\"alert alert-danger\">' + (data.error || 'Error al registrar el pago.') + '</div>';
+                    form.querySelectorAll('button, input[type=\"submit\"]').forEach(btn => btn.disabled = false);
+                }
+            })
+            .catch(() => {
+                form.querySelectorAll('button, input[type="submit"]').forEach(btn => btn.disabled = false);
+            });
+        }
     });
 });
 </script>

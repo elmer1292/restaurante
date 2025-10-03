@@ -66,30 +66,7 @@ class VentaController extends BaseController {
             }
             $descripcion = 'Pago de venta ID ' . $idVenta . ' (' . $metodoPago . ')';
             $movimientoModel->registrarMovimiento('Ingreso', $total, $descripcion, $idUsuario, $idVenta);
-            // Imprimir ticket de venta
-            require_once __DIR__ . '/../helpers/TicketHelper.php';
-            require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
-            require_once __DIR__ . '/../models/UserModel.php';
-            $ventaInfo = $ventaModel->getVentaById($idVenta);
-            $detalles = $ventaModel->getSaleDetails($idVenta);
-            $detallesTicket = [];
-            foreach ($detalles as $item) {
-                $detallesTicket[] = [
-                    'cantidad' => $item['Cantidad'],
-                    'nombre' => $item['Nombre_Producto'],
-                    'subtotal' => $item['Subtotal']
-                ];
-            }
-            require_once __DIR__ . '/../models/ConfigModel.php';
-            $configModel = new ConfigModel();
-            $restaurante = $configModel->get('nombre_app') ?: 'RESTAURANTE';
-            $moneda = $configModel->get('moneda') ?: '$';
-            $mesa = isset($ventaInfo['Numero_Mesa']) ? $ventaInfo['Numero_Mesa'] : '-';
-            $fechaHora = date('Y-m-d H:i:s');
-            $empleado = isset($ventaInfo['Empleado']) ? $ventaInfo['Empleado'] : '---';
-            $ticketId = $idVenta;
-            $contenidoTicket = TicketHelper::generarTicketVenta($restaurante, $mesa, $fechaHora, $detallesTicket, $total, $empleado, $ticketId, $moneda);
-            ImpresoraHelper::imprimir('impresora_ticket', $contenidoTicket);
+            // Impresión de ticket removida temporalmente para evitar bloqueos y asegurar actualización inmediata de ventas
             $response = ['success' => true];
             if (isset($cambio)) {
                 $response['cambio'] = $cambio;
@@ -98,5 +75,11 @@ class VentaController extends BaseController {
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
+    }
+    // ticket
+    public function ticket() {
+        // El método ticket solo debe preparar datos o delegar a la vista según el router
+        // Si usas un sistema de vistas, deberías hacer algo como:
+        $this->render('views/ventas/ticket.php');
     }
 }

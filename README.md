@@ -42,8 +42,8 @@ Este es un sistema completo de gestión para restaurantes y bares desarrollado e
 
 ## Requisitos del Sistema
 
-- PHP 7.4 o superior
-- MySQL 5.7 o superior
+- PHP 8 o superior
+- MySQL 8 o superior
 - Servidor web Apache con mod_rewrite habilitado
 - Extensiones PHP requeridas:
   - PDO
@@ -236,5 +236,35 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo LICENSE para más detal
 - **Constantes:** MAYÚSCULAS_CON_GUIONES (Ejemplo: DB_HOST)
 
 > Mantener el idioma y estilo en todo el proyecto. Si se renombra una clase o método, actualizar los includes/imports/rutas correspondientes.
+
+---
+
+## Mejoras y Cambios Recientes (2025)
+
+- **Impresión de Ticket Mejorada**
+  - El ticket de venta se abre siempre en una ventana emergente (popup) lista para imprimir, evitando el sidebar y el layout principal.
+  - El formato del ticket es configurable desde `helpers/TicketHelper.php`.
+  - El ticket soporta múltiples métodos de pago y muestra el desglose y el cambio si aplica.
+
+- **Múltiples Métodos de Pago**
+  - Ahora puedes registrar pagos combinando efectivo, tarjeta y transferencia.
+  - El sistema calcula el total pagado y el cambio automáticamente.
+
+- **Saldo Actual Dinámico en Movimientos**
+  - El saldo mostrado en la vista de movimientos se actualiza según los filtros aplicados (tipo, fecha, etc.), mostrando solo el saldo de los movimientos visibles en la tabla.
+
+- **Flujo de Caja y Seguridad**
+  - Mejoras en la validación de roles y sesiones.
+  - Protección CSRF global en formularios y AJAX.
+  - Validación de parámetros y sanitización centralizada.
+
+- **Experiencia de Usuario**
+  - Confirmaciones de pago y mensajes claros en cada acción.
+  - Redirección automática tras registrar pagos y acciones críticas.
+  - Mejor manejo de errores y mensajes informativos.
+
+- **Documentación y Código**
+  - Código y nombres consistentes en español.
+  - Documentación actualizada y guía de nombres en este README.
 
 ---

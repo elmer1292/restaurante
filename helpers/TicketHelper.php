@@ -13,7 +13,7 @@ class TicketHelper {
         return $out;
     }
 
-    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda = '$') {
+    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago,$cambio) {
         $out = "====== $restaurante ======\n";
         $out .= "Mesa: $mesa\n";
         $out .= "Fecha: $fechaHora\n";
@@ -29,6 +29,9 @@ class TicketHelper {
         $out .= str_repeat('-', 34) . "\n";
         $out .= "TOTAL:" . str_pad($moneda . number_format($total, 2), 25, ' ', STR_PAD_LEFT) . "\n";
         $out .= str_repeat('-', 34) . "\n";
+        //Metodo de pago
+        $out .= "Método de pago: $moneda $metodoPago\n";
+        $out .= "Cambio: $moneda $cambio\n";
         $out .= "¡Gracias por su visita!\n";
         $out .= "Atendido por: $empleado\n";
         $out .= "Ticket: #" . str_pad($ticketId, 6, '0', STR_PAD_LEFT) . "\n";

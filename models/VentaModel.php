@@ -147,7 +147,7 @@ class VentaModel {
     public function getVentaById($idVenta) {
         try {
             $stmt = $this->conn->prepare(
-                'SELECT v.*, c.Nombre_Cliente, e.Nombre_Completo as Empleado, m.Numero_Mesa 
+                'SELECT v.*, c.Nombre_Cliente, e.Nombre_Completo as Empleado, e.ID_Usuario, m.Numero_Mesa 
                 FROM ventas v 
                 INNER JOIN clientes c ON v.ID_Cliente = c.ID_Cliente 
                 INNER JOIN empleados e ON v.ID_Empleado = e.ID_Empleado 

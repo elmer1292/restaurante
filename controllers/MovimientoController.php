@@ -12,7 +12,8 @@ class MovimientoController extends BaseController {
         $fechaDesde = $_GET['fecha_desde'] ?? null;
         $fechaHasta = $_GET['fecha_hasta'] ?? null;
         $movimientos = $movimientoModel->obtenerMovimientos($tipo, $fechaDesde, $fechaHasta);
-        $saldo = $movimientoModel->obtenerSaldoActual();
+        // Usar saldo filtrado en vez de saldo global
+        $saldo = $movimientoModel->obtenerSaldoFiltrado($tipo, $fechaDesde, $fechaHasta);
         $mensaje = isset($_SESSION['mensaje']) ? $_SESSION['mensaje'] : '';
         unset($_SESSION['mensaje']);
         $this->render('views/movimientos/index.php', compact('movimientos', 'saldo', 'mensaje', 'tipo', 'fechaDesde', 'fechaHasta'));

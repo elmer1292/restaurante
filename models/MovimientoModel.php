@@ -103,4 +103,37 @@ class MovimientoModel {
         $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
         return $row2 ? floatval($row2['saldo']) : 0.0;
     }
+
+    /**
+     * Obtiene el saldo según los filtros aplicados (tipo, fecha)
+     * @param string|null $tipo
+     * @param string|null $fechaDesde
+     * @param string|null $fechaHasta
+     * @return float
+     */
+    public function obtenerSaldoFiltrado($tipo = null, $fechaDesde = null, $fechaHasta = null) {
+        try {
+            $sql = "SELECT SUM(CASE WHEN m.Tipo IN ('Ingreso','Apertura') THEN m.Monto WHEN m.Tipo='Cierre' THEN 0 ELSE -m.Monto END) as saldo FROM movimientos m WHERE 1=1";
+            $params = [];
+            if ($tipo) {
+                $sql .= ' AND m.Tipo = ?';
+                $params[] = $tipo;
+            }
+            if ($fechaDesde) {
+                $sql .= ' AND m.Fecha_Hora >= ?';
+                $params[] = $fechaDesde . ' 00:00:00';
+            }
+            if ($fechaHasta) {
+                $sql .= ' AND m.Fecha_Hora <= ?';
+                $params[] = $fechaHasta . ' 23:59:59';
+            }
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($params);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? floatval($row['saldo']) : 0.0;
+        } catch (PDOException $e) {
+            error_log('Error en obtenerSaldoFiltrado: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
 }

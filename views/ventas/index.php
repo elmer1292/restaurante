@@ -283,7 +283,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         // Función para registrar el pago y recargar la página tras éxito
         function registrarPago() {
             let metodoPagoStr = pagos.join(', ');
-            if (metodoPagoStr.length > 20) metodoPagoStr = metodoPagoStr.substring(0, 20);
+            if (metodoPagoStr.length > 200) metodoPagoStr = metodoPagoStr.substring(0, 200);
             const csrfToken = form.querySelector('input[name="csrf_token"]').value;
             form.querySelectorAll('button, input[type="submit"]').forEach(btn => btn.disabled = true);
             fetch('<?php echo BASE_URL; ?>ventas/registrarPago', {

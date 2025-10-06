@@ -24,18 +24,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'toggle_estado') {
 // Las siguientes operaciones solo están permitidas para Administradores
 if (Session::get('user_role') !== 'Administrador') {
     $_SESSION['mensaje'] = 'No tiene permisos para realizar esta operación.';
-    header('Location: /restaurante/mesas');
+    header('Location: ' . BASE_URL . 'mesas');
     exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $numeroMesa = (int)$_POST['numero_mesa'];
-    $capacidad = (int)$_POST['capacidad'];
+    $numeroMesa = isset($_POST['numero_mesa']) ? (int)$_POST['numero_mesa'] : 0;
+    $capacidad = isset($_POST['capacidad']) ? (int)$_POST['capacidad'] : 0;
 
     // Validaciones básicas
     if ($numeroMesa <= 0 || $capacidad <= 0) {
         $_SESSION['mensaje'] = 'Por favor, ingrese valores válidos para el número de mesa y capacidad.';
-        header('Location: /restaurante/mesas');
+        header('Location: ' . BASE_URL . 'mesas');
         exit();
     }
 

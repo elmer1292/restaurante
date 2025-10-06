@@ -39,6 +39,8 @@ $router->add('user/update', 'UserController', 'actualizarPerfil');
 
 $router->add('mesas/dividir_cuenta', 'MesaController', 'dividirCuenta');
 
+$router->add('mesas/procesar_mesa', 'MesaController', 'procesarMesa');
+
 $router->add('caja/apertura', 'CajaController', 'apertura');
 $router->add('caja/cierre', 'CajaController', 'cierre');
 

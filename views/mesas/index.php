@@ -69,7 +69,7 @@ if (isset($_SESSION['mensaje'])) {
                 <h5 class="modal-title" id="modalTitle">Nueva Mesa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="mesaForm" action="procesar_mesa.php" method="POST">
+            <form id="mesaForm" action="<?= BASE_URL ?>mesas/procesar_mesa" method="POST">
                 <?php require_once __DIR__ . '/../../helpers/Csrf.php'; ?>
                 <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                 <div class="modal-body">

@@ -314,10 +314,10 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
                             const modalInstance = bootstrap.Modal.getOrCreateInstance(openModal);
                             modalInstance.hide();
                             setTimeout(function() {
-                                window.location.href = '<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta;
+                                window.open('<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta, '_blank', 'width=400,height=600');
                             }, 350);
                         } else {
-                            window.location.href = '<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta;
+                            window.open('<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta, '_blank', 'width=400,height=600');
                         }
                     }, 200);
                 } else {

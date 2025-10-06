@@ -44,7 +44,7 @@ class ConfigController extends BaseController {
             $configModel->set('moneda', $_POST['moneda'] ?? 'C$');
             $configModel->set('IVA', $_POST['iva'] ?? '0');
             $configModel->set('simbolo_moneda', $_POST['simbolo_moneda'] ?? 'C$');
-            $configModel->set('imprimir_tickets', isset($_POST['imprimir_tickets']) ? '1' : '0');
+            $configModel->set('impresora_ticket', $_POST['impresora_ticket'] ?? '');
             $configModel->set('servicio', $_POST['servicio'] ?? '0');
             $_SESSION['mensaje'] = 'Configuración actualizada correctamente.';
             header('Location: ' . BASE_URL . 'configuracion');

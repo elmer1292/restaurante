@@ -81,8 +81,10 @@ function buscarImpresoras(tipo) {
         }
         if (tipo === 'cocina') {
             document.getElementById('listaImpresorasCocina').innerHTML = lista;
-        } else {
+        } else if (tipo === 'barra') {
             document.getElementById('listaImpresorasBarra').innerHTML = lista;
+        }else if (tipo === 'ticket') {
+            document.getElementById('listaImpresorasTicket').innerHTML = lista;
         }
     })
     .catch(err => {
@@ -98,9 +100,12 @@ function seleccionarImpresora(tipo, nombre) {
     if (tipo === 'cocina') {
         document.getElementById('impresora_cocina').value = nombre;
         document.getElementById('listaImpresorasCocina').innerHTML = '';
-    } else {
+    } else if (tipo === 'barra') {
         document.getElementById('impresora_barra').value = nombre;
         document.getElementById('listaImpresorasBarra').innerHTML = '';
+    } else if (tipo === 'ticket') {
+        document.getElementById('impresora_ticket').value = nombre;
+        document.getElementById('listaImpresorasTicket').innerHTML = '';
     }
 }
 </script>

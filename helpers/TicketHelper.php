@@ -13,27 +13,47 @@ class TicketHelper {
         return $out;
     }
 
-    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago,$cambio) {
-        $out = "====== $restaurante ======\n";
+    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago, $cambio) {
+        // Ancho máximo de línea para ticket térmico estándar
+        $maxWidth = 32;
+        $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        $out .= "RUC: 0810509961001U\n";
+        $out .= "Tel: (123) 456-7890\n";
+        $out .= "Dirección: Frente al nuevo \nhospital HEODRA\n";
+        $out .= str_repeat('=', $maxWidth) . "\n";
         $out .= "Mesa: $mesa\n";
         $out .= "Fecha: $fechaHora\n";
-        $out .= str_repeat('-', 34) . "\n";
-        $out .= "Cant  Producto           Subtotal\n";
-        $out .= str_repeat('-', 34) . "\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        $out .= "Cant Producto         Subtotal\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
         foreach ($detalles as $item) {
             $cant = str_pad($item['cantidad'] . 'x', 4);
-            $nombre = str_pad(substr($item['nombre'], 0, 16), 16);
-            $subtotal = str_pad($moneda . number_format($item['subtotal'], 2), 8, ' ', STR_PAD_LEFT);
+            // Producto: máximo 15 caracteres
+            $nombre = mb_strimwidth(strtoupper($item['nombre']), 0, 15, '');
+            $nombre = str_pad($nombre, 15);
+            $subtotal = str_pad($moneda . number_format($item['subtotal'], 2), 9, ' ', STR_PAD_LEFT);
             $out .= "$cant $nombre $subtotal\n";
         }
-        $out .= str_repeat('-', 34) . "\n";
-        $out .= "TOTAL:" . str_pad($moneda . number_format($total, 2), 25, ' ', STR_PAD_LEFT) . "\n";
-        $out .= str_repeat('-', 34) . "\n";
-        //Metodo de pago
-        $out .= "Método de pago: $moneda $metodoPago\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        $out .= str_pad('TOTAL:', 20) . str_pad($moneda . number_format($total, 2), 12, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        // Método de pago: dividir si es muy largo
+        $mpago = "$moneda $metodoPago";
+        if (mb_strlen($mpago) > $maxWidth - 15) {
+            $out .= "Método de pago:\n";
+            $out .= wordwrap($mpago, $maxWidth, "\n", true) . "\n";
+        } else {
+            $out .= "Método de pago: $mpago\n";
+        }
         $out .= "Cambio: $moneda $cambio\n";
         $out .= "¡Gracias por su visita!\n";
-        $out .= "Atendido por: $empleado\n";
+        $emp="$empleado";
+        if (mb_strlen($emp) > $maxWidth - 15) {
+            $out .= "Atendido por:\n";
+            $out .= wordwrap($emp, $maxWidth, "\n", true) . "\n";
+        } else {
+            $out .= "Atendido por: $emp\n";
+        }
         $out .= "Ticket: #" . str_pad($ticketId, 6, '0', STR_PAD_LEFT) . "\n";
         return $out;
     }

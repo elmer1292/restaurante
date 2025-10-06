@@ -66,16 +66,43 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     <meta charset="UTF-8">
     <title>Ticket de Venta</title>
     <style>
+        body {
+            background: #fafafa;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .ticket {
+            width: 260px;
+            max-width: 100vw;
+            margin: 2em auto 0 auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 1.2em 0.5em;
+            font-size: 13px;
+            line-height: 1.25;
+            white-space: pre;
+            box-shadow: 0 2px 8px #0001;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
         @media print {
-            body { width: 240px; }
+            body { background: #fff; }
+            .ticket {
+                width: 240px;
+                margin: 0;
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
             .no-print { display: none; }
         }
     </style>
-</head>
-<body onload="window.print()">
-    <pre class="ticket"><?php echo htmlspecialchars($ticketTxt); ?></pre>
-    <div class="no-print" style="text-align:center;margin-top:10px;">
-        <button onclick="window.print()">Imprimir</button>
-    </div>
-</body>
-</html>
+    </head>
+    <body>
+        <pre class="ticket"><?php echo htmlspecialchars($ticketTxt); ?></pre>
+        <div class="no-print" style="text-align:center;margin-top:10px;">
+            <button onclick="window.print()">Imprimir</button>
+        </div>
+    </body>
+    </html>

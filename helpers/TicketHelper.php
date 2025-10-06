@@ -14,8 +14,8 @@ class TicketHelper {
     }
 
     public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago, $cambio) {
-        // Ancho máximo de línea para ticket térmico estándar
-        $maxWidth = 32;
+        // Ancho máximo de línea para ticket térmico estándar 80mm
+        $maxWidth = 35;
         $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
         $out .= "RUC: 0810509961001U\n";
         $out .= "Tel: (123) 456-7890\n";
@@ -24,18 +24,19 @@ class TicketHelper {
         $out .= "Mesa: $mesa\n";
         $out .= "Fecha: $fechaHora\n";
         $out .= str_repeat('-', $maxWidth) . "\n";
-        $out .= "Cant Producto         Subtotal\n";
+        // Encabezado: 4 + 22 + 8 = 34, pero ajustamos para sumar 42
+        $out .= str_pad('Cant', 4) . str_pad('Producto', 22) . str_pad('Subtotal', 8, ' ', STR_PAD_LEFT) . "\n";
         $out .= str_repeat('-', $maxWidth) . "\n";
         foreach ($detalles as $item) {
             $cant = str_pad($item['cantidad'] . 'x', 4);
-            // Producto: máximo 15 caracteres
-            $nombre = mb_strimwidth(strtoupper($item['nombre']), 0, 15, '');
-            $nombre = str_pad($nombre, 15);
-            $subtotal = str_pad($moneda . number_format($item['subtotal'], 2), 9, ' ', STR_PAD_LEFT);
-            $out .= "$cant $nombre $subtotal\n";
+            // Producto: máximo 22 caracteres
+            $nombre = mb_strimwidth(strtoupper($item['nombre']), 0, 22, '');
+            $nombre = str_pad($nombre, 22);
+            $subtotal = str_pad($moneda . number_format($item['subtotal'], 2), 8, ' ', STR_PAD_LEFT);
+            $out .= "$cant$nombre$subtotal\n";
         }
         $out .= str_repeat('-', $maxWidth) . "\n";
-        $out .= str_pad('TOTAL:', 20) . str_pad($moneda . number_format($total, 2), 12, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_pad('TOTAL:', 26) . str_pad($moneda . number_format($total, 2), 8, ' ', STR_PAD_LEFT) . "\n";
         $out .= str_repeat('-', $maxWidth) . "\n";
         // Método de pago: dividir si es muy largo
         $mpago = "$moneda $metodoPago";
@@ -47,7 +48,7 @@ class TicketHelper {
         }
         $out .= "Cambio: $moneda $cambio\n";
         $out .= "¡Gracias por su visita!\n";
-        $emp="$empleado";
+        $emp = "$empleado";
         if (mb_strlen($emp) > $maxWidth - 15) {
             $out .= "Atendido por:\n";
             $out .= wordwrap($emp, $maxWidth, "\n", true) . "\n";

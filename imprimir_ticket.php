@@ -1,7 +1,4 @@
 <?php
-// LOGGING BÁSICO PARA DEPURACIÓN
-$logFile = __DIR__ . '/imprimir_ticket.log';
-file_put_contents($logFile, date('Y-m-d H:i:s') . " - Script iniciado\n", FILE_APPEND);
 // imprimir_ticket.php: Imprime un ticket ESC/POS directo desde PHP
 // Uso: imprimir_ticket.php?id=ID_Venta
 
@@ -29,24 +26,19 @@ if (php_sapi_name() === 'cli') {
     foreach ($argv as $arg) {
         if (strpos($arg, 'id=') === 0) {
             $idVenta = (int)substr($arg, 3);
-            file_put_contents($logFile, date('Y-m-d H:i:s') . " - ID recibido por argv: $idVenta\n", FILE_APPEND);
             break;
         }
     }
 } else {
     $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-    file_put_contents($logFile, date('Y-m-d H:i:s') . " - ID recibido por GET: $idVenta\n", FILE_APPEND);
 }
 if (!$idVenta) {
-    file_put_contents($logFile, date('Y-m-d H:i:s') . " - ERROR: ID de venta no especificado\n", FILE_APPEND);
     die('ID de venta no especificado.');
 }
 
 $ventaModel = new VentaModel();
 $venta = $ventaModel->getVentaById($idVenta);
-file_put_contents($logFile, date('Y-m-d H:i:s') . " - Venta obtenida: " . ($venta ? 'OK' : 'NO ENCONTRADA') . "\n", FILE_APPEND);
 if (!$venta) {
-    file_put_contents($logFile, date('Y-m-d H:i:s') . " - ERROR: Venta no encontrada\n", FILE_APPEND);
     die('Venta no encontrada.');
 }
 $mesaModel = new MesaModel();
@@ -95,9 +87,7 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $venta['Metodo_Pago'] ?? 'N/A',
     $cambio ?? 0
 );
-file_put_contents($logFile, date('Y-m-d H:i:s') . " - Ticket generado\n", FILE_APPEND);
 
-file_put_contents($logFile, date('Y-m-d H:i:s') . " - Antes de imprimir en $impresora\n", FILE_APPEND);
 try {
     $connector = new WindowsPrintConnector($impresora);
     $printer = new Printer($connector);
@@ -106,9 +96,7 @@ try {
     $printer->feed(2);
     $printer->cut();
     $printer->close();
-    file_put_contents($logFile, date('Y-m-d H:i:s') . " - Impresión exitosa\n", FILE_APPEND);
     echo 'Ticket enviado a la impresora.';
 } catch (Exception $e) {
-    file_put_contents($logFile, date('Y-m-d H:i:s') . " - ERROR impresión: " . $e->getMessage() . "\n", FILE_APPEND);
     echo 'Error al imprimir: ' . $e->getMessage();
 }

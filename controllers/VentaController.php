@@ -68,7 +68,8 @@ class VentaController extends BaseController {
             $movimientoModel->registrarMovimiento('Ingreso', $total, $descripcion, $idUsuario, $idVenta);
 
             // Llamar a imprimir_ticket.php en segundo plano
-            $phpPath = PHP_BINARY;
+            // Forzar la ruta de php.exe para evitar problemas con PHP_BINARY bajo Apache
+            $phpPath = 'C:/xampp/php/php.exe';
             $scriptPath = realpath(__DIR__ . '/../imprimir_ticket.php');
             if ($scriptPath) {
                 $cmd = "$phpPath \"$scriptPath\" id=$idVenta > NUL 2>&1 &";

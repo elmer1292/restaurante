@@ -3,6 +3,7 @@
 // Uso: imprimir_ticket.php?id=ID_Venta
 
 // Incluir clases necesarias de escpos-php
+require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/CapabilityProfile.php';
 require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/Printer.php';
 require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/PrintConnectors/PrintConnector.php';
 require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';

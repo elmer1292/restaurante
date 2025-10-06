@@ -3,7 +3,7 @@
 // Uso: imprimir_ticket.php?id=ID_Venta
 
 
-//Se necesita activar extension=intl en php.ini
+//Se necesita activar extension=intl en php.ini y recordar compartir la impresora
 
 
 // Incluir clases necesarias de escpos-php

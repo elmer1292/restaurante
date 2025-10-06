@@ -69,7 +69,7 @@ $cambio = $totalPagado > $total ? $totalPagado - $total : 0;
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
-$impresora = $configModel->get('impresora_ticket') ?: 'EPSON_TM_U220'; // Cambia la clave si usas otra
+$impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_cocina'); // Cambia la clave si usas otra
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(

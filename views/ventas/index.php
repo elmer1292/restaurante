@@ -314,7 +314,8 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
                             const modalInstance = bootstrap.Modal.getOrCreateInstance(openModal);
                             modalInstance.hide();
                         }
-                        // Ya no se abre ticket.php, la impresión es automática
+                        // Refresca la página para actualizar ventas
+                        window.location.reload();
                     }, 200);
                 } else {
                     msgDiv.innerHTML = '<div class=\"alert alert-danger\">' + (data.error || 'Error al registrar el pago.') + '</div>';

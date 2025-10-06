@@ -15,7 +15,20 @@ require_once __DIR__ . '/models/MesaModel.php';
 require_once __DIR__ . '/models/UserModel.php';
 require_once __DIR__ . '/helpers/TicketHelper.php';
 
-$idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Permitir recibir el ID por GET o por argumento CLI
+$idVenta = 0;
+if (php_sapi_name() === 'cli') {
+    // Buscar argumento id=...
+    foreach ($argv as $arg) {
+        if (strpos($arg, 'id=') === 0) {
+            $idVenta = (int)substr($arg, 3);
+            break;
+        }
+    }
+} else {
+    $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+}
 if (!$idVenta) {
     die('ID de venta no especificado.');
 }

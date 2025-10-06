@@ -41,6 +41,11 @@ class ConfigController extends BaseController {
             $configModel->set('impresora_cocina', $_POST['impresora_cocina'] ?? '');
             $configModel->set('usar_impresora_barra', isset($_POST['usar_impresora_barra']) ? '1' : '0');
             $configModel->set('impresora_barra', $_POST['impresora_barra'] ?? '');
+            $configModel->set('moneda', $_POST['moneda'] ?? 'C$');
+            $configModel->set('IVA', $_POST['iva'] ?? '0');
+            $configModel->set('simbolo_moneda', $_POST['simbolo_moneda'] ?? 'C$');
+            $configModel->set('imprimir_tickets', isset($_POST['imprimir_tickets']) ? '1' : '0');
+            $configModel->set('servicio', $_POST['servicio'] ?? '0');
             $_SESSION['mensaje'] = 'Configuración actualizada correctamente.';
             header('Location: ' . BASE_URL . 'configuracion');
             exit;
@@ -63,6 +68,11 @@ class ConfigController extends BaseController {
         $impresoras = ImpresoraHelper::buscarImpresoras();
         echo json_encode(['impresoras' => $impresoras]);
         exit;
+    }
+
+    public function getAll() {
+        $configModel = new ConfigModel();
+        return $configModel->getAll();
     }
 
     public function backup() {

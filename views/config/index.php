@@ -36,6 +36,26 @@
             </div>
             <div id="listaImpresorasBarra" class="mt-2"></div>
         </div>
+        <div class="mb-3">
+            <label class="form-label">Impresora de ticket</label>
+            <div class="input-group mt-2">
+                <input type="text" class="form-control" id="impresora_ticket" name="impresora_ticket" placeholder="Nombre o puerto" value="<?php echo htmlspecialchars($config['impresora_ticket'] ?? ''); ?>">
+                <button type="button" class="btn btn-outline-secondary" onclick="buscarImpresoras('ticket')">Buscar impresoras</button>
+            </div>
+            <div id="listaImpresorasTicket" class="mt-2"></div>
+        </div>
+        <!-- <div class="mb-3">
+            <label for="moneda" class="form-label">Símbolo de la moneda</label>
+            <input type="text" class="form-control" id="moneda" name="moneda" value="<php echo htmlspecialchars($config['moneda'] ?? ''); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label for="iva" class="form-label">Porcentaje de IVA (%)</label>
+            <input type="number" step="0.01" class="form-control" id="iva" name="iva" value="<php echo htmlspecialchars($config['iva'] ?? ''); ?>" required>
+        </div> -->
+        <div class="mb-3">
+            <label for="servicio" class="form-label">Porcentaje de Servicio (<?php echo htmlspecialchars($config['servicio']*100 ?? ''); ?>%)</label>
+            <input type="number" step="0.01" class="form-control" id="servicio" name="servicio" value="<?php echo htmlspecialchars($config['servicio'] ?? ''); ?>" required>
+        </div>
         <button type="submit" class="btn btn-primary">Guardar configuración</button>
         <a href="<?php echo BASE_URL; ?>config/backup" class="btn btn-success ms-2">Respaldar Base de Datos</a>
     </form>

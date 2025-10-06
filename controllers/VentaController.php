@@ -27,6 +27,7 @@ class VentaController extends BaseController {
         $idVenta = isset($_POST['id_venta']) ? (int)$_POST['id_venta'] : 0;
         $metodoPago = isset($_POST['metodo_pago']) ? substr(trim($_POST['metodo_pago']), 0, 200) : '';
         $monto = isset($_POST['monto']) ? (float)$_POST['monto'] : 0;
+        $servicio = isset($_POST['servicio']) ? (float)$_POST['servicio'] : 0;
         if (!$idVenta || !$metodoPago || $monto <= 0) {
             echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
             exit;
@@ -50,9 +51,9 @@ class VentaController extends BaseController {
                 }
             }
             if ($monto < $total) throw new Exception('El monto pagado es menor al total de la venta');
-            // Registrar el pago y marcar como pagada
-            $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada" WHERE ID_Venta = ?');
-            $stmtUp->execute([$metodoPago, $idVenta]);
+            // Registrar el pago y marcar como pagada, guardar el monto de servicio
+            $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada", Servicio = ? WHERE ID_Venta = ?');
+            $stmtUp->execute([$metodoPago, $servicio, $idVenta]);
             // Liberar la mesa
             $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
             $stmtMesa->execute([$idVenta]);

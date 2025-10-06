@@ -85,7 +85,8 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $venta['ID_Venta'],
     $moneda,
     $venta['Metodo_Pago'] ?? 'N/A',
-    $cambio ?? 0
+    $cambio ?? 0,
+    $venta['Servicio'] ?? 0
 );
 
 try {

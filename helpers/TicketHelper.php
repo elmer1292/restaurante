@@ -13,7 +13,7 @@ class TicketHelper {
         return $out;
     }
 
-    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago, $cambio) {
+    public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago, $cambio,$servicio) {
         // Ancho máximo de línea para ticket térmico estándar 80mm
         $maxWidth = 35;
         $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
@@ -46,6 +46,11 @@ class TicketHelper {
         } else {
             $out .= "Método de pago: $mpago\n";
         }
+        if($servicio>0){
+            $out .= str_pad('Servicio:', 26) . str_pad($moneda . number_format($servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        }
+        $out .= str_pad('TOTAL PAGADO:', 26) . str_pad($moneda . number_format($total+$servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
         $out .= "Cambio: $moneda $cambio\n";
         $out .= "¡Gracias por su visita!\n";
         $emp = "$empleado";

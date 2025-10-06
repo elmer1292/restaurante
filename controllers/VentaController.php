@@ -66,7 +66,19 @@ class VentaController extends BaseController {
             }
             $descripcion = 'Pago de venta ID ' . $idVenta . ' (' . $metodoPago . ')';
             $movimientoModel->registrarMovimiento('Ingreso', $total, $descripcion, $idUsuario, $idVenta);
-            // Impresión de ticket removida temporalmente para evitar bloqueos y asegurar actualización inmediata de ventas
+
+            // Llamar a imprimir_ticket.php en segundo plano
+            $phpPath = PHP_BINARY;
+            $scriptPath = realpath(__DIR__ . '/../imprimir_ticket.php');
+            if ($scriptPath) {
+                $cmd = "$phpPath \"$scriptPath\" id=$idVenta > NUL 2>&1 &";
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    // Windows: usar start para background
+                    $cmd = 'start /B ' . $cmd;
+                }
+                exec($cmd);
+            }
+
             $response = ['success' => true];
             if (isset($cambio)) {
                 $response['cambio'] = $cambio;

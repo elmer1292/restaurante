@@ -308,17 +308,13 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
                     msgDiv.innerHTML = `<div class=\"alert alert-success\">${mensaje}</div>`;
                     form.parentNode.appendChild(msgDiv);
                     setTimeout(() => {
-                        // Cierra cualquier modal abierto antes de redirigir a ticket
+                        // Cierra cualquier modal abierto tras registrar el pago
                         const openModal = document.querySelector('.modal.show');
                         if (openModal) {
                             const modalInstance = bootstrap.Modal.getOrCreateInstance(openModal);
                             modalInstance.hide();
-                            setTimeout(function() {
-                                window.open('<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta, '_blank', 'width=400,height=600');
-                            }, 350);
-                        } else {
-                            window.open('<?php echo BASE_URL; ?>ventas/ticket?id=' + idVenta, '_blank', 'width=400,height=600');
                         }
+                        // Ya no se abre ticket.php, la impresión es automática
                     }, 200);
                 } else {
                     msgDiv.innerHTML = '<div class=\"alert alert-danger\">' + (data.error || 'Error al registrar el pago.') + '</div>';

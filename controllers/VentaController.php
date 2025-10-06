@@ -69,7 +69,7 @@ class VentaController extends BaseController {
 
             // Llamar a imprimir_ticket.php en segundo plano
             $phpPath = PHP_BINARY;
-            $scriptPath = realpath(__DIR__ . '\imprimir_ticket.php');
+            $scriptPath = realpath(__DIR__ . '/../imprimir_ticket.php');
             if ($scriptPath) {
                 $cmd = "$phpPath \"$scriptPath\" id=$idVenta > NUL 2>&1 &";
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {

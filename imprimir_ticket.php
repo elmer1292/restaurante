@@ -1,7 +1,7 @@
+<?php
 // LOGGING BÁSICO PARA DEPURACIÓN
 $logFile = __DIR__ . '/imprimir_ticket.log';
 file_put_contents($logFile, date('Y-m-d H:i:s') . " - Script iniciado\n", FILE_APPEND);
-<?php
 // imprimir_ticket.php: Imprime un ticket ESC/POS directo desde PHP
 // Uso: imprimir_ticket.php?id=ID_Venta
 

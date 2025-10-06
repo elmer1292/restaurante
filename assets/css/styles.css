@@ -28,6 +28,7 @@ body {
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     background-color: var(--dark-color);
     min-height: 100vh;
+    overflow-y: auto;
 }
 
 .sidebar .nav-link {
@@ -302,6 +303,8 @@ body {
         height: auto;
         position: relative;
         padding: 0;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     .main-content {

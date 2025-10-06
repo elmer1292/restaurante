@@ -73,7 +73,7 @@ $ticketTxt = TicketHelper::generarTicketVenta(
             font-family: 'Consolas', 'Courier New', monospace;
         }
         .ticket {
-            width: 300px; /* 80mm ≈ 302px at 96dpi */
+            width: 270px; /* 80mm ≈ 302px at 96dpi */
             max-width: 100vw;
             margin: 2em auto 0 auto;
             background: #fff;
@@ -101,7 +101,10 @@ $ticketTxt = TicketHelper::generarTicketVenta(
             .no-print { display: none; }
             @page {
                 size: 80mm auto;
-                margin: 5mm;
+                margin-top: 0mm;
+                margin-bottom: 0mm;
+                margin-left: 0mm;
+                margin-right: 0mm;
             }
         }
         @media print {

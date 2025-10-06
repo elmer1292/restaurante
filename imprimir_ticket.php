@@ -7,11 +7,8 @@
 
 
 // Incluir clases necesarias de escpos-php
-require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/CodePage.php';
-require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/CapabilityProfile.php';
-require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/Printer.php';
-require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/PrintConnectors/PrintConnector.php';
-require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';
+require_once __DIR__ . '\config\autoloader.php';
+
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 

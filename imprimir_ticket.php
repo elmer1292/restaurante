@@ -2,6 +2,10 @@
 // imprimir_ticket.php: Imprime un ticket ESC/POS directo desde PHP
 // Uso: imprimir_ticket.php?id=ID_Venta
 
+
+//Se necesita activar extension=intl en php.ini
+
+
 // Incluir clases necesarias de escpos-php
 require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/CodePage.php';
 require_once __DIR__ . '/helpers/escpos-php/src/Mike42/Escpos/CapabilityProfile.php';

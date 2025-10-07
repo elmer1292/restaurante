@@ -382,7 +382,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_AddProduct`(
+CREATE PROCEDURE `sp_AddProduct`(
     IN p_nombre VARCHAR(100),
     IN p_precio_costo DECIMAL(10,2),
     IN p_precio_venta DECIMAL(10,2),
@@ -408,7 +408,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`localhost` PROCEDURE `sp_AddSaleDetail`(
+CREATE PROCEDURE `sp_AddSaleDetail`(
     IN p_id_venta INT,
     IN p_id_producto INT,
     IN p_cantidad INT,
@@ -446,7 +446,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_CheckUserExists`(
+CREATE PROCEDURE `sp_CheckUserExists`(
     IN p_NombreUsuario VARCHAR(30),
     OUT p_Exists BOOLEAN
 )
@@ -471,7 +471,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_CreateCategory`(in p_Nombre_Categoria varchar(50))
+CREATE PROCEDURE `sp_CreateCategory`(in p_Nombre_Categoria varchar(50))
 begin
 	insert into categorias(Nombre_Categoria) values(p_Nombre_Categoria);
 end ;;
@@ -490,7 +490,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_CreateSale`(
+CREATE PROCEDURE `sp_CreateSale`(
     IN p_idCliente INT,
     IN p_idMesa INT,
     IN p_metodoPago VARCHAR(50),
@@ -516,7 +516,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_CreateUserWithEmployee`(
+CREATE PROCEDURE `sp_CreateUserWithEmployee`(
     IN p_NombreUsuario VARCHAR(30),
     IN p_Contrasenia VARCHAR(255),
     IN p_IDRol INT,
@@ -567,7 +567,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_DeleteEmployee`(IN p_ID_Empleado INT)
+CREATE PROCEDURE `sp_DeleteEmployee`(IN p_ID_Empleado INT)
 BEGIN
     START TRANSACTION;
     
@@ -594,7 +594,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetAllCategories`()
+CREATE PROCEDURE `sp_GetAllCategories`()
 begin
 select * from categorias;
 end ;;
@@ -613,7 +613,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetAllEmployees`()
+CREATE PROCEDURE `sp_GetAllEmployees`()
 BEGIN
     SELECT e.ID_Empleado, e.ID_Usuario, e.Nombre_Completo, e.Telefono, e.Correo, u.Nombre_Usuario,u.ID_Rol
     FROM empleados e
@@ -634,7 +634,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetAllProducts`()
+CREATE PROCEDURE `sp_GetAllProducts`()
 BEGIN
     SELECT p.*, c.Nombre_Categoria 
     FROM productos p
@@ -656,7 +656,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetAllRols`()
+CREATE PROCEDURE `sp_GetAllRols`()
 BEGIN
 	Select * from roles;
 END ;;
@@ -675,7 +675,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetAllTables`()
+CREATE PROCEDURE `sp_GetAllTables`()
 BEGIN
     SELECT * FROM mesas ORDER BY Numero_Mesa;
 END ;;
@@ -694,7 +694,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetDailySales`(
+CREATE PROCEDURE `sp_GetDailySales`(
     IN p_fecha DATE
 )
 BEGIN
@@ -719,7 +719,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetDashboardStats`()
+CREATE PROCEDURE `sp_GetDashboardStats`()
 BEGIN
     SELECT 
         (SELECT COUNT(*) FROM mesas WHERE Estado = 1) as MesasOcupadas,
@@ -742,7 +742,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetEmployeeById`(IN p_ID_Usuario INT)
+CREATE PROCEDURE `sp_GetEmployeeById`(IN p_ID_Usuario INT)
 BEGIN
     SELECT e.*, u.Nombre_Usuario ,u.ID_Rol
     FROM empleados e
@@ -764,7 +764,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_GetSaleDetails`(
+CREATE PROCEDURE `sp_GetSaleDetails`(
     IN p_id_venta INT
 )
 BEGIN
@@ -788,7 +788,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_UpdateEmployee`(
+CREATE PROCEDURE `sp_UpdateEmployee`(
     IN p_ID_Empleado INT,
     IN p_Nombre_Completo VARCHAR(100),
     IN p_Correo VARCHAR(100),
@@ -842,7 +842,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_UpdateProduct`(
+CREATE PROCEDURE `sp_UpdateProduct`(
     IN p_id_producto INT,
     IN p_nombre VARCHAR(100),
     IN p_precio_costo DECIMAL(10,2),
@@ -874,7 +874,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_UpdateTableStatus`(
+CREATE PROCEDURE `sp_UpdateTableStatus`(
     IN p_id_mesa INT,
     IN p_estado BOOLEAN
 )
@@ -896,7 +896,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_UpdateUser`(
+CREATE PROCEDURE `sp_UpdateUser`(
     IN p_user_id INT,
     IN p_username VARCHAR(30),
     IN p_password VARCHAR(255),
@@ -931,7 +931,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`baruser`@`%` PROCEDURE `sp_ValidateUser`(IN p_username VARCHAR(30))
+CREATE PROCEDURE `sp_ValidateUser`(IN p_username VARCHAR(30))
 BEGIN
     SELECT 
         u.ID_Usuario,

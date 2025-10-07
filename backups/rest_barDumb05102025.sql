@@ -345,6 +345,7 @@ CREATE TABLE `ventas` (
   `Metodo_Pago` varchar(200) DEFAULT NULL,
   `ID_Empleado` int DEFAULT NULL,
   `Estado` varchar(20) NOT NULL DEFAULT 'Pendiente',
+  `Servicio` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`ID_Venta`),
   KEY `ID_Cliente` (`ID_Cliente`),
   KEY `ID_Mesa` (`ID_Mesa`),

@@ -52,7 +52,9 @@ class TicketHelper {
             } else {
                 $out .= "Método de pago: $mpago\n";
             }
-            $out .= "Cambio: $moneda $cambio\n";
+            if ($cambio > 0) {
+                $out .= "Cambio: $moneda $cambio\n";
+            }
         }
         $out .= "¡Gracias por su visita!\n";
         $emp = "$empleado";

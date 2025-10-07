@@ -174,7 +174,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         let totalConServicio = subtotal + servicioMonto;
 
         // Actualizar los saldos mostrados
-        const saldoElem = document.getElementById('saldoPendiente' + idVenta);
+        const saldoElem = document.getElementById('saldoPendiente');
         const saldoConServicioElem = document.getElementById('saldoPendienteConServicio' + idVenta);
         if (incluirServicio) {
             if(saldoElem && saldoConServicioElem){

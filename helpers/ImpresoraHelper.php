@@ -32,17 +32,26 @@ class ImpresoraHelper {
         return $configModel->get($clave);
     }
 
-    // Enviar texto a la impresora (ejemplo básico)
+    // Enviar texto a la impresora usando escpos-php (soporte ESC/POS)
     public static function imprimir($clave, $contenido) {
         $impresora = self::obtenerImpresora($clave);
         if (!$impresora) return false;
-        // Guardar el contenido en un archivo temporal
-        $tmpFile = tempnam(sys_get_temp_dir(), 'print_');
-        file_put_contents($tmpFile, $contenido);
-        // Comando para imprimir en Windows
-        $cmd = 'print /D:"' . $impresora . '" "' . $tmpFile . '"';
-        exec($cmd);
-        unlink($tmpFile);
-        return true;
+        try {
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/Printer.php';
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/CapabilityProfile.php';
+            
+            $connector = new \Mike42\Escpos\PrintConnectors\WindowsPrintConnector($impresora);
+            $profile = \Mike42\Escpos\CapabilityProfile::load("simple");
+            $printer = new \Mike42\Escpos\Printer($connector, $profile);
+            $printer->text($contenido);
+            $printer->feed(3);
+            $printer->cut();
+            $printer->close();
+            return true;
+        } catch (\Exception $e) {
+            // Puedes loguear el error si lo deseas
+            return false;
+        }
     }
 }

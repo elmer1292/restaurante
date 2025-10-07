@@ -8,9 +8,9 @@ class VentaController extends BaseController {
     }
 
     public function registrarPago() {
-    require_once __DIR__ . '/../config/Session.php';
-    require_once __DIR__ . '/../models/VentaModel.php';
-    require_once __DIR__ . '/../models/MovimientoModel.php';
+        require_once __DIR__ . '/../config/Session.php';
+        require_once __DIR__ . '/../models/VentaModel.php';
+        require_once __DIR__ . '/../models/MovimientoModel.php';
         Session::init();
         Session::checkRole(['Administrador', 'Cajero']);
         header('Content-Type: application/json');
@@ -41,16 +41,17 @@ class VentaController extends BaseController {
             $venta = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$venta) throw new Exception('Venta no encontrada');
             $total = (float)$venta['Total'];
+            $totalFactura = $total + $servicio;
             $metodoPagoLower = strtolower($metodoPago);
             // Permitir exceso solo si el método es efectivo
-            if ($monto > $total) {
+            if ($monto > $totalFactura) {
                 if (strpos($metodoPagoLower, 'efectivo') !== false) {
-                    $cambio = $monto - $total;
+                    $cambio = $monto - $totalFactura;
                 } else {
                     throw new Exception('El monto pagado excede el total de la venta');
                 }
             }
-            if ($monto < $total) throw new Exception('El monto pagado es menor al total de la venta');
+            if ($monto < $totalFactura) throw new Exception('El monto pagado es menor al total de la venta');
             // Registrar el pago y marcar como pagada, guardar el monto de servicio
             $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada", Servicio = ? WHERE ID_Venta = ?');
             $stmtUp->execute([$metodoPago, $servicio, $idVenta]);

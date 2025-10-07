@@ -36,8 +36,12 @@ class TicketHelper {
             $out .= "$cant$nombre$subtotal\n";
         }
         $out .= str_repeat('-', $maxWidth) . "\n";
-        $out .= str_pad('TOTAL:', 26) . str_pad($moneda . number_format($total, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_pad('SUBTOTAL:', 26) . str_pad($moneda . number_format($total, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        if($servicio>0){
+            $out .= str_pad('Servicio:', 26) . str_pad($moneda . number_format($servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        }
         $out .= str_repeat('-', $maxWidth) . "\n";
+        $out .= str_pad('TOTAL:', 26) . str_pad($moneda . number_format($total+$servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
         // Método de pago: dividir si es muy largo
         $mpago = "$moneda $metodoPago";
         if (mb_strlen($mpago) > $maxWidth - 15) {
@@ -46,11 +50,6 @@ class TicketHelper {
         } else {
             $out .= "Método de pago: $mpago\n";
         }
-        if($servicio>0){
-            $out .= str_pad('Servicio:', 26) . str_pad($moneda . number_format($servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
-        }
-        $out .= str_pad('TOTAL PAGADO:', 26) . str_pad($moneda . number_format($total+$servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
-        $out .= str_repeat('-', $maxWidth) . "\n";
         $out .= "Cambio: $moneda $cambio\n";
         $out .= "¡Gracias por su visita!\n";
         $emp = "$empleado";

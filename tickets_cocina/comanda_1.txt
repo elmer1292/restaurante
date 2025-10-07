@@ -1,11 +1,10 @@
 
 ====== COMANDA COCINA ======
-Mesa: 6
-Hora: 2025-10-06 22:54:14
+Mesa: 1
+Hora: 2025-10-06 23:17:04
 --------------------------
 2x CARNE DE RES
 1x Ribeye
 1x sopa de gallina
-1x Res con punches
 --------------------------
 

@@ -1,7 +1,8 @@
 <?php
-// imprimir_ticket.php: Imprime un ticket ESC/POS directo desde PHP
-// Uso: imprimir_ticket.php?id=ID_Venta
+// imprimir_ticket_pre_factura.php: Imprime una pre-factura ESC/POS directo desde PHP
+// Uso: imprimir_ticket_pre_factura.php?id_mesa=ID_Mesa
 
+require_once __DIR__ . '/config/base_url.php';
 
 //Se necesita activar extension=intl en php.ini y recordar compartir la impresora
 
@@ -18,28 +19,34 @@ require_once __DIR__ . '/models/MesaModel.php';
 require_once __DIR__ . '/models/UserModel.php';
 require_once __DIR__ . '/helpers/TicketHelper.php';
 
-
-// Permitir recibir el ID por GET o por argumento CLI
-$idVenta = 0;
+// Permitir recibir el ID de mesa por GET o por argumento CLI
+$idMesa = 0;
 if (php_sapi_name() === 'cli') {
-    // Buscar argumento id=...
     foreach ($argv as $arg) {
-        if (strpos($arg, 'id=') === 0) {
-            $idVenta = (int)substr($arg, 3);
+        if (strpos($arg, 'id_mesa=') === 0) {
+            $idMesa = (int)substr($arg, 8);
             break;
         }
     }
 } else {
-    $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $idMesa = isset($_GET['id_mesa']) ? (int)$_GET['id_mesa'] : 0;
 }
-if (!$idVenta) {
-    die('ID de venta no especificado.');
+if (!$idMesa) {
+    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=');
+    exit;
 }
 
 $ventaModel = new VentaModel();
+$comanda = $ventaModel->getVentaActivaByMesa($idMesa);
+if (!$comanda) {
+    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=' . $idMesa);
+    exit;
+}
+$idVenta = $comanda['ID_Venta'];
 $venta = $ventaModel->getVentaById($idVenta);
 if (!$venta) {
-    die('Venta no encontrada.');
+    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=' . $idMesa);
+    exit;
 }
 $mesaModel = new MesaModel();
 $mesa = $mesaModel->getTableById($venta['ID_Mesa']);
@@ -59,20 +66,10 @@ foreach ($productos as $prod) {
     ];
     $total += $subtotal;
 }
-// Extraer el monto total pagado (puede ser varios métodos separados por coma)
-$metodos = explode(',', $venta['Metodo_Pago'] ?? '');
-$totalPagado = 0;
-foreach ($metodos as $metodo) {
-    $partes = explode(':', $metodo);
-    if (isset($partes[1])) {
-        $totalPagado += floatval($partes[1]);
-    }
-}
-$cambio = $totalPagado > $total ? $totalPagado - $total : 0;
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
-$impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_cocina'); // Cambia la clave si usas otra
+$impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_barra'); // Cambia la clave si usas otra
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(
@@ -84,10 +81,10 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $usuario['Nombre_Completo'] ?? '',
     $venta['ID_Venta'],
     $moneda,
-    $venta['Metodo_Pago'] ?? 'N/A',
-    $cambio ?? 0,
+    '',
+    '',
     $venta['Servicio'] ?? 0,
-    false
+    true // Indica que es pre-factura
 );
 
 try {
@@ -98,7 +95,8 @@ try {
     $printer->feed(2);
     $printer->cut();
     $printer->close();
-    echo 'Ticket enviado a la impresora.';
+    echo 'Pre-factura impresa correctamente.' . "\n";
 } catch (Exception $e) {
-    echo 'Error al imprimir: ' . $e->getMessage();
+    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
 }
+exit;

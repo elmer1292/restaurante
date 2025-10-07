@@ -75,6 +75,9 @@ if (isset($mensaje)) {
                         <a href="<?php echo BASE_URL; ?>mesas/dividir_cuenta?id_mesa=<?php echo $mesa['ID_Mesa']; ?>" class="btn btn-outline-primary mb-3">
                             <i class="bi bi-scissors"></i> Dividir cuenta
                         </a>
+                        <a href="<?php echo BASE_URL; ?>imprimir_ticket_pre_factura.php?id_mesa=<?php echo $mesa['ID_Mesa']; ?>" class="btn btn-warning mb-3 ms-2">
+                            <i class="bi bi-receipt"></i> Pre-Facturas
+                        </a>
                         </ul>
                     <?php }
                 } ?>
@@ -127,7 +130,6 @@ function enviarProductosComanda() {
     if (productosAgregados.length === 0) return;
     let idMesaInput = document.querySelector('input[name="id_mesa"]');
     let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
-    // Si los inputs no existen, usar variables PHP
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
     let csrfToken = csrfTokenInput ? csrfTokenInput.value : <?php echo json_encode(Csrf::getToken()); ?>;
     fetch('<?php echo BASE_URL; ?>comanda/agregarProductos', {
@@ -142,7 +144,37 @@ function enviarProductosComanda() {
     })
     .then(response => response.json())
     .then(data => {
-        window.location.reload();
+        if (data.success) {
+            // Imprimir barra y cocina automáticamente
+            Promise.all([
+                fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
+                }).then(res => res.json()),
+                fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
+                }).then(res => res.json())
+            ]).then(([barraRes, cocinaRes]) => {
+                let msg = '';
+                if (barraRes.success) {
+                    msg += 'Ticket de barra enviado.\n';
+                } else {
+                    msg += 'Error al imprimir barra: ' + (barraRes.error || 'Error desconocido.') + '\n';
+                }
+                if (cocinaRes.success) {
+                    msg += 'Ticket de cocina enviado.';
+                } else {
+                    msg += 'Error al imprimir cocina: ' + (cocinaRes.error || 'Error desconocido');
+                }
+                alert(msg);
+                window.location.reload();
+            });
+        } else {
+            alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
+        }
     });
 }
 function eliminarProductoComanda(idDetalle, cantidad) {

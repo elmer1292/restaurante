@@ -1,0 +1,24 @@
+        Rincon Chinandegano        
+RUC: 0810509961001U
+Tel: (123) 456-7890
+Dirección: Frente al nuevo 
+hospital HEODRA
+===================================
+Mesa: 1
+Fecha: 06/10/2025 22:46
+-----------------------------------
+CantProducto              Subtotal
+-----------------------------------
+1x  RIBEYE                C$560.00
+1x  MIX CHELADA            C$40.00
+-----------------------------------
+SUBTOTAL:                 C$600.00
+Servicio:                  C$30.00
+-----------------------------------
+TOTAL:                    C$630.00
+Método de pago: Efectivo:650
+Cambio: C$ 50
+¡Gracias por su visita!
+Atendido por:
+Administrador Principal
+Ticket: #000104

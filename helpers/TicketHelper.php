@@ -43,7 +43,7 @@ class TicketHelper {
         $out .= str_repeat('-', $maxWidth) . "\n";
         $out .= str_pad('TOTAL:', 26) . str_pad($moneda . number_format($total+$servicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
         // Método de pago: dividir si es muy largo
-        $mpago = "$moneda $metodoPago";
+        $mpago = "$metodoPago";
         if (mb_strlen($mpago) > $maxWidth - 15) {
             $out .= "Método de pago:\n";
             $out .= wordwrap($mpago, $maxWidth, "\n", true) . "\n";
@@ -60,6 +60,9 @@ class TicketHelper {
             $out .= "Atendido por: $emp\n";
         }
         $out .= "Ticket: #" . str_pad($ticketId, 6, '0', STR_PAD_LEFT) . "\n";
+        //despues de todo esto guarda el $out en un archivo .txt
+         $filePath = __DIR__ . '/../tickets/ticket_' . $ticketId . '.txt';
+         file_put_contents($filePath, $out);
         return $out;
     }
 }

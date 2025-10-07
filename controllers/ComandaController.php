@@ -12,20 +12,40 @@ class ComandaController extends BaseController {
         $mesaModel = new MesaModel();
         $comandasCocina = $ventaModel->getVentasPendientesCocina();
         $comandasBarra = $ventaModel->getVentasPendientesBarra();
-        // Agrupar comandas de barra por mesa
-        $comandasPorMesa = [];
-        foreach ($comandasBarra as $comanda) {
-            $idMesa = $comanda['ID_Mesa'];
-            if (!isset($comandasPorMesa[$idMesa])) {
-                $comandasPorMesa[$idMesa] = [
-                    'numero_mesa' => $comanda['Numero_Mesa'],
-                    'fecha_hora' => $comanda['Fecha_Hora'],
+        // Unificar barra y cocina por mesa
+        $comandasUnificadas = [];
+        foreach ($comandasBarra as $item) {
+            $idMesa = $item['ID_Mesa'];
+            if (!isset($comandasUnificadas[$idMesa])) {
+                $comandasUnificadas[$idMesa] = [
+                    'numero_mesa' => $item['Numero_Mesa'],
+                    'fecha_hora' => $item['Fecha_Hora'],
                     'items' => []
                 ];
             }
-            $comandasPorMesa[$idMesa]['items'][] = $comanda;
+            $item['Categoria'] = 1; // Forzar barra
+            $comandasUnificadas[$idMesa]['items'][] = $item;
         }
-        $this->render('views/comandas/index.php', compact('comandasCocina', 'comandasPorMesa', 'mesaModel'));
+        foreach ($comandasCocina as $item) {
+            $idMesa = $item['ID_Mesa'];
+            if (!isset($comandasUnificadas[$idMesa])) {
+                $comandasUnificadas[$idMesa] = [
+                    'numero_mesa' => $item['Numero_Mesa'],
+                    'fecha_hora' => $item['Fecha_Hora'],
+                    'items' => []
+                ];
+            }
+            $item['Categoria'] = isset($item['Categoria']) ? $item['Categoria'] : 0; // Forzar cocina
+            $comandasUnificadas[$idMesa]['items'][] = $item;
+        }
+        // Ordenar items por fecha_hora si lo deseas
+        foreach ($comandasUnificadas as &$comanda) {
+            usort($comanda['items'], function($a, $b) {
+                return strtotime($a['Fecha_Hora']) <=> strtotime($b['Fecha_Hora']);
+            });
+        }
+        unset($comanda);
+        $this->render('views/comandas/index.php', compact('comandasUnificadas', 'mesaModel'));
     }
     public function imprimirComanda() {
         Session::init();
@@ -88,7 +108,7 @@ class ComandaController extends BaseController {
                 }
             }
             if (count($otros) > 0) {
-                $contenido .= "OTROS:\n";
+                
                 foreach ($otros as $item) {
                     $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
                 }
@@ -100,6 +120,9 @@ class ComandaController extends BaseController {
         }
         $contenido .= "--------------------------\n";
         $contenido .= "\n";
+        //guarda el contenido de $contenido en un archivo .txt en la carpeta tickets_cocina o tickets_barra en la raiz segun sea el caso
+        $rutaArchivo = $tipo === 'cocina' ? 'tickets_cocina/comanda_' . $idMesa . '.txt' : 'tickets_barra/comanda_' . $idMesa . '.txt';
+        file_put_contents($rutaArchivo, $contenido);
         // Imprimir usando el helper
         $clave = $tipo === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
         $ok = ImpresoraHelper::imprimir($clave, $contenido);

@@ -410,8 +410,11 @@ BEGIN
 
     IF detalle_id IS NOT NULL THEN
         UPDATE detalle_venta
-        SET Cantidad = Cantidad + p_cantidad,
-            Subtotal = (Cantidad + p_cantidad) * p_precio
+        SET Cantidad = Cantidad + p_cantidad
+        WHERE ID_Detalle = detalle_id;
+        -- Corregido: ahora el subtotal es la cantidad actualizada * precio
+        UPDATE detalle_venta
+        SET Subtotal = Cantidad * p_precio
         WHERE ID_Detalle = detalle_id;
     ELSE
         INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal)

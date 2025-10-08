@@ -11,16 +11,25 @@ class MovimientoController extends BaseController {
         $tipo = $_GET['tipo'] ?? null;
         $fechaDesde = $_GET['fecha_desde'] ?? null;
         $fechaHasta = $_GET['fecha_hasta'] ?? null;
-        $pagina = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
-        $porPagina = 20;
-        $offset = ($pagina - 1) * $porPagina;
-        $movimientos = $movimientoModel->obtenerMovimientos($tipo, $fechaDesde, $fechaHasta, $porPagina, $offset);
+        require_once __DIR__ . '/../helpers/Pagination.php';
+        $params = getPageParams($_GET, 50); // 50 como límite máximo por página
+        $movimientos = $movimientoModel->obtenerMovimientos($tipo, $fechaDesde, $fechaHasta, $params['limit'], $params['offset']);
         $totalMovimientos = $movimientoModel->contarMovimientos($tipo, $fechaDesde, $fechaHasta);
-        $totalPaginas = ceil($totalMovimientos / $porPagina);
+        $totalPaginas = ($params['limit'] > 0) ? ceil($totalMovimientos / $params['limit']) : 1;
         $saldo = $movimientoModel->obtenerSaldoFiltrado($tipo, $fechaDesde, $fechaHasta);
         $mensaje = isset($_SESSION['mensaje']) ? $_SESSION['mensaje'] : '';
         unset($_SESSION['mensaje']);
-        $this->render('views/movimientos/index.php', compact('movimientos', 'saldo', 'mensaje', 'tipo', 'fechaDesde', 'fechaHasta', 'pagina', 'totalPaginas'));
+        $this->render('views/movimientos/index.php', [
+            'movimientos' => $movimientos,
+            'saldo' => $saldo,
+            'mensaje' => $mensaje,
+            'tipo' => $tipo,
+            'fechaDesde' => $fechaDesde,
+            'fechaHasta' => $fechaHasta,
+            'pagina' => $params['page'],
+            'totalPaginas' => $totalPaginas,
+            'limit' => $params['limit']
+        ]);
     }
 
     public function registrar() {

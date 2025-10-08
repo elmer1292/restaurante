@@ -11,6 +11,7 @@
                 <th>Empleado</th>
                 <th># Ventas</th>
                 <th>Total Vendido</th>
+                <th>Promedio por Venta</th>
             </tr>
         </thead>
         <tbody>
@@ -19,6 +20,7 @@
                 <td><?= htmlspecialchars($v['empleado']) ?></td>
                 <td><?= (int)$v['ventas'] ?></td>
                 <td>C$ <?= number_format($v['total'], 2) ?></td>
+                <td>C$ <?= number_format($v['total'] / max($v['ventas'], 1), 2) ?></td>
             </tr>
             <?php endforeach; ?>
             <?php if (empty($ventas)): ?>

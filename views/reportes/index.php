@@ -10,5 +10,8 @@
         <a href="<?= BASE_URL ?>reportes/cierre_caja" class="list-group-item list-group-item-action">
             <i class="bi bi-cash-coin"></i> Cierre de Caja (Ventas Diarias)
         </a>
+        <a href="<?= BASE_URL ?>reportes/inventario" class="list-group-item list-group-item-action">
+            <i class="bi bi-clipboard-data"></i> Inventario de Productos
+        </a>
     </div>
 </div>

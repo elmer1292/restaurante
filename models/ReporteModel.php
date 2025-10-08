@@ -3,18 +3,18 @@ require_once __DIR__ . '/../config/database.php';
 
 class ReporteModel {
     public function getVentasDiariasPorEmpleado($fecha) {
-        $conn = (new Database())->connect();
-        $stmt = $conn->prepare("
-            SELECT u.Nombre AS empleado, COUNT(v.ID_Venta) AS ventas, SUM(v.Total + IFNULL(v.Servicio,0)) AS total
-            FROM ventas v
-            JOIN usuarios u ON v.ID_Usuario = u.ID_Usuario
-            WHERE DATE(v.Fecha) = ?
-              AND v.Estado = 'Pagada'
-            GROUP BY u.ID_Usuario
-            ORDER BY total DESC
-        ");
-        $stmt->execute([$fecha]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $conn = (new Database())->connect();
+                $stmt = $conn->prepare("
+                        SELECT e.Nombre_Completo AS empleado, COUNT(v.ID_Venta) AS ventas, SUM(v.Total + IFNULL(v.Servicio,0)) AS total
+                        FROM ventas v
+                        INNER JOIN empleados e ON v.ID_Empleado = e.ID_Empleado
+                        WHERE DATE(v.Fecha_Hora) = ?
+                            AND v.Estado = 'Pagada'
+                        GROUP BY e.ID_Empleado
+                        ORDER BY total DESC
+                ");
+                $stmt->execute([$fecha]);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getProductosVendidosPorFecha($fecha) {
@@ -50,5 +50,17 @@ class ReporteModel {
                 ");
                 $stmt->execute([$fecha]);
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+    }
+
+    public function getInventario() {
+        $conn = (new Database())->connect();
+        $stmt = $conn->prepare("
+            SELECT p.*, c.Nombre_Categoria
+            FROM productos p
+            INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria
+            ORDER BY p.Nombre_Producto ASC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

@@ -24,6 +24,14 @@
             </select>
         </div>
         <div class="col-md-2">
+            <select name="limit" class="form-select">
+                <option value="10" <?= (isset($limit) && $limit == 10) ? 'selected' : '' ?>>10</option>
+                <option value="20" <?= (isset($limit) && $limit == 20) ? 'selected' : '' ?>>20</option>
+                <option value="50" <?= (isset($limit) && $limit == 50) ? 'selected' : '' ?>>50</option>
+                <option value="100" <?= (isset($limit) && $limit == 100) ? 'selected' : '' ?>>100</option>
+            </select>
+        </div>
+        <div class="col-md-2">
             <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
         </div>
     </form>

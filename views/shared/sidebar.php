@@ -112,6 +112,14 @@ $nombreApp = $configModel->get('nombre_app');
                    Ventas
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link text-white <?php echo strpos(
+                    $currentPage, 'reportes') !== false ? 'active' : ''; ?>" 
+                   href="<?php echo BASE_URL; ?>reportes">
+                    <i class="bi bi-bar-chart"></i>
+                    Reportes
+                </a>
+            </li>
             <?php endif; ?>
 
             <li class="nav-item">

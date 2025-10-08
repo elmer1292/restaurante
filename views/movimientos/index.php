@@ -58,4 +58,16 @@
             </tbody>
         </table>
     </div>
+
+    <?php if (isset($totalPaginas) && $totalPaginas > 1): ?>
+    <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center">
+            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                <li class="page-item <?= $i == $pagina ? 'active' : '' ?>">
+                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['pagina' => $i])) ?>"> <?= $i ?> </a>
+                </li>
+            <?php endfor; ?>
+        </ul>
+    </nav>
+    <?php endif; ?>
 </div>

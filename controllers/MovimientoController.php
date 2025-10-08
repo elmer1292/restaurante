@@ -11,18 +11,23 @@ class MovimientoController extends BaseController {
         $tipo = $_GET['tipo'] ?? null;
         $fechaDesde = $_GET['fecha_desde'] ?? null;
         $fechaHasta = $_GET['fecha_hasta'] ?? null;
-        $movimientos = $movimientoModel->obtenerMovimientos($tipo, $fechaDesde, $fechaHasta);
-        // Usar saldo filtrado en vez de saldo global
+        $pagina = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+        $porPagina = 20;
+        $offset = ($pagina - 1) * $porPagina;
+        $movimientos = $movimientoModel->obtenerMovimientos($tipo, $fechaDesde, $fechaHasta, $porPagina, $offset);
+        $totalMovimientos = $movimientoModel->contarMovimientos($tipo, $fechaDesde, $fechaHasta);
+        $totalPaginas = ceil($totalMovimientos / $porPagina);
         $saldo = $movimientoModel->obtenerSaldoFiltrado($tipo, $fechaDesde, $fechaHasta);
         $mensaje = isset($_SESSION['mensaje']) ? $_SESSION['mensaje'] : '';
         unset($_SESSION['mensaje']);
-        $this->render('views/movimientos/index.php', compact('movimientos', 'saldo', 'mensaje', 'tipo', 'fechaDesde', 'fechaHasta'));
+        $this->render('views/movimientos/index.php', compact('movimientos', 'saldo', 'mensaje', 'tipo', 'fechaDesde', 'fechaHasta', 'pagina', 'totalPaginas'));
     }
 
     public function registrar() {
         Session::init();
         Session::checkRole(['Administrador', 'Cajero']);
         $movimientoModel = new MovimientoModel();
+        $mensaje = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tipo = $_POST['tipo'] ?? '';
             $monto = floatval($_POST['monto'] ?? 0);

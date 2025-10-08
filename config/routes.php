@@ -46,6 +46,12 @@ $router->add('caja/cierre', 'CajaController', 'cierre');
 
 $router->add('movimientos', 'MovimientoController', 'index');
 $router->add('movimientos/registrar', 'MovimientoController', 'registrar');
+
+$router->add('reportes', 'ReporteController', 'index');
+$router->add('reportes/ventas_dia', 'ReporteController', 'ventas_dia');
+$router->add('reportes/productos_vendidos', 'ReporteController', 'productos_vendidos');
+$router->add('reportes/cierre_caja', 'ReporteController', 'cierre_caja');
+
 // Ejemplo:
 // $router->add('productos/crear', 'ProductoController', 'create');
 // $router->add('productos/editar', 'ProductoController', 'edit');

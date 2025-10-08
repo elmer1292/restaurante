@@ -146,66 +146,150 @@ function enviarProductosComanda() {
     .then(data => {
         if (data.success) {
             // Imprimir barra y cocina automáticamente
-            Promise.all([
+            // Solo imprimir si la clave de usar_impresora_barra o usar_impresora_cocina está activa
+            let promesas = [];
+            <?php
+            require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
+            $configModel = new ConfigModel();
+            $usarBarra = $configModel->get('usar_impresora_barra');
+            $usarCocina = $configModel->get('usar_impresora_cocina');
+            ?>
+            <?php if ($usarBarra == 1): ?>
+            promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
-                }).then(res => res.json()),
+                }).then(res => res.json())
+            );
+            <?php endif; ?>
+            <?php if ($usarCocina == 1): ?>
+            promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
                 }).then(res => res.json())
-            ]).then(([barraRes, cocinaRes]) => {
-                let msg = '';
-                if (barraRes.success) {
-                    msg += 'Ticket de barra enviado.\n';
-                } else {
-                    msg += 'Error al imprimir barra: ' + (barraRes.error || 'Error desconocido.') + '\n';
-                }
-                if (cocinaRes.success) {
-                    msg += 'Ticket de cocina enviado.';
-                } else {
-                    msg += 'Error al imprimir cocina: ' + (cocinaRes.error || 'Error desconocido');
-                }
-                alert(msg);
+            );
+            <?php endif; ?>
+            if (promesas.length > 0) {
+                Promise.all(promesas).then((results) => {
+                    /* let msg = '';
+                    results.forEach((res, idx) => {
+                        if (res.success && res.info) {
+                            msg += (idx === 0 ? 'Barra: ' : 'Cocina: ') + res.info + '\n';
+                        } else if (res.success) {
+                            msg += (idx === 0 ? 'Ticket de barra enviado.\n' : 'Ticket de cocina enviado.');
+                        } else {
+                            msg += (idx === 0 ? 'Error al imprimir barra: ' : 'Error al imprimir cocina: ') + (res.error || 'Error desconocido.') + '\n';
+                        }
+                    });
+                    if (msg.trim() !== '' && !/^Ticket de barra enviado.\n?Ticket de cocina enviado.?$/.test(msg.trim())) {
+                        alert(msg);
+                    } */
+                    window.location.reload();
+                });
+            } else {
                 window.location.reload();
-            });
+            }
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }
+    });
+}
+// Modal Bootstrap para eliminar productos del detalle
+let eliminarProductoModal = null;
+let eliminarProductoCallback = null;
+function showEliminarProductoModal(idDetalle, cantidad) {
+    if (!eliminarProductoModal) {
+        const modalHtml = `
+        <div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-labelledby="modalEliminarProductoLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarProductoLabel">Eliminar producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body">
+                <form id="formEliminarProductoDetalle">
+                  <div class="mb-3">
+                    <label for="cantidadEliminar" class="form-label">¿Cuántos deseas eliminar?</label>
+                    <input type="number" class="form-control" id="cantidadEliminar" min="1" max="${cantidad}" value="${cantidad}" autocomplete="off">
+                    <div class="form-text">Deja vacío o pon el máximo para eliminar todos.</div>
+                  </div>
+                  <button type="submit" class="btn btn-danger w-100">Eliminar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        eliminarProductoModal = new bootstrap.Modal(document.getElementById('modalEliminarProducto'));
+        document.getElementById('formEliminarProductoDetalle').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (eliminarProductoCallback) eliminarProductoCallback();
+        });
+    } else {
+        document.getElementById('cantidadEliminar').max = cantidad;
+        document.getElementById('cantidadEliminar').value = cantidad;
+    }
+    eliminarProductoModal.show();
+    return new Promise(resolve => {
+        eliminarProductoCallback = () => {
+            const cantPrompt = document.getElementById('cantidadEliminar').value.trim();
+            eliminarProductoModal.hide();
+            resolve(cantPrompt);
+        };
     });
 }
 function eliminarProductoComanda(idDetalle, cantidad) {
     let csrfToken = '<?php echo htmlspecialchars($csrf_token); ?>';
     let body = 'id_detalle=' + idDetalle + '&csrf_token=' + encodeURIComponent(csrfToken);
     if (cantidad > 1) {
-        let cantPrompt = prompt('¿Cuántos deseas eliminar? (deja vacío para eliminar todos)', cantidad);
-        if (cantPrompt === null) return;
-        cantPrompt = cantPrompt.trim();
-        if (cantPrompt !== '') {
-            body += '&cantidad=' + encodeURIComponent(cantPrompt);
-        }
+        showEliminarProductoModal(idDetalle, cantidad).then(cantPrompt => {
+            if (cantPrompt === null) return;
+            if (cantPrompt !== '' && !isNaN(cantPrompt)) {
+                body += '&cantidad=' + encodeURIComponent(cantPrompt);
+            }
+            else {
+                body += '&cantidad=' + cantidad;
+            }
+            fetch('<?php echo BASE_URL; ?>detalleventa/eliminarProducto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error al eliminar producto');
+                }
+            })
+            .catch(() => {
+                alert('Error de comunicación con el servidor.');
+            });
+        });
     } else {
         body += '&cantidad=1';
+        fetch('<?php echo BASE_URL; ?>detalleventa/eliminarProducto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar producto');
+            }
+        })
+        .catch(() => {
+            alert('Error de comunicación con el servidor.');
+        });
     }
-    fetch('<?php echo BASE_URL; ?>detalleventa/eliminarProducto', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error al eliminar producto');
-        }
-    })
-    .catch(() => {
-        alert('Error de comunicación con el servidor.');
-    });
 }
 document.getElementById('formLiberarMesa')?.addEventListener('submit', function(e) {
     e.preventDefault();

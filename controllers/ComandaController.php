@@ -77,7 +77,8 @@ class ComandaController extends BaseController {
             }
         }
         if (empty($comanda)) {
-            echo json_encode(['success' => false, 'error' => 'No hay productos en la comanda']);
+            // No es error, solo no hay productos de este tipo para imprimir
+            echo json_encode(['success' => true]);
             exit;
         }
         // Formato especial para barra
@@ -108,7 +109,6 @@ class ComandaController extends BaseController {
                 }
             }
             if (count($otros) > 0) {
-                
                 foreach ($otros as $item) {
                     $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
                 }

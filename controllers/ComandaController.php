@@ -121,8 +121,8 @@ class ComandaController extends BaseController {
         $contenido .= "--------------------------\n";
         $contenido .= "\n";
         //guarda el contenido de $contenido en un archivo .txt en la carpeta tickets_cocina o tickets_barra en la raiz segun sea el caso
-        $rutaArchivo = $tipo === 'cocina' ? 'tickets_cocina/comanda_' . $idMesa . '.txt' : 'tickets_barra/comanda_' . $idMesa . '.txt';
-        file_put_contents($rutaArchivo, $contenido);
+        /*$rutaArchivo = $tipo === 'cocina' ? 'tickets_cocina/comanda_' . $idMesa . '.txt' : 'tickets_barra/comanda_' . $idMesa . '.txt';
+        file_put_contents($rutaArchivo, $contenido); */
         // Imprimir usando el helper
         $clave = $tipo === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
         $ok = ImpresoraHelper::imprimir($clave, $contenido);

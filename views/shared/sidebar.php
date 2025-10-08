@@ -13,13 +13,7 @@ $nombreApp = $configModel->get('nombre_app');
 
 <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
     <div class="position-sticky pt-3">
-        <div class="text-center mb-4">
-            <h4 class="text-white"><?php echo htmlspecialchars($nombreApp ?: 'RestBar'); ?></h4>
-            <div class="text-white">
-                <p class="mb-1"><?php echo htmlspecialchars($nombreCompleto ?? ''); ?></p>
-                <small><?php echo htmlspecialchars($userRole ?? ''); ?></small>
-            </div>
-        </div>
+        <!-- Header de usuario y app se movió a header.php -->
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link text-white <?php echo strpos($currentPage, 'user/perfil') !== false ? 'active' : ''; ?>" 

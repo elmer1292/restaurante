@@ -24,6 +24,21 @@ $baseUrl = '/restaurante';
     <link href="<?php echo BASE_URL; ?>assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
+    <header class="navbar navbar-dark bg-dark px-3 mb-4">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="text-white mb-0"><?php 
+                    require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
+                    $configModel = new ConfigModel();
+                    $nombreApp = $configModel->get('nombre_app');
+                    echo htmlspecialchars($nombreApp ?: 'RestBar'); ?></h4>
+            </div>
+            <div class="text-end">
+                <span class="fw-bold text-white"><?php echo htmlspecialchars($nombreCompleto ?? ''); ?></span><br>
+                <span class="badge bg-secondary"> <?php echo htmlspecialchars($userRole ?? ''); ?> </span>
+            </div>
+        </div>
+    </header>
     <div class="container-fluid">
         <div class="row">
             <?php include 'sidebar.php'; ?>

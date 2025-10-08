@@ -32,10 +32,24 @@ class ImpresoraHelper {
         return $configModel->get($clave);
     }
 
+    /**
+     * Envía texto a una impresora compatible con ESC/POS utilizando la librería escpos-php.
+     *
+     * @param string $clave Clave identificadora de la impresora.
+     * @param string $contenido Texto que se desea imprimir.
+     * @return bool Retorna true si la impresión fue exitosa, false en caso contrario.
+     *
+     * El método obtiene la impresora correspondiente a la clave proporcionada, verifica si está habilitada
+     * en la configuración, y luego intenta imprimir el contenido especificado. Utiliza el perfil "simple"
+     * de capacidad para la impresora. En caso de error durante el proceso de impresión, retorna false.
+     */
     // Enviar texto a la impresora usando escpos-php (soporte ESC/POS)
     public static function imprimir($clave, $contenido) {
         $impresora = self::obtenerImpresora($clave);
-        if (!$impresora) return false;
+        require_once dirname(__DIR__, 1) . '/models/ConfigModel.php';
+        $configModel = new ConfigModel();
+        $usarClave = $configModel->get('usar_' . $impresora);
+        if (!$usarClave) return false;
         try {
             require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/Printer.php';
             require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';
@@ -49,7 +63,7 @@ class ImpresoraHelper {
             $printer->cut();
             $printer->close();
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Puedes loguear el error si lo deseas
             return false;
         }

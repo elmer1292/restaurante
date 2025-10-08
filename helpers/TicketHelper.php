@@ -66,8 +66,8 @@ class TicketHelper {
         }
         $out .= "Ticket: #" . str_pad($ticketId, 6, '0', STR_PAD_LEFT) . "\n";
         //despues de todo esto guarda el $out en un archivo .txt
-         $filePath = __DIR__ . '/../tickets/ticket_' . $ticketId . '.txt';
-         file_put_contents($filePath, $out);
+        /* $filePath = __DIR__ . '/../tickets/ticket_' . $ticketId . '.txt';
+         file_put_contents($filePath, $out); */
         return $out;
     }
 }

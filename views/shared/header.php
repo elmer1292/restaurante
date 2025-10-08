@@ -26,7 +26,10 @@ $baseUrl = '/restaurante';
 <body>
     <header class="navbar navbar-dark bg-dark px-3 mb-4">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div>
+            <div class="d-flex align-items-center">
+                <button class="navbar-toggler d-md-none me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Menú">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
                 <h4 class="text-white mb-0"><?php 
                     require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
                     $configModel = new ConfigModel();
@@ -41,5 +44,18 @@ $baseUrl = '/restaurante';
     </header>
     <div class="container-fluid">
         <div class="row">
-            <?php include 'sidebar.php'; ?>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <!-- Sidebar Offcanvas para móviles -->
+            <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="sidebarOffcanvasLabel">Menú</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+                </div>
+                <div class="offcanvas-body p-0">
+                    <?php include 'sidebar.php'; ?>
+                </div>
+            </div>
+            <!-- Sidebar fijo para desktop -->
+            <div class="d-none d-md-block col-md-3 col-lg-2 bg-dark sidebar">
+                <?php include 'sidebar.php'; ?>
+            </div>
+            <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">

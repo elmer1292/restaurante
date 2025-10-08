@@ -11,8 +11,8 @@ $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app');
 ?>
 
-<nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-    <div class="position-sticky pt-3">
+<nav class="h-100">
+    <div class="position-sticky pt-3 h-100">
         <!-- Header de usuario y app se movió a header.php -->
         <ul class="nav flex-column">
             <li class="nav-item">

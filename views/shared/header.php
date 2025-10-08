@@ -24,17 +24,21 @@ $baseUrl = '/restaurante';
     <link href="<?php echo BASE_URL; ?>assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
-    <header class="navbar navbar-dark bg-dark px-3 mb-4">
+    <header class="navbar navbar-dark bg-dark px-3">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <button class="navbar-toggler d-md-none me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Menú">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <h4 class="text-white mb-0"><?php 
-                    require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
-                    $configModel = new ConfigModel();
-                    $nombreApp = $configModel->get('nombre_app');
-                    echo htmlspecialchars($nombreApp ?: 'RestBar'); ?></h4>
+            </div>
+            <div class="d-flex align-items-center">
+                <!-- Nombre de la aplicación -->
+                     <h4 class="text-white mb-0 text-center"><?php
+                         require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
+                         $configModel = new ConfigModel();
+                         $nombreApp = $configModel->get('nombre_app');
+                         echo htmlspecialchars($nombreApp ?: 'RestBar'); ?>
+                     </h4>
             </div>
             <div class="text-end">
                 <span class="fw-bold text-white"><?php echo htmlspecialchars($nombreCompleto ?? ''); ?></span><br>

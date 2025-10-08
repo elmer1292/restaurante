@@ -48,10 +48,8 @@ class ImpresoraHelper {
         $impresora = self::obtenerImpresora($clave);
         require_once dirname(__DIR__, 1) . '/models/ConfigModel.php';
         $configModel = new ConfigModel();
-        $usarImpresora = $configModel->get($usarClave);
-        if ($usarImpresora === '0' || $usarImpresora === 0 || $usarImpresora === false || $usarImpresora === null) {
-            return false;
-        }
+        $usarClave = $configModel->get('usar_' . $impresora);
+        if (!$usarClave) return false;
         try {
             require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/Printer.php';
             require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';

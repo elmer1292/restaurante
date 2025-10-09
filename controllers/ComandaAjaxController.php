@@ -73,29 +73,7 @@ class ComandaAjaxController extends BaseController {
             }
             $idVenta = $comanda['ID_Venta'];
 
-            // Imprimir comanda de cocina solo con los productos recibidos, usando formato directo
-            require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
-            $mesa = $comanda['Numero_Mesa'];
-            $hora = date('Y-m-d H:i:s');
-            $contenido = "====== COMANDA COCINA ======\n";
-            $contenido .= "Mesa: $mesa\n";
-            $contenido .= "Hora: $hora\n";
-            $contenido .= str_repeat('-', 26) . "\n";
-            foreach ($productos as $p) {
-                $linea = $p['cantidad'] . "x " . strtoupper($p['nombre']) . "\n";
-                $contenido .= $linea;
-                if (!empty($p['preparacion'])) {
-                    $contenido .= "   > " . trim($p['preparacion']) . "\n";
-                }
-            }
-            $contenido .= str_repeat('-', 26) . "\n";
-            $impresionOk = null;
-            try {
-                $impresionOk = ImpresoraHelper::imprimir('impresora_cocina', $contenido);
-            } catch (Throwable $e) {
-                $impresionOk = false;
-                error_log('Error al imprimir comanda: ' . $e->getMessage());
-            }
+            // Ya no se imprime aquí. Solo se guarda. La impresión se maneja por imprimirComanda.
 
             $conn = (new Database())->connect();
             try {

@@ -119,7 +119,7 @@ class ComandaController extends BaseController {
                 $linea = $item['Cantidad'] . "x " . strtoupper($item['Nombre_Producto']) . "\n";
                 $contenido .= $linea;
                 if (!empty($item['Preparacion'])) {
-                    $contenido .= "   → " . trim($item['Preparacion']) . "\n";
+                    $contenido .= "   > " . trim($item['Preparacion']) . "\n";
                 }
             }
         }

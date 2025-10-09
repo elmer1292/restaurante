@@ -150,8 +150,8 @@ function renderListaProductosAgregados() {
         lista.appendChild(li);
     }
 }
-function agregarProducto(nombre, cantidad, id) {
-    productosAgregados.push({ nombre, cantidad, id });
+function agregarProducto(nombre, cantidad, id, preparacion = '') {
+    productosAgregados.push({ nombre, cantidad, id, preparacion });
     renderListaProductosAgregados();
 }
 function eliminarProductoAgregado(idx) {
@@ -192,13 +192,6 @@ function enviarProductosComanda() {
             // Imprimir barra y cocina automáticamente
             // Solo imprimir si la clave de usar_impresora_barra o usar_impresora_cocina está activa
             let promesas = [];
-            <?php
-            require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
-            $configModel = new ConfigModel();
-            $usarBarra = $configModel->get('usar_impresora_barra');
-            $usarCocina = $configModel->get('usar_impresora_cocina');
-            ?>
-            <?php if ($usarBarra == 1): ?>
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
@@ -206,8 +199,6 @@ function enviarProductosComanda() {
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
                 }).then(res => res.json())
             );
-            <?php endif; ?>
-            <?php if ($usarCocina == 1): ?>
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
@@ -215,14 +206,9 @@ function enviarProductosComanda() {
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
                 }).then(res => res.json())
             );
-            <?php endif; ?>
-            if (promesas.length > 0) {
-                Promise.all(promesas).then((results) => {
-                    window.location.reload();
-                });
-            } else {
+            Promise.all(promesas).then((results) => {
                 window.location.reload();
-            }
+            });
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }

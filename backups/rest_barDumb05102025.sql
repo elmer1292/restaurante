@@ -108,6 +108,7 @@ CREATE TABLE `detalle_venta` (
   `Cantidad` int NOT NULL,
   `Subtotal` decimal(10,2) DEFAULT NULL,
   `ID_Parcial` int DEFAULT NULL,
+  `preparacion` TEXT DEFAULT NULL,
   PRIMARY KEY (`ID_Detalle`),
   KEY `ID_Venta` (`ID_Venta`),
   KEY `ID_Producto` (`ID_Producto`),

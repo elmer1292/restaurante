@@ -101,10 +101,26 @@ class VentaModel {
      * @param float $precioVenta
      * @return bool
      */
-    public function addSaleDetail($idVenta, $idProducto, $cantidad, $precioVenta) {
+    public function addSaleDetail($idVenta, $idProducto, $cantidad, $precioVenta, $preparacion = null) {
         try {
-            $stmt = $this->conn->prepare('CALL sp_AddSaleDetail(?, ?, ?, ?)');
-            return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta]);
+            // Si hay preparación, insertar directo, si no, usar el SP para compatibilidad
+            if ($preparacion !== null && $preparacion !== '') {
+                $stmt = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND (preparacion IS NULL OR preparacion = ?) LIMIT 1');
+                $stmt->execute([$idVenta, $idProducto, $preparacion]);
+                $detalle = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($detalle && isset($detalle['ID_Detalle'])) {
+                    // Actualizar cantidad y subtotal si ya existe con la misma preparación
+                    $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = Cantidad + ?, Subtotal = (Cantidad + ?) * ? WHERE ID_Detalle = ?');
+                    return $stmt->execute([$cantidad, $cantidad, $precioVenta, $detalle['ID_Detalle']]);
+                } else {
+                    $stmt = $this->conn->prepare('INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal, preparacion) VALUES (?, ?, ?, ?, ?, ?)');
+                    return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta, $cantidad * $precioVenta, $preparacion]);
+                }
+            } else {
+                // Sin preparación, usar SP existente
+                $stmt = $this->conn->prepare('CALL sp_AddSaleDetail(?, ?, ?, ?)');
+                return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta]);
+            }
         } catch (PDOException $e) {
             error_log('Error en addSaleDetail: ' . $e->getMessage());
             return false;
@@ -165,13 +181,13 @@ class VentaModel {
     public function getVentasPendientesCocina() {
         try {
                         $stmt = $this->conn->prepare(
-                                'SELECT dv.*, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
+                                'SELECT dv.*, dv.preparacion, p.Nombre_Producto, v.ID_Mesa, m.Numero_Mesa, v.Fecha_Hora 
                                 FROM detalle_venta dv 
                                 INNER JOIN productos p ON dv.ID_Producto = p.ID_Producto 
                                 INNER JOIN ventas v ON dv.ID_Venta = v.ID_Venta 
                                 INNER JOIN mesas m ON v.ID_Mesa = m.ID_Mesa 
                                 INNER JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
-                                WHERE (c.Nombre_Categoria = "Buffet" OR c.Nombre_Categoria = "Carnes" OR c.Nombre_Categoria = "Sopas") 
+                                WHERE c.Nombre_Categoria != "Bebidas" 
                                     AND v.Estado = "Pendiente" 
                                 ORDER BY v.Fecha_Hora DESC'
                         );

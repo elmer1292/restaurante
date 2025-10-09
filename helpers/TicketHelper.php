@@ -1,18 +1,6 @@
 <?php
 // Helper para generar el contenido de tickets y comandas
 class TicketHelper {
-    public static function generarComandaCocina($mesa, $hora, $productos, $restaurante = 'RESTAURANTE') {
-        $out = "====== $restaurante - COMANDA COCINA ======\n";
-        $out .= "Mesa: $mesa\n";
-        $out .= "Hora: $hora\n";
-        $out .= str_repeat('-', 26) . "\n";
-        foreach ($productos as $prod) {
-            $out .= $prod['cantidad'] . "x " . strtoupper($prod['nombre']) . "\n";
-        }
-        $out .= str_repeat('-', 26) . "\n";
-        return $out;
-    }
-
     public static function generarTicketVenta($restaurante, $mesa, $fechaHora, $detalles, $total, $empleado, $ticketId, $moneda, $metodoPago, $cambio, $servicio, $prefactura = false) {
         // Ancho máximo de línea para ticket térmico estándar 80mm
         $maxWidth = 35;

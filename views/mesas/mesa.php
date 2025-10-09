@@ -336,8 +336,6 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
 
 
 renderListaProductosAgregados();
-
-
 // Interceptar clicks en botones de productos del menú (usado en menu_productos.php)
 let productoSeleccionado = null;
 let productoSeleccionadoCategoria = null;

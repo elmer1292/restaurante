@@ -22,7 +22,9 @@ foreach ($productos as $producto) {
                     <button type="button"
                         class="list-group-item list-group-item-action d-flex justify-content-between align-items-center btn-agregar-producto"
                         data-nombre="<?php echo htmlspecialchars($producto['Nombre_Producto'], ENT_QUOTES); ?>"
-                        data-id="<?php echo $producto['ID_Producto']; ?>">
+                        data-id="<?php echo $producto['ID_Producto']; ?>"
+                        data-categoria="<?php echo htmlspecialchars($producto['Nombre_Categoria'] ?? '', ENT_QUOTES); ?>"
+                        data-precio="<?php echo $producto['Precio_Venta']; ?>">
                         <span><?php echo htmlspecialchars($producto['Nombre_Producto']); ?></span>
                         <span class="badge bg-secondary">$<?php echo number_format($producto['Precio_Venta'], 2); ?></span>
                     </button>

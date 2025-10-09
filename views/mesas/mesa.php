@@ -6,6 +6,26 @@ if (isset($mensaje)) {
 }
 ?>
 <div class="row g-4">
+<!-- Modal para ingresar cantidad de producto -->
+<div class="modal fade" id="modalCantidadProducto" tabindex="-1" aria-labelledby="modalCantidadProductoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCantidadProductoLabel">Cantidad de producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCantidadProducto">
+                    <div class="mb-3">
+                        <label for="inputCantidadProducto" class="form-label">¿Cuántos desea agregar?</label>
+                        <input type="number" class="form-control" id="inputCantidadProducto" min="1" value="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="col-md-4">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">Menú de Productos</h5></div>
@@ -320,17 +340,38 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
 
 renderListaProductosAgregados();
 
-// Permite agregar productos desde el menú (usado en menu_productos.php)
-function agregarProductoMenu(id, nombre, precio) {
-    // Buscar si ya existe el producto en la lista
-    let idx = productosAgregados.findIndex(p => p.id === id);
-    if (idx !== -1) {
-        productosAgregados[idx].cantidad += 1;
-    } else {
-        productosAgregados.push({ id, nombre, cantidad: 1, precio });
-    }
-    renderListaProductosAgregados();
-}
+
+// Interceptar clicks en botones de productos del menú (usado en menu_productos.php)
+let productoSeleccionado = null;
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-agregar-producto').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const nombre = this.getAttribute('data-nombre');
+            const id = parseInt(this.getAttribute('data-id'));
+            productoSeleccionado = { nombre, id };
+            document.getElementById('inputCantidadProducto').value = 1;
+            const modal = new bootstrap.Modal(document.getElementById('modalCantidadProducto'));
+            modal.show();
+        });
+    });
+    // Modal cantidad submit
+    document.getElementById('formCantidadProducto').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
+        if (productoSeleccionado && cantidad > 0) {
+            // Si ya existe, suma la cantidad
+            let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id);
+            if (idx !== -1) {
+                productosAgregados[idx].cantidad += cantidad;
+            } else {
+                productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id });
+            }
+            renderListaProductosAgregados();
+            bootstrap.Modal.getInstance(document.getElementById('modalCantidadProducto')).hide();
+        }
+    });
+});
 
 // Eliminado: lógica y referencias al modal de dividir cuenta y parciales
 </script>

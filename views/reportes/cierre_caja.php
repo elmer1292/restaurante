@@ -1,6 +1,13 @@
 <?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <div class="container py-4">
     <h2 class="mb-4">Cierre de Caja - Ventas Diarias</h2>
+    <?php if (isset($_GET['msg'])): ?>
+        <?php if ($_GET['msg'] === 'ok'): ?>
+            <div class="alert alert-success">Ticket de cierre enviado a la impresora correctamente.</div>
+        <?php elseif ($_GET['msg'] === 'error'): ?>
+            <div class="alert alert-danger">Error al imprimir el ticket de cierre. Verifique la impresora.</div>
+        <?php endif; ?>
+    <?php endif; ?>
     <form class="row g-3 mb-4" method="get" action="<?= BASE_URL ?>reportes/cierre_caja">
         <div class="col-auto">
             <label for="fecha" class="col-form-label">Fecha:</label>
@@ -143,4 +150,5 @@
         <div class="alert alert-info">No hay ventas registradas para esta fecha.</div>
     <?php endif; ?>
     <a href="<?= BASE_URL ?>reportes" class="btn btn-secondary btn-sm mt-3">Volver a reportes</a>
+    <a href="<?= BASE_URL ?>imprimir_ticket_cierre.php?fecha=<?= htmlspecialchars($fecha) ?>" class="btn btn-primary btn-sm mt-3">Imprimir Ticket Cierre</a>
 </div>

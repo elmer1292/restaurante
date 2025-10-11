@@ -58,4 +58,39 @@ class TicketHelper {
          file_put_contents($filePath, $out); */
         return $out;
     }
+    // Generar ticket de cierre de caja - ventas diarias
+    public static function generarTicketCierreCaja($restaurante, $fechaInicio, $fechaFin, $totalEfectivo, $totalTarjeta, $totalVentas, $totalServicio, $totalGeneral, $empleado, $ticketId, $moneda) {
+        $maxWidth = 35;
+        $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        $out .= str_pad('*** CIERRE DE CAJA ***', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        $out .= "RUC: 0810509961001U\n";
+        $out .= "Tel: (123) 456-7890\n";
+        $out .= "Dirección: Frente al nuevo \nhospital HEODRA\n";
+        $out .= str_repeat('=', $maxWidth) . "\n";
+        $out .= "Desde: $fechaInicio\n";
+        $out .= "Hasta: $fechaFin\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        $out .= str_pad('Total Efectivo:', 26) . str_pad($moneda . number_format($totalEfectivo, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_pad('Total Tarjeta:', 26) . str_pad($moneda . number_format($totalTarjeta, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        if($totalServicio>0){
+            $out .= str_pad('Total Servicio:', 26) . str_pad($moneda . number_format($totalServicio, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        }
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        $out .= str_pad('Total Ventas:', 26) . str_pad($moneda . number_format($totalVentas, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_repeat('=', $maxWidth) . "\n";
+        $out .= str_pad('TOTAL GENERAL:', 26) . str_pad($moneda . number_format($totalGeneral, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        $emp = "$empleado";
+        if (mb_strlen($emp) > $maxWidth - 15) {
+            $out .= "Cerrado por:\n";
+            $out .= wordwrap($emp, $maxWidth, "\n", true) . "\n";
+        } else {
+            $out .= "Cerrado por: $emp\n";
+        }
+        $out .= "Ticket: #" . str_pad($ticketId, 6, '0', STR_PAD_LEFT) . "\n";
+        $out .= "Fecha: " . date('Y-m-d H:i:s') . "\n";
+        $out .= "¡Gracias por su visita!\n";
+        $out .= str_repeat('-', $maxWidth) . "\n";
+        return $out;
+    }
 }

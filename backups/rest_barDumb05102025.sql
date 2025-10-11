@@ -119,20 +119,6 @@ CREATE TABLE `detalle_venta` (
 ) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `detalle_venta`
---
-
-LOCK TABLES `detalle_venta` WRITE;
-/*!40000 ALTER TABLE `detalle_venta` DISABLE KEYS */;
-INSERT INTO `detalle_venta` VALUES (1,48,1,42.00,1,126.00,NULL),(2,49,1,42.00,3,126.00,NULL),(4,48,11,290.00,1,290.00,NULL),(9,48,11,290.00,1,290.00,NULL),(10,48,5,560.00,1,560.00,NULL),(11,48,10,520.00,2,1040.00,NULL),(12,48,2,40.00,3,120.00,NULL),(13,48,1,42.00,1,42.00,NULL),(14,48,6,270.00,1,270.00,NULL),(15,48,6,270.00,1,270.00,NULL),(17,51,9,250.00,1,250.00,NULL),(18,51,4,40.00,1,40.00,NULL),(19,51,11,290.00,1,290.00,NULL),(21,50,4,40.00,4,280.00,NULL),(22,50,7,80.00,1,80.00,NULL),(23,50,6,270.00,1,270.00,NULL),(24,50,5,560.00,1,560.00,NULL),(25,52,11,290.00,1,290.00,NULL),(26,52,5,560.00,1,560.00,NULL),(32,54,1,40.00,1,40.00,NULL),(53,62,7,80.00,1,80.00,NULL),(54,62,3,40.00,1,40.00,NULL),(55,62,11,290.00,1,290.00,NULL),(56,62,6,270.00,1,270.00,NULL),(57,62,9,250.00,1,250.00,NULL),(58,63,7,80.00,1,80.00,NULL),(59,63,11,290.00,1,290.00,NULL),(60,64,2,40.00,1,40.00,NULL),(61,64,6,270.00,1,270.00,NULL),(62,65,6,270.00,4,1080.00,NULL),(63,65,11,290.00,1,290.00,NULL),(64,65,5,560.00,1,560.00,NULL),(65,66,12,30.00,1,30.00,NULL),(66,66,11,290.00,1,290.00,NULL),(67,67,11,290.00,1,290.00,NULL),(68,67,6,270.00,1,270.00,NULL),(69,67,12,30.00,1,30.00,NULL),(70,68,11,290.00,1,290.00,NULL),(71,68,6,270.00,1,270.00,NULL),(72,68,2,40.00,1,40.00,NULL),(73,69,12,30.00,1,30.00,NULL),(74,69,11,290.00,1,290.00,NULL),(75,70,3,40.00,1,40.00,NULL),(76,70,11,290.00,1,290.00,NULL),(77,71,12,30.00,1,30.00,NULL),(78,71,11,290.00,1,290.00,NULL),(79,71,6,270.00,1,270.00,NULL),(80,72,6,270.00,1,270.00,NULL),(81,72,11,290.00,1,290.00,NULL),(82,73,2,40.00,1,40.00,NULL),(83,73,11,290.00,1,290.00,NULL),(84,74,3,40.00,1,40.00,NULL),(85,74,6,270.00,1,270.00,NULL),(86,75,11,290.00,1,290.00,NULL),(87,75,6,270.00,1,270.00,NULL),(88,76,11,290.00,1,290.00,NULL),(89,76,12,30.00,1,30.00,NULL),(90,77,6,270.00,1,270.00,NULL),(91,77,3,40.00,1,40.00,NULL),(92,78,3,40.00,1,40.00,NULL),(93,78,11,290.00,1,290.00,NULL),(94,79,11,290.00,1,290.00,NULL),(95,79,6,270.00,1,270.00,NULL),(96,79,3,40.00,1,40.00,NULL),(97,80,12,30.00,1,30.00,NULL),(98,80,11,290.00,1,290.00,NULL),(99,81,11,290.00,1,290.00,NULL),(100,81,12,30.00,1,30.00,NULL),(101,83,11,290.00,1,290.00,NULL),(102,83,6,270.00,1,270.00,NULL),(103,83,12,30.00,1,30.00,NULL),(104,84,8,40.00,1,40.00,NULL),(105,84,6,270.00,1,270.00,NULL),(106,84,5,560.00,1,560.00,NULL),(107,85,3,40.00,1,40.00,NULL),(108,85,6,270.00,1,270.00,NULL),(109,86,3,40.00,1,40.00,NULL),(110,86,6,270.00,1,270.00,NULL),(111,87,3,40.00,1,40.00,NULL),(112,87,11,290.00,1,290.00,NULL),(113,88,9,250.00,1,250.00,NULL),(114,88,12,30.00,1,30.00,NULL),(115,89,11,290.00,3,870.00,NULL),(116,89,12,30.00,1,30.00,NULL),(117,89,3,40.00,1,40.00,NULL),(118,90,12,30.00,1,30.00,NULL),(119,90,10,520.00,1,520.00,NULL),(120,91,12,30.00,1,30.00,NULL),(121,91,6,270.00,1,270.00,NULL),(122,92,6,270.00,1,270.00,NULL),(123,92,5,560.00,1,560.00,NULL),(124,92,8,40.00,1,40.00,NULL),(125,93,1,40.00,1,40.00,NULL),(126,93,11,290.00,1,290.00,NULL),(127,93,9,250.00,1,250.00,NULL),(128,93,7,80.00,1,80.00,NULL),(129,94,9,250.00,3,750.00,NULL),(130,94,2,40.00,2,80.00,NULL),(131,95,11,290.00,1,290.00,NULL),(132,95,12,30.00,1,30.00,NULL),(133,95,8,40.00,1,40.00,NULL),(134,95,9,250.00,1,250.00,NULL),(135,96,9,250.00,1,250.00,NULL),(136,96,12,30.00,1,30.00,NULL),(137,97,10,520.00,1,520.00,NULL),(138,97,11,290.00,1,290.00,NULL),(139,97,12,30.00,1,30.00,NULL),(140,98,11,290.00,1,290.00,NULL),(141,98,6,270.00,1,270.00,NULL),(142,98,3,40.00,1,40.00,NULL),(143,99,11,290.00,1,290.00,NULL),(144,99,8,40.00,1,40.00,NULL),(145,99,7,80.00,1,80.00,NULL);
-/*!40000 ALTER TABLE `detalle_venta` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `empleados`
---
-
 DROP TABLE IF EXISTS `empleados`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -209,20 +195,6 @@ CREATE TABLE `movimientos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `movimientos`
---
-
-LOCK TABLES `movimientos` WRITE;
-/*!40000 ALTER TABLE `movimientos` DISABLE KEYS */;
-INSERT INTO `movimientos` VALUES (1,'2025-10-02 23:08:36','Ingreso',930.00,'Pago de venta ID 62 (Efectivo:1000)',1,62),(2,'2025-10-02 23:12:11','Ingreso',370.00,'Pago de venta ID 63 (Efectivo:400)',1,63),(3,'2025-10-02 23:17:34','Ingreso',310.00,'Pago de venta ID 64 (Efectivo:350)',1,64),(4,'2025-10-02 23:19:13','Ingreso',1930.00,'Pago de venta ID 65 (Tarjeta:1930)',1,65),(5,'2025-10-02 23:36:58','Ingreso',320.00,'Pago de venta ID 66 (Efectivo:100, Transf)',1,66),(6,'2025-10-02 23:38:28','Ingreso',590.00,'Pago de venta ID 67 (Efectivo:600)',1,67),(7,'2025-10-02 23:40:37','Ingreso',600.00,'Pago de venta ID 68 (Efectivo:600)',1,68),(8,'2025-10-02 23:41:54','Ingreso',320.00,'Pago de venta ID 69 (Efectivo:400)',1,69),(9,'2025-10-02 23:44:26','Ingreso',330.00,'Pago de venta ID 70 (Efectivo:400)',1,70),(10,'2025-10-02 23:46:33','Ingreso',590.00,'Pago de venta ID 71 (Efectivo:600)',1,71),(11,'2025-10-02 23:48:22','Ingreso',560.00,'Pago de venta ID 72 (Efectivo:600)',1,72),(12,'2025-10-02 23:52:53','Ingreso',330.00,'Pago de venta ID 73 (Efectivo:400)',1,73),(13,'2025-10-02 23:54:14','Ingreso',310.00,'Pago de venta ID 74 (Efectivo:400)',1,74),(14,'2025-10-03 00:01:18','Ingreso',560.00,'Pago de venta ID 75 (Efectivo:600)',1,75),(15,'2025-10-03 00:02:58','Ingreso',320.00,'Pago de venta ID 76 (Efectivo:400)',1,76),(16,'2025-10-03 00:04:55','Ingreso',310.00,'Pago de venta ID 77 (Efectivo:400)',1,77),(17,'2025-10-03 00:05:51','Ingreso',330.00,'Pago de venta ID 78 (Efectivo:400)',1,78),(18,'2025-10-03 00:18:08','Ingreso',600.00,'Pago de venta ID 79 (Efectivo:400, Transferencia:200)',1,79),(19,'2025-10-03 00:20:59','Ingreso',320.00,'Pago de venta ID 80 (Efectivo:400)',1,80),(20,'2025-10-03 00:23:20','Ingreso',320.00,'Pago de venta ID 81 (Efectivo:400)',1,81),(21,'2025-10-03 00:24:52','Ingreso',590.00,'Pago de venta ID 83 (Efectivo:600)',1,83),(22,'2025-10-03 00:26:30','Ingreso',870.00,'Pago de venta ID 84 (Efectivo:900)',1,84),(23,'2025-10-03 00:29:13','Ingreso',310.00,'Pago de venta ID 85 (Efectivo:400)',1,85),(24,'2025-10-03 00:30:53','Ingreso',310.00,'Pago de venta ID 86 (Efectivo:350)',1,86),(25,'2025-10-03 00:35:20','Ingreso',330.00,'Pago de venta ID 87 (Efectivo:400)',1,87),(26,'2025-10-03 22:18:18','Ingreso',280.00,'Pago de venta ID 88 (Efectivo:300)',1,88),(27,'2025-10-03 22:56:35','Ingreso',940.00,'Pago de venta ID 89 (Efectivo:500, Transferencia:440)',1,89),(28,'2025-10-03 23:02:59','Ingreso',550.00,'Pago de venta ID 90 (Efectivo:300, Transferencia:250)',1,90),(29,'2025-10-03 23:11:20','Apertura',5000.00,'Apertura de caja',1,NULL),(30,'2025-10-03 23:12:10','Cierre',5000.00,'Cierre de caja',1,NULL),(31,'2025-10-03 23:12:22','Apertura',5000.00,'Apertura de caja',1,NULL),(32,'2025-10-03 23:12:35','Ingreso',300.00,'Pago de venta ID 91 (Efectivo:300)',1,91),(33,'2025-10-03 23:12:44','Cierre',5300.00,'Cierre de caja',1,NULL),(34,'2025-10-05 19:25:51','Ingreso',870.00,'Pago de venta ID 92 (Efectivo:900)',1,92),(35,'2025-10-05 19:32:26','Ingreso',660.00,'Pago de venta ID 93 (Efectivo:300, Transferencia:360)',1,93),(36,'2025-10-05 20:26:03','Ingreso',830.00,'Pago de venta ID 94 (Efectivo:900)',1,94),(37,'2025-10-05 22:44:18','Ingreso',610.00,'Pago de venta ID 95 (Efectivo:650)',1,95),(38,'2025-10-05 23:02:00','Ingreso',280.00,'Pago de venta ID 96 (Efectivo:300)',1,96),(39,'2025-10-05 23:07:13','Ingreso',840.00,'Pago de venta ID 97 (Efectivo:400, Transferencia:440)',1,97),(40,'2025-10-06 00:19:49','Ingreso',600.00,'Pago de venta ID 98 (Efectivo:600)',1,98),(41,'2025-10-06 00:23:40','Ingreso',410.00,'Pago de venta ID 99 (Efectivo:500)',1,99);
-/*!40000 ALTER TABLE `movimientos` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `parciales_venta`
---
-
 DROP TABLE IF EXISTS `parciales_venta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -237,18 +209,6 @@ CREATE TABLE `parciales_venta` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `parciales_venta`
---
-
-LOCK TABLES `parciales_venta` WRITE;
-/*!40000 ALTER TABLE `parciales_venta` DISABLE KEYS */;
-/*!40000 ALTER TABLE `parciales_venta` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `productos`
---
 
 DROP TABLE IF EXISTS `productos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

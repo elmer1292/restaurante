@@ -95,9 +95,8 @@ try {
     $printer->feed(2);
     $printer->cut();
     $printer->close();
-    //echo 'Pre-factura impresa correctamente.' . "\n";
     header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
 } catch (Exception $e) {
-    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
+    echo '<div style="font-family:monospace;padding:2em;text-align:center;color:red;">Error al imprimir pre-factura:<br>' . htmlspecialchars($e->getMessage()) . '</div>';
 }
 exit;

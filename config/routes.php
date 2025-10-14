@@ -27,6 +27,8 @@ $router->add('configuracion', 'ConfigController', 'index');
 $router->add('configuracion/update', 'ConfigController', 'update');
 $router->add('configuracion/buscarImpresoras', 'ConfigController', 'buscarImpresoras');
 $router->add('configuracion/backup', 'ConfigController', 'backup');
+$router->add('configuracion/probarImpresora', 'ConfigController', 'probarImpresora');
+
 $router->add('productos/procesar', 'ProductoController', 'procesar');
 // Ruta para AJAX de agregar productos a la comanda
 $router->add('detalleventa/actualizarEstado', 'DetalleVentaController', 'actualizarEstado');

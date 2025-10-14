@@ -99,4 +99,33 @@ class ConfigController extends BaseController {
         unlink($filename);
         exit;
     }
+        // Endpoint para probar impresora
+    public function probarImpresora() {
+        Session::init();
+        $userRole = Session::getUserRole();
+        header('Content-Type: application/json');
+        if ($userRole !== 'Administrador') {
+            echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            exit;
+        }
+        $tipo = $_POST['tipo'] ?? '';
+        $nombre = $_POST['nombre'] ?? '';
+        if (!$nombre) {
+            echo json_encode(['success' => false, 'error' => 'Nombre de impresora vacío.']);
+            exit;
+        }
+        require_once dirname(__DIR__, 1) . '/helpers/ImpresoraHelper.php';
+        $mensaje = "PRUEBA DE IMPRESORA ($tipo)\n" . date('d/m/Y H:i:s') . "\n----------------------\n";
+        $ok = ImpresoraHelper::imprimir_directo($nombre, $mensaje);
+        if ($ok) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'No se pudo imprimir en la impresora seleccionada.']);
+        }
+        exit;
+    }
 }

@@ -21,6 +21,7 @@
             <div class="input-group mt-2">
                 <input type="text" class="form-control" id="impresora_cocina" name="impresora_cocina" placeholder="Nombre o puerto" value="<?php echo htmlspecialchars($config['impresora_cocina'] ?? ''); ?>">
                 <button type="button" class="btn btn-outline-secondary" onclick="buscarImpresoras('cocina')">Buscar impresoras</button>
+                <button type="button" class="btn btn-outline-primary ms-2" onclick="probarImpresora('cocina')">Probar impresora</button>
             </div>
             <div id="listaImpresorasCocina" class="mt-2"></div>
         </div>
@@ -33,6 +34,7 @@
             <div class="input-group mt-2">
                 <input type="text" class="form-control" id="impresora_barra" name="impresora_barra" placeholder="Nombre o puerto" value="<?php echo htmlspecialchars($config['impresora_barra'] ?? ''); ?>">
                 <button type="button" class="btn btn-outline-secondary" onclick="buscarImpresoras('barra')">Buscar impresoras</button>
+                <button type="button" class="btn btn-outline-primary ms-2" onclick="probarImpresora('barra')">Probar impresora</button>
             </div>
             <div id="listaImpresorasBarra" class="mt-2"></div>
         </div>
@@ -41,7 +43,34 @@
             <div class="input-group mt-2">
                 <input type="text" class="form-control" id="impresora_ticket" name="impresora_ticket" placeholder="Nombre o puerto" value="<?php echo htmlspecialchars($config['impresora_ticket'] ?? ''); ?>">
                 <button type="button" class="btn btn-outline-secondary" onclick="buscarImpresoras('ticket')">Buscar impresoras</button>
+                <button type="button" class="btn btn-outline-primary ms-2" onclick="probarImpresora('ticket')">Probar impresora</button>
             </div>
+<script>
+function probarImpresora(tipo) {
+    let nombre = '';
+    if (tipo === 'cocina') nombre = document.getElementById('impresora_cocina').value;
+    if (tipo === 'barra') nombre = document.getElementById('impresora_barra').value;
+    if (tipo === 'ticket') nombre = document.getElementById('impresora_ticket').value;
+    if (!nombre) {
+        alert('Debes ingresar el nombre de la impresora a probar.');
+        return;
+    }
+    fetch('<?php echo BASE_URL; ?>configuracion/probarImpresora', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ tipo, nombre })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Impresora funcionando correctamente.');
+        } else {
+            alert('Error: ' + (data.error || 'No se pudo imprimir.'));
+        }
+    })
+    .catch(() => alert('Error de comunicación con el servidor.'));
+}
+</script>
             <div id="listaImpresorasTicket" class="mt-2"></div>
         </div>
         <!-- <div class="mb-3">

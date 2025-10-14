@@ -6,6 +6,30 @@ if (isset($mensaje)) {
 }
 ?>
 <div class="row g-4">
+<!-- Modal para ingresar cantidad de producto -->
+<div class="modal fade" id="modalCantidadProducto" tabindex="-1" aria-labelledby="modalCantidadProductoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCantidadProductoLabel">Cantidad de producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCantidadProducto">
+                    <div class="mb-3">
+                        <label for="inputCantidadProducto" class="form-label">¿Cuántos desea agregar?</label>
+                        <input type="number" class="form-control" id="inputCantidadProducto" min="1" value="1" required>
+                    </div>
+                    <div class="mb-3" id="preparacionContainer" style="display:none;">
+                        <label for="inputPreparacion" class="form-label">Preparación especial (opcional)</label>
+                        <textarea class="form-control" id="inputPreparacion" rows="2" maxlength="200" placeholder="Ej: Sin cebolla, término medio, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="col-md-4">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">Menú de Productos</h5></div>
@@ -59,6 +83,9 @@ if (isset($mensaje)) {
                                         <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
                                         <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
                                     </div>
+                                    <?php if (!empty($detalle['preparacion'])): ?>
+                                        <div class="text-muted small ms-3">Preparación: <?php echo htmlspecialchars($detalle['preparacion']); ?></div>
+                                    <?php endif; ?>
                                     <div class="d-flex gap-2">
                                         <?php if ($detalle['Cantidad'] > 1): ?>
                                             <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
@@ -113,13 +140,18 @@ function renderListaProductosAgregados() {
         const prod = productosAgregados[i];
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.innerHTML = '<div><span class="fw-bold">' + prod.nombre + '</span> <span class="badge bg-secondary ms-2">x' + prod.cantidad + '</span></div>' +
-            '<button class="btn btn-sm btn-outline-danger ms-2" onclick="eliminarProductoAgregado(' + i + ')">Eliminar</button>';
+        let html = '<div><span class="fw-bold">' + prod.nombre + '</span> <span class="badge bg-secondary ms-2">x' + prod.cantidad + '</span>';
+        if (prod.preparacion && prod.preparacion.trim() !== '') {
+            html += '<br><span class="text-muted small">Preparación: ' + prod.preparacion + '</span>';
+        }
+        html += '</div>';
+        html += '<button class="btn btn-sm btn-outline-danger ms-2" onclick="eliminarProductoAgregado(' + i + ')">Eliminar</button>';
+        li.innerHTML = html;
         lista.appendChild(li);
     }
 }
-function agregarProducto(nombre, cantidad, id) {
-    productosAgregados.push({ nombre, cantidad, id });
+function agregarProducto(nombre, cantidad, id, preparacion = '') {
+    productosAgregados.push({ nombre, cantidad, id, preparacion });
     renderListaProductosAgregados();
 }
 function eliminarProductoAgregado(idx) {
@@ -128,6 +160,18 @@ function eliminarProductoAgregado(idx) {
 }
 function enviarProductosComanda() {
     if (productosAgregados.length === 0) return;
+    // Agrupar productos por id y preparación
+    const agrupados = [];
+    for (let i = 0; i < productosAgregados.length; i++) {
+        const prod = productosAgregados[i];
+        // Buscar si ya existe uno igual (id y preparación)
+        const idx = agrupados.findIndex(p => p.id === prod.id && (p.preparacion || '') === (prod.preparacion || ''));
+        if (idx !== -1) {
+            agrupados[idx].cantidad += prod.cantidad;
+        } else {
+            agrupados.push({ ...prod });
+        }
+    }
     let idMesaInput = document.querySelector('input[name="id_mesa"]');
     let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
@@ -138,7 +182,7 @@ function enviarProductosComanda() {
         credentials: 'same-origin',
         body: new URLSearchParams({
             id_mesa: idMesa,
-            productos: JSON.stringify(productosAgregados),
+            productos: JSON.stringify(agrupados),
             csrf_token: csrfToken
         })
     })
@@ -148,13 +192,6 @@ function enviarProductosComanda() {
             // Imprimir barra y cocina automáticamente
             // Solo imprimir si la clave de usar_impresora_barra o usar_impresora_cocina está activa
             let promesas = [];
-            <?php
-            require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
-            $configModel = new ConfigModel();
-            $usarBarra = $configModel->get('usar_impresora_barra');
-            $usarCocina = $configModel->get('usar_impresora_cocina');
-            ?>
-            <?php if ($usarBarra == 1): ?>
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
@@ -162,8 +199,6 @@ function enviarProductosComanda() {
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
                 }).then(res => res.json())
             );
-            <?php endif; ?>
-            <?php if ($usarCocina == 1): ?>
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
@@ -171,27 +206,9 @@ function enviarProductosComanda() {
                     body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
                 }).then(res => res.json())
             );
-            <?php endif; ?>
-            if (promesas.length > 0) {
-                Promise.all(promesas).then((results) => {
-                    /* let msg = '';
-                    results.forEach((res, idx) => {
-                        if (res.success && res.info) {
-                            msg += (idx === 0 ? 'Barra: ' : 'Cocina: ') + res.info + '\n';
-                        } else if (res.success) {
-                            msg += (idx === 0 ? 'Ticket de barra enviado.\n' : 'Ticket de cocina enviado.');
-                        } else {
-                            msg += (idx === 0 ? 'Error al imprimir barra: ' : 'Error al imprimir cocina: ') + (res.error || 'Error desconocido.') + '\n';
-                        }
-                    });
-                    if (msg.trim() !== '' && !/^Ticket de barra enviado.\n?Ticket de cocina enviado.?$/.test(msg.trim())) {
-                        alert(msg);
-                    } */
-                    window.location.reload();
-                });
-            } else {
+            Promise.all(promesas).then((results) => {
                 window.location.reload();
-            }
+            });
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }
@@ -319,18 +336,69 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
 
 
 renderListaProductosAgregados();
-
-// Permite agregar productos desde el menú (usado en menu_productos.php)
-function agregarProductoMenu(id, nombre, precio) {
-    // Buscar si ya existe el producto en la lista
-    let idx = productosAgregados.findIndex(p => p.id === id);
-    if (idx !== -1) {
-        productosAgregados[idx].cantidad += 1;
-    } else {
-        productosAgregados.push({ id, nombre, cantidad: 1, precio });
-    }
-    renderListaProductosAgregados();
-}
+// Interceptar clicks en botones de productos del menú (usado en menu_productos.php)
+let productoSeleccionado = null;
+let productoSeleccionadoCategoria = null;
+let productoSeleccionadoPrecio = null;
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-agregar-producto').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const nombre = this.getAttribute('data-nombre');
+            const id = parseInt(this.getAttribute('data-id'));
+            const categoria = this.getAttribute('data-categoria');
+            const precio = parseFloat(this.getAttribute('data-precio'));
+            productoSeleccionado = { nombre, id };
+            productoSeleccionadoCategoria = categoria;
+            productoSeleccionadoPrecio = precio;
+            document.getElementById('inputCantidadProducto').value = 1;
+            // Mostrar campo preparación solo si es comida
+            const categoriasComida = ['Buffet', 'Carnes', 'Sopas', 'buffet', 'carnes', 'sopas'];
+            if (categoriasComida.includes((categoria || '').toLowerCase().replace(/^./, c => c.toUpperCase()))) {
+                document.getElementById('preparacionContainer').style.display = '';
+            } else {
+                document.getElementById('preparacionContainer').style.display = 'none';
+                document.getElementById('inputPreparacion').value = '';
+            }
+            const modal = new bootstrap.Modal(document.getElementById('modalCantidadProducto'));
+            modal.show();
+        });
+    });
+    // Modal cantidad submit
+    document.getElementById('formCantidadProducto').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
+        const preparacion = document.getElementById('inputPreparacion').value.trim();
+        if (productoSeleccionado && cantidad > 0) {
+            // Si ya existe con la misma preparación, suma la cantidad
+            let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id && (p.preparacion || '') === preparacion);
+            if (idx !== -1) {
+                productosAgregados[idx].cantidad += cantidad;
+            } else {
+                productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion });
+            }
+            renderListaProductosAgregados();
+            // Limpiar campo preparación y cantidad
+            document.getElementById('inputPreparacion').value = '';
+            document.getElementById('inputCantidadProducto').value = 1;
+            // Quitar el foco del elemento activo antes de cerrar el modal
+            if (document.activeElement) document.activeElement.blur();
+            // Cerrar modal
+            const modalEl = document.getElementById('modalCantidadProducto');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            // Agregar listener para mover el foco después del cierre
+            const focusAfterClose = () => {
+                setTimeout(() => {
+                    const btnEnviar = document.querySelector('.btn-success.w-100:not([disabled])');
+                    if (btnEnviar) btnEnviar.focus();
+                    modalEl.removeEventListener('hidden.bs.modal', focusAfterClose);
+                }, 30); // Espera breve para asegurar que aria-hidden ya no esté
+            };
+            modalEl.addEventListener('hidden.bs.modal', focusAfterClose);
+            modalInstance.hide();
+        }
+    });
+});
 
 // Eliminado: lógica y referencias al modal de dividir cuenta y parciales
 </script>

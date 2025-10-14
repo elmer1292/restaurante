@@ -64,24 +64,41 @@ class ComandaAjaxController extends BaseController {
                 exit;
             }
             $ventaModel = new VentaModel();
+            require_once __DIR__ . '/../models/ProductModel.php';
+            $productModel = new ProductModel();
             $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
             if (!$comanda) {
                 echo json_encode(['success' => false, 'error' => 'No hay comanda activa']);
                 exit;
             }
             $idVenta = $comanda['ID_Venta'];
+
+            // Ya no se imprime aquí. Solo se guarda. La impresión se maneja por imprimirComanda.
+
             $conn = (new Database())->connect();
             try {
                 $conn->beginTransaction();
                 foreach ($productos as $p) {
                     $pid = Validator::int(Validator::get($p, 'id'));
                     $cantidad = Validator::int(Validator::get($p, 'cantidad'));
-                    $precio = Validator::float(Validator::get($p, 'precio'));
                     $nombre = Validator::sanitizeString(Validator::get($p, 'nombre', ''));
-                    if ($pid === null || $cantidad === null || $precio === null) {
+                    $preparacion = Validator::sanitizeString(Validator::get($p, 'preparacion', null));
+                    if ($pid === null || $cantidad === null) {
                         throw new Exception('Producto inválido: ' . $nombre);
                     }
-                    $res = $ventaModel->addSaleDetail($idVenta, $pid, $cantidad, $precio);
+                    // Consultar el precio real del producto
+                    $productoDB = $productModel->getAllProducts();
+                    $precioReal = null;
+                    foreach ($productoDB as $prod) {
+                        if ($prod['ID_Producto'] == $pid) {
+                            $precioReal = $prod['Precio_Venta'];
+                            break;
+                        }
+                    }
+                    if ($precioReal === null) {
+                        throw new Exception('No se encontró el producto en la base de datos: ' . $nombre);
+                    }
+                    $res = $ventaModel->addSaleDetail($idVenta, $pid, $cantidad, $precioReal, $preparacion);
                     if (!$res) {
                         throw new Exception('Error al agregar producto: ' . $nombre);
                     }

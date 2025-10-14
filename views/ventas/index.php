@@ -270,7 +270,9 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
             detalle += `</ul><p><b>Total entregado:</b> $${totalPagado.toFixed(2)}</p>`;
             if (totalPagado > saldo && metodosUnicos.length === 1 && metodosUnicos[0] === 'Efectivo') {
                 const cambio = totalPagado - saldo;
-                detalle += `<p><b>Cambio a devolver:</b> C$${cambio.toFixed(2)}</p>`;
+                if (cambio > 0) {
+                    detalle += `<p><b>Cambio a devolver:</b> C$${cambio.toFixed(2)}</p>`;
+                }
             }
             detalle += '<p>¿Registrar pago?</p>';
             return detalle;

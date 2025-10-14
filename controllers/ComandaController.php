@@ -113,9 +113,14 @@ class ComandaController extends BaseController {
                     $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
                 }
             }
-        } else {
+        } else 
+        {
             foreach ($comanda as $item) {
-                $contenido .= $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
+                $linea = $item['Cantidad'] . "x " . strtoupper($item['Nombre_Producto']) . "\n";
+                $contenido .= $linea;
+                if (!empty($item['Preparacion'])) {
+                    $contenido .= "   > " . trim($item['Preparacion']) . "\n";
+                }
             }
         }
         $contenido .= "--------------------------\n";

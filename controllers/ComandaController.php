@@ -63,9 +63,36 @@ class ComandaController extends BaseController {
             echo json_encode(['success' => false, 'error' => 'Mesa no especificada']);
             exit;
         }
-        // Si se reciben productos nuevos, imprimir solo esos
+        // Si se reciben productos nuevos, filtrar por tipo (barra/cocina) según categoría
         if ($productosNuevos) {
-            $comanda = $productosNuevos;
+            // Categorías que van a barra
+            $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+            if ($tipo === 'barra') {
+                $comanda = array_values(array_filter($productosNuevos, function($p) use ($categoriasBarra) {
+                    return isset($p['categoria']) && in_array(trim($p['categoria']), $categoriasBarra);
+                }));
+            } else {
+                $comanda = array_values(array_filter($productosNuevos, function($p) use ($categoriasBarra) {
+                    return !isset($p['categoria']) || !in_array(trim($p['categoria']), $categoriasBarra);
+                }));
+            }
+            // Si no hay productos válidos, responder éxito sin imprimir
+            if (empty($comanda)) {
+                echo json_encode(['success' => true]);
+                exit;
+            }
+            // Obtener datos de la mesa y la venta para imprimir encabezado
+            require_once dirname(__DIR__, 1) . '/models/MesaModel.php';
+            require_once dirname(__DIR__, 1) . '/models/VentaModel.php';
+            $mesaModel = new MesaModel();
+            $ventaModel = new VentaModel();
+            $mesa = $mesaModel->getTableById($idMesa);
+            $venta = $ventaModel->getVentaActivaByMesa($idMesa);
+            $numeroMesa = $mesa && isset($mesa['Numero_Mesa']) ? $mesa['Numero_Mesa'] : $idMesa;
+            $fechaHora = $venta && isset($venta['Fecha_Hora']) ? $venta['Fecha_Hora'] : date('Y-m-d H:i:s');
+            // Agregar estos datos al primer producto para el formato de impresión
+            $comanda[0]['Numero_Mesa'] = $numeroMesa;
+            $comanda[0]['Fecha_Hora'] = $fechaHora;
         } else {
             // Obtener detalles de la comanda como antes
             require_once dirname(__DIR__, 1) . '/models/VentaModel.php';

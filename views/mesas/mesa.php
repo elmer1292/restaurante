@@ -189,26 +189,32 @@ function enviarProductosComanda() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Imprimir barra y cocina automáticamente
-            // Solo imprimir si la clave de usar_impresora_barra o usar_impresora_cocina está activa
+            // Mapear productos a la estructura esperada por el backend
+            const productosImprimir = agrupados.map(p => ({
+                Cantidad: p.cantidad,
+                Nombre_Producto: p.nombre,
+                Preparacion: p.preparacion || ''
+            }));
             let promesas = [];
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra' })
+                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra', productos: productosImprimir })
                 }).then(res => res.json())
             );
             promesas.push(
                 fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina' })
+                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina', productos: productosImprimir })
                 }).then(res => res.json())
             );
-            Promise.all(promesas).then((results) => {
-                window.location.reload();
-            });
+            Promise.all(promesas)
+                .catch(() => {})
+                .finally(() => {
+                    window.location.reload();
+                });
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }

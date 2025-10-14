@@ -55,31 +55,37 @@ class ComandaController extends BaseController {
             echo json_encode(['success' => false, 'error' => 'Método no permitido']);
             exit;
         }
-        $input = json_decode(file_get_contents('php://input'), true);
-        $idMesa = isset($input['id_mesa']) ? (int)$input['id_mesa'] : 0;
-        $tipo = isset($input['tipo']) ? $input['tipo'] : 'cocina';
+    $input = json_decode(file_get_contents('php://input'), true);
+    $idMesa = isset($input['id_mesa']) ? (int)$input['id_mesa'] : 0;
+    $tipo = isset($input['tipo']) ? $input['tipo'] : 'cocina';
+    $productosNuevos = isset($input['productos']) && is_array($input['productos']) ? $input['productos'] : null;
         if (!$idMesa) {
             echo json_encode(['success' => false, 'error' => 'Mesa no especificada']);
             exit;
         }
-        // Obtener detalles de la comanda
-        require_once dirname(__DIR__, 1) . '/models/VentaModel.php';
-        $ventaModel = new VentaModel();
-        $comanda = [];
-        if ($tipo === 'cocina') {
-            $comandas = $ventaModel->getVentasPendientesCocina();
+        // Si se reciben productos nuevos, imprimir solo esos
+        if ($productosNuevos) {
+            $comanda = $productosNuevos;
         } else {
-            $comandas = $ventaModel->getVentasPendientesBarra();
-        }
-        foreach ($comandas as $c) {
-            if ($c['ID_Mesa'] == $idMesa) {
-                $comanda[] = $c;
+            // Obtener detalles de la comanda como antes
+            require_once dirname(__DIR__, 1) . '/models/VentaModel.php';
+            $ventaModel = new VentaModel();
+            $comanda = [];
+            if ($tipo === 'cocina') {
+                $comandas = $ventaModel->getVentasPendientesCocina();
+            } else {
+                $comandas = $ventaModel->getVentasPendientesBarra();
             }
-        }
-        if (empty($comanda)) {
-            // No es error, solo no hay productos de este tipo para imprimir
-            echo json_encode(['success' => true]);
-            exit;
+            foreach ($comandas as $c) {
+                if ($c['ID_Mesa'] == $idMesa) {
+                    $comanda[] = $c;
+                }
+            }
+            if (empty($comanda)) {
+                // No es error, solo no hay productos de este tipo para imprimir
+                echo json_encode(['success' => true]);
+                exit;
+            }
         }
         // Formato especial para barra
         $contenido = "\n";

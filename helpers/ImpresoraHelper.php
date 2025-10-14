@@ -72,4 +72,24 @@ class ImpresoraHelper {
             return false;
         }
     }
+        // Imprimir directamente en una impresora por nombre (sin validar clave de config)
+    public static function imprimir_directo($nombre, $contenido) {
+        if (!$nombre) return false;
+        try {
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/Printer.php';
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/PrintConnectors/WindowsPrintConnector.php';
+            require_once __DIR__ . '/escpos-php/src/Mike42/Escpos/CapabilityProfile.php';
+            $connector = new \Mike42\Escpos\PrintConnectors\WindowsPrintConnector($nombre);
+            $profile = \Mike42\Escpos\CapabilityProfile::load("simple");
+            $printer = new \Mike42\Escpos\Printer($connector, $profile);
+            $printer->text($contenido);
+            $printer->feed(2);
+            $printer->cut();
+            $printer->close();
+            return true;
+        } catch (Exception $e) {
+            // Puedes loguear el error si lo deseas
+            return false;
+        }
+    }
 }

@@ -151,7 +151,16 @@ function renderListaProductosAgregados() {
     }
 }
 function agregarProducto(nombre, cantidad, id, preparacion = '') {
-    productosAgregados.push({ nombre, cantidad, id, preparacion });
+    // Obtener la categoría del botón seleccionado
+    let categoria = '';
+    const btns = document.querySelectorAll('.btn-agregar-producto');
+    for (let btn of btns) {
+        if (btn.dataset.id == id) {
+            categoria = btn.dataset.categoria || '';
+            break;
+        }
+    }
+    productosAgregados.push({ nombre, cantidad, id, preparacion, categoria });
     renderListaProductosAgregados();
 }
 function eliminarProductoAgregado(idx) {
@@ -172,6 +181,10 @@ function enviarProductosComanda() {
             agrupados.push({ ...prod });
         }
     }
+    // Separar productos para barra y cocina según categoría
+    const categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+    const productosBarra = agrupados.filter(p => categoriasBarra.includes((p.categoria || '').trim()));
+    const productosCocina = agrupados.filter(p => !categoriasBarra.includes((p.categoria || '').trim()));
     let idMesaInput = document.querySelector('input[name="id_mesa"]');
     let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
@@ -190,26 +203,31 @@ function enviarProductosComanda() {
     .then(data => {
         if (data.success) {
             // Mapear productos a la estructura esperada por el backend
-            const productosImprimir = agrupados.map(p => ({
+            const mapProducto = p => ({
                 Cantidad: p.cantidad,
                 Nombre_Producto: p.nombre,
-                Preparacion: p.preparacion || ''
-            }));
+                Preparacion: p.preparacion || '',
+                categoria: p.categoria || ''
+            });
             let promesas = [];
-            promesas.push(
-                fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra', productos: productosImprimir })
-                }).then(res => res.json())
-            );
-            promesas.push(
-                fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina', productos: productosImprimir })
-                }).then(res => res.json())
-            );
+            if (productosBarra.length > 0) {
+                promesas.push(
+                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra', productos: productosBarra.map(mapProducto) })
+                    }).then(res => res.json())
+                );
+            }
+            if (productosCocina.length > 0) {
+                promesas.push(
+                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina', productos: productosCocina.map(mapProducto) })
+                    }).then(res => res.json())
+                );
+            }
             Promise.all(promesas)
                 .catch(() => {})
                 .finally(() => {

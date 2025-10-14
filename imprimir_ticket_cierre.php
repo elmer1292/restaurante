@@ -83,7 +83,7 @@ $ticket = TicketHelper::generarTicketCierreCaja(
 );
 
 // Imprimir usando la impresora designada para cierre
-$impresora = $configModel->get('impresora_cierre') ?: $configModel->get('impresora_ticket');
+$impresora = $configModel->get('impresora_ticket');
 
         try {
             $connector = new WindowsPrintConnector($impresora);

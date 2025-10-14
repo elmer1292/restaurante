@@ -81,7 +81,7 @@ $nombreApp = $configModel->get('nombre_app');
             </li>
             <?php endif; ?>
 
-            <?php if (in_array($userRole, ['Administrador', 'Mesero'])): ?>
+            <?php if (in_array($userRole, ['Administrador', 'Mesero','Cajero'])): ?>
             <li class="nav-item">
                      <a class="nav-link text-white <?php echo strpos($currentPage, 'mesas') !== false ? 'active' : ''; ?>" 
                          href="<?php echo BASE_URL; ?>mesas">

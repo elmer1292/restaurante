@@ -97,7 +97,7 @@ try {
                                                         </select>
                                                     </div>
                                                     <div class="col-6">
-                                                        <input type="number" min="1" class="form-control metodo-pago-monto" placeholder="Monto" required>
+                                                        <input type="number" min="1" step="0.01" class="form-control metodo-pago-monto" placeholder="Monto" required>
                                                     </div>
                                                 </div>
                                             </div>
@@ -148,7 +148,7 @@ function agregarMetodoPago(idVenta) {
         </select>
     </div>
     <div class="col-5">
-        <input type="number" min="1" class="form-control metodo-pago-monto" placeholder="Monto" required>
+        <input type="number" min="1" step="0.01" class="form-control metodo-pago-monto" placeholder="Monto" required>
     </div>
     <div class="col-2 d-flex align-items-center">
         <button type="button" class="btn btn-sm btn-outline-danger eliminar-metodo-pago" title="Eliminar método">&times;</button>

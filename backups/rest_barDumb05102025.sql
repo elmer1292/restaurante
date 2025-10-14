@@ -26,21 +26,6 @@ CREATE TABLE `config` (
 
 INSERT INTO `config` VALUES (1,'nombre_app','Uy Que Rico'),(2,'usar_impresora_cocina','1'),(3,'impresora_cocina','AON Printer'),(4,'usar_impresora_barra','0'),(5,'impresora_barra',''),(6,'moneda','C$'),(7,'IVA','12%'),(8,'impresora_ticket','AON Printer'),(9,'servicio','0.05');
 
-
-
-CREATE TABLE `empleados` (
-  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
-  `Nombre_Completo` varchar(100) NOT NULL,
-  `Correo` varchar(100) DEFAULT NULL,
-  `Telefono` varchar(15) DEFAULT NULL,
-  `Fecha_Contratacion` date NOT NULL,
-  `ID_Usuario` int DEFAULT NULL,
-  PRIMARY KEY (`ID_Empleado`),
-  UNIQUE KEY `Correo` (`Correo`),
-  KEY `ID_Usuario` (`ID_Usuario`),
-  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
-);
-
 CREATE TABLE `mesas` (
   `ID_Mesa` int NOT NULL AUTO_INCREMENT,
   `Numero_Mesa` int NOT NULL,
@@ -85,6 +70,20 @@ CREATE TABLE `usuarios` (
 );
 
 INSERT INTO `usuarios` VALUES (1,'superadmin','$2y$10$t/mD.Wc7Fo3Ot.nU0Q9XxuLMDHzF4bYM0QZXgBUM0OPITQzL4JSxS',1,1);
+
+
+CREATE TABLE `empleados` (
+  `ID_Empleado` int NOT NULL AUTO_INCREMENT,
+  `Nombre_Completo` varchar(100) NOT NULL,
+  `Correo` varchar(100) DEFAULT NULL,
+  `Telefono` varchar(15) DEFAULT NULL,
+  `Fecha_Contratacion` date NOT NULL,
+  `ID_Usuario` int DEFAULT NULL,
+  PRIMARY KEY (`ID_Empleado`),
+  UNIQUE KEY `Correo` (`Correo`),
+  KEY `ID_Usuario` (`ID_Usuario`),
+  CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`)
+);
 
 CREATE TABLE `ventas` (
   `ID_Venta` int NOT NULL AUTO_INCREMENT,

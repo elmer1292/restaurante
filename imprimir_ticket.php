@@ -68,7 +68,8 @@ foreach ($metodos as $metodo) {
         $totalPagado += floatval($partes[1]);
     }
 }
-$cambio = $totalPagado > $total ? $totalPagado - $total : 0;
+$servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0;
+$cambio = $totalPagado > ($total + $servicio) ? $totalPagado - ($total + $servicio) : 0;
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';

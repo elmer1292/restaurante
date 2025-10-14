@@ -26,26 +26,7 @@ CREATE TABLE `config` (
 
 INSERT INTO `config` VALUES (1,'nombre_app','Uy Que Rico'),(2,'usar_impresora_cocina','1'),(3,'impresora_cocina','AON Printer'),(4,'usar_impresora_barra','0'),(5,'impresora_barra',''),(6,'moneda','C$'),(7,'IVA','12%'),(8,'impresora_ticket','AON Printer'),(9,'servicio','0.05');
 
-DROP TABLE IF EXISTS `detalle_venta`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `detalle_venta` (
-  `ID_Detalle` int NOT NULL AUTO_INCREMENT,
-  `ID_Venta` int DEFAULT NULL,
-  `ID_Producto` int DEFAULT NULL,
-  `Precio_Venta` decimal(10,2) NOT NULL,
-  `Cantidad` int NOT NULL,
-  `Subtotal` decimal(10,2) DEFAULT NULL,
-  `ID_Parcial` int DEFAULT NULL,
-  `Preparacion` TEXT DEFAULT NULL,
-  PRIMARY KEY (`ID_Detalle`),
-  KEY `ID_Venta` (`ID_Venta`),
-  KEY `ID_Producto` (`ID_Producto`),
-  KEY `fk_detalle_parcial` (`ID_Parcial`),
-  CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
-  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`),
-  CONSTRAINT `fk_detalle_parcial` FOREIGN KEY (`ID_Parcial`) REFERENCES `parciales_venta` (`ID_Parcial`)
-);
+
 
 CREATE TABLE `empleados` (
   `ID_Empleado` int NOT NULL AUTO_INCREMENT,
@@ -68,30 +49,8 @@ CREATE TABLE `mesas` (
   PRIMARY KEY (`ID_Mesa`)
 );
 
-CREATE TABLE `movimientos` (
-  `ID_Movimiento` int NOT NULL AUTO_INCREMENT,
-  `Fecha_Hora` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `Tipo` varchar(30) NOT NULL,
-  `Monto` decimal(10,2) NOT NULL,
-  `Descripcion` varchar(255) DEFAULT NULL,
-  `ID_Usuario` int DEFAULT NULL,
-  `ID_Venta` int DEFAULT NULL,
-  PRIMARY KEY (`ID_Movimiento`),
-  KEY `ID_Usuario` (`ID_Usuario`),
-  KEY `ID_Venta` (`ID_Venta`),
-  CONSTRAINT `movimientos_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`),
-  CONSTRAINT `movimientos_ibfk_2` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
-);
 
-CREATE TABLE `parciales_venta` (
-  `ID_Parcial` int NOT NULL AUTO_INCREMENT,
-  `ID_Venta` int NOT NULL,
-  `nombre_cliente` varchar(100) DEFAULT NULL,
-  `pagado` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`ID_Parcial`),
-  KEY `ID_Venta` (`ID_Venta`),
-  CONSTRAINT `parciales_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
-);
+
 
 CREATE TABLE `productos` (
   `ID_Producto` int NOT NULL AUTO_INCREMENT,
@@ -144,6 +103,48 @@ CREATE TABLE `ventas` (
   CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`ID_Cliente`) REFERENCES `clientes` (`ID_Cliente`),
   CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`ID_Mesa`) REFERENCES `mesas` (`ID_Mesa`),
   CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`ID_Empleado`) REFERENCES `empleados` (`ID_Empleado`)
+);
+
+CREATE TABLE `parciales_venta` (
+  `ID_Parcial` int NOT NULL AUTO_INCREMENT,
+  `ID_Venta` int NOT NULL,
+  `nombre_cliente` varchar(100) DEFAULT NULL,
+  `pagado` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID_Parcial`),
+  KEY `ID_Venta` (`ID_Venta`),
+  CONSTRAINT `parciales_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
+);
+CREATE TABLE `movimientos` (
+  `ID_Movimiento` int NOT NULL AUTO_INCREMENT,
+  `Fecha_Hora` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Tipo` varchar(30) NOT NULL,
+  `Monto` decimal(10,2) NOT NULL,
+  `Descripcion` varchar(255) DEFAULT NULL,
+  `ID_Usuario` int DEFAULT NULL,
+  `ID_Venta` int DEFAULT NULL,
+  PRIMARY KEY (`ID_Movimiento`),
+  KEY `ID_Usuario` (`ID_Usuario`),
+  KEY `ID_Venta` (`ID_Venta`),
+  CONSTRAINT `movimientos_ibfk_1` FOREIGN KEY (`ID_Usuario`) REFERENCES `usuarios` (`ID_usuario`),
+  CONSTRAINT `movimientos_ibfk_2` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`)
+);
+
+CREATE TABLE `detalle_venta` (
+  `ID_Detalle` int NOT NULL AUTO_INCREMENT,
+  `ID_Venta` int DEFAULT NULL,
+  `ID_Producto` int DEFAULT NULL,
+  `Precio_Venta` decimal(10,2) NOT NULL,
+  `Cantidad` int NOT NULL,
+  `Subtotal` decimal(10,2) DEFAULT NULL,
+  `ID_Parcial` int DEFAULT NULL,
+  `Preparacion` TEXT DEFAULT NULL,
+  PRIMARY KEY (`ID_Detalle`),
+  KEY `ID_Venta` (`ID_Venta`),
+  KEY `ID_Producto` (`ID_Producto`),
+  KEY `fk_detalle_parcial` (`ID_Parcial`),
+  CONSTRAINT `detalle_venta_ibfk_1` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`),
+  CONSTRAINT `detalle_venta_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `productos` (`ID_Producto`),
+  CONSTRAINT `fk_detalle_parcial` FOREIGN KEY (`ID_Parcial`) REFERENCES `parciales_venta` (`ID_Parcial`)
 );
 
 DELIMITER ;;

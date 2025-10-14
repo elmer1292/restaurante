@@ -121,6 +121,9 @@ class ComandaController extends BaseController {
         } else {
             $contenido .= "====== COMANDA COCINA ======\n";
         }
+        $contenido .= "Usuario: " . (isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido') . "\n";
+        // Si prefieres el nombre completo, usa la línea siguiente:
+        // $contenido .= "Usuario: " . (isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo'] : 'Desconocido') . "\n";
         $contenido .= "Mesa: " . $comanda[0]['Numero_Mesa'] . "\n";
         $contenido .= "Hora: " . $comanda[0]['Fecha_Hora'] . "\n";
         $contenido .= "--------------------------\n";

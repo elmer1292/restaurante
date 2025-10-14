@@ -39,7 +39,10 @@ if (!$idMesa) {
 $ventaModel = new VentaModel();
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
 if (!$comanda) {
-    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
+    echo '<script>
+        alert("Pre-factura impresa correctamente.");
+        window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";
+    </script>';
     exit;
 }
 $idVenta = $comanda['ID_Venta'];

@@ -97,6 +97,9 @@ try {
     $printer->close();
     header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
 } catch (Exception $e) {
-    echo '<div style="font-family:monospace;padding:2em;text-align:center;color:red;">Error al imprimir pre-factura:<br>' . htmlspecialchars($e->getMessage()) . '</div>';
+    echo '<script>
+    alert("Error al imprimir pre-factura: ' . htmlspecialchars($e->getMessage()) . '");
+    window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";
+</script>';
 }
 exit;

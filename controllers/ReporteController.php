@@ -82,18 +82,20 @@ class ReporteController extends BaseController {
         $ticket = TicketHelper::generarTicketProductosVendidos($restaurante, date('d/m/Y', strtotime($fecha)), $productos, $granTotal, $moneda, $empleado);
         // Imprimir usando escpos-php o mostrar para copiar
         require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
-        $impresora = ImpresoraHelper::getNombreImpresora();
+        $impresora = ImpresoraHelper::obtenerImpresora('impresora_ticket');
         $ok = false;
         $error = '';
         if ($impresora) {
             try {
-                ImpresoraHelper::imprimirTexto($impresora, $ticket);
+                if (!ImpresoraHelper::imprimir_directo($impresora, $ticket)) {
+                    throw new Exception('No se pudo imprimir el ticket.');
+                }
                 $ok = true;
             } catch (Exception $e) {
                 $error = $e->getMessage();
             }
         } else {
-            $error = 'No se ha configurado la impresora.';
+            $error = 'No se ha configurado la impresora de tickets.';
         }
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impresión ticket</title>';
         echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">';

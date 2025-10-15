@@ -98,6 +98,7 @@ try {
     $printer->text($ticketTxt . "\n");
     $printer->feed(2);
     $printer->cut();
+    $printer->pulse(); // Abre el cajón de dinero
     $printer->close();
     echo 'Ticket enviado a la impresora.';
 } catch (Exception $e) {

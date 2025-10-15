@@ -8,7 +8,7 @@ require_once __DIR__ . '/config/base_url.php';
 
 
 // Incluir clases necesarias de escpos-php
-require_once __DIR__ . '\config\autoloader.php';
+require_once __DIR__ . '/config/autoloader.php';
 
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
@@ -31,24 +31,22 @@ if (php_sapi_name() === 'cli') {
 } else {
     $idMesa = isset($_GET['id_mesa']) ? (int)$_GET['id_mesa'] : 0;
 }
+
 if (!$idMesa) {
-    header('Location: ' . BASE_URL . 'mesa?id_mesa=');
+    echo '<script>alert("No se recibió el ID de la mesa."); window.location.href = "' . BASE_URL . 'mesas";</script>';
     exit;
 }
 
 $ventaModel = new VentaModel();
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
 if (!$comanda) {
-    echo '<script>
-        alert("Pre-factura impresa correctamente.");
-        window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";
-    </script>';
+    echo '<script>alert("No se encontró una venta activa para esta mesa."); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
     exit;
 }
 $idVenta = $comanda['ID_Venta'];
 $venta = $ventaModel->getVentaById($idVenta);
 if (!$venta) {
-    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
+    echo '<script>alert("No se encontró la venta para esta mesa."); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
     exit;
 }
 $mesaModel = new MesaModel();
@@ -72,16 +70,28 @@ foreach ($productos as $prod) {
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
+
 $impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_barra'); // Cambia la clave si usas otra
+if (!$impresora) {
+    echo '<script>alert("No hay impresora configurada. Por favor, configura una impresora en el sistema."); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
+    exit;
+}
 
 // Generar el texto del ticket
+
+// Validar datos requeridos antes de imprimir
+if (!$nombreApp || empty($mesa['Numero_Mesa']) || empty($venta['Fecha_Hora']) || empty($usuario['Nombre_Completo']) || empty($venta['ID_Venta'])) {
+    echo '<script>alert("Faltan datos requeridos para imprimir la pre-factura. Verifica la información de la mesa, venta y usuario."); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
+    exit;
+}
+
 $ticketTxt = TicketHelper::generarTicketVenta(
     $nombreApp,
-    $mesa['Numero_Mesa'] ?? '',
+    $mesa['Numero_Mesa'],
     date('d/m/Y H:i', strtotime($venta['Fecha_Hora'])),
     $detalles,
     $total,
-    $usuario['Nombre_Completo'] ?? '',
+    $usuario['Nombre_Completo'],
     $venta['ID_Venta'],
     $moneda,
     '',
@@ -98,11 +108,8 @@ try {
     $printer->feed(2);
     $printer->cut();
     $printer->close();
-    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
+    echo '<script>alert("Pre-factura impresa correctamente."); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
 } catch (Exception $e) {
-    echo '<script>
-    alert("Error al imprimir pre-factura: ' . htmlspecialchars($e->getMessage()) . '");
-    window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";
-</script>';
+    echo '<script>alert("Error al imprimir pre-factura: ' . htmlspecialchars($e->getMessage()) . '"); window.location.href = "' . BASE_URL . 'mesa?id_mesa=' . $idMesa . '";</script>';
 }
 exit;

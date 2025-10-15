@@ -66,12 +66,14 @@ if (isset($mensaje)) {
                 <p>Capacidad: <?php echo htmlspecialchars($mesa['Capacidad']); ?> personas</p>
                 <?php if ($comanda) {
                     if (!$detalles || count($detalles) === 0) { ?>
+                        <?php if ($userRole === 'Administrador' || $userRole === 'Cajero'): ?>
                         <form id="formLiberarMesa" method="post" style="margin-bottom: 1em;">
                             <input type="hidden" name="id_mesa" value="<?php echo htmlspecialchars($idMesa); ?>">
                             <input type="hidden" name="id_venta" value="<?php echo htmlspecialchars($comanda['ID_Venta']); ?>">
                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                             <button type="submit" class="btn btn-danger w-100">Liberar Mesa</button>
                         </form>
+                        <?php endif; ?>
                     <?php } else { ?>
                         <ul class="list-group mb-3">
                             <?php $total = 0;

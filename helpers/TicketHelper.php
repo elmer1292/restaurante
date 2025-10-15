@@ -9,7 +9,7 @@ class TicketHelper {
             $out .= str_pad('*** PRE-FACTURA ***', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
         }
         $out .= "RUC: 0810509961001U\n";
-        $out .= "Tel: (123) 456-7890\n";
+        $out .= "Tel: 8882-3804\n";
         $out .= "Dirección: Frente al nuevo \nhospital HEODRA\n";
         $out .= str_repeat('=', $maxWidth) . "\n";
         $out .= "Mesa: $mesa\n";
@@ -64,7 +64,7 @@ class TicketHelper {
         $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
         $out .= str_pad('*** CIERRE DE CAJA ***', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
         $out .= "RUC: 0810509961001U\n";
-        $out .= "Tel: (123) 456-7890\n";
+        $out .= "Tel: 8882-3804\n";
         $out .= "Dirección: Frente al nuevo \nhospital HEODRA\n";
         $out .= str_repeat('=', $maxWidth) . "\n";
         $out .= "Desde: $fechaInicio\n";

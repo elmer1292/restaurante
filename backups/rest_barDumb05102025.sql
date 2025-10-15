@@ -146,6 +146,17 @@ CREATE TABLE `detalle_venta` (
   CONSTRAINT `fk_detalle_parcial` FOREIGN KEY (`ID_Parcial`) REFERENCES `parciales_venta` (`ID_Parcial`)
 );
 
+CREATE TABLE `liberaciones_mesa` (
+    `ID_Liberacion` INT AUTO_INCREMENT PRIMARY KEY,
+    `ID_Mesa` INT NOT NULL,
+    `ID_Usuario` INT NOT NULL,
+    `Motivo` VARCHAR(100) NOT NULL,
+    `Descripcion` TEXT,
+    `Fecha_Hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`ID_Mesa`) REFERENCES mesas(`ID_Mesa`),
+    FOREIGN KEY (`ID_Usuario`) REFERENCES usuarios(`ID_Usuario`)
+);
+
 DELIMITER ;;
 CREATE PROCEDURE `sp_AddProduct`(
     IN p_nombre VARCHAR(100),

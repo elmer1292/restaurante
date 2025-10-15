@@ -6,6 +6,37 @@ if (isset($mensaje)) {
 }
 ?>
 <div class="row g-4">
+    <!-- Modal Liberar Mesa SIEMPRE en el DOM -->
+<div class="modal fade" id="modalLiberarMesa" tabindex="-1" aria-labelledby="modalLiberarMesaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalLiberarMesaLabel">Liberar Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="formLiberarMesaModal" autocomplete="off">
+                <div class="modal-body">
+                    <input type="hidden" name="id_mesa" value="<?php echo htmlspecialchars($idMesa); ?>">
+                    <input type="hidden" name="id_venta" value="<?php echo htmlspecialchars($comanda['ID_Venta']); ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                    <div class="mb-3">
+                        <label for="motivoLiberacion" class="form-label">Motivo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="motivoLiberacion" name="motivo" maxlength="100" required placeholder="Ej: Mesa desocupada, error, etc.">
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionLiberacion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionLiberacion" name="descripcion" rows="2" maxlength="255" placeholder="Detalles adicionales (opcional)"></textarea>
+                    </div>
+                    <div id="liberarMesaError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Liberar Mesa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <!-- Modal para ingresar cantidad de producto -->
 <div class="modal fade" id="modalCantidadProducto" tabindex="-1" aria-labelledby="modalCantidadProductoLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -66,14 +97,10 @@ if (isset($mensaje)) {
                 <p>Capacidad: <?php echo htmlspecialchars($mesa['Capacidad']); ?> personas</p>
                 <?php if ($comanda) {
                     if (!$detalles || count($detalles) === 0) { ?>
-                        <?php if ($userRole === 'Administrador' || $userRole === 'Cajero'): ?>
-                        <form id="formLiberarMesa" method="post" style="margin-bottom: 1em;">
-                            <input type="hidden" name="id_mesa" value="<?php echo htmlspecialchars($idMesa); ?>">
-                            <input type="hidden" name="id_venta" value="<?php echo htmlspecialchars($comanda['ID_Venta']); ?>">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
-                            <button type="submit" class="btn btn-danger w-100">Liberar Mesa</button>
-                        </form>
-                        <?php endif; ?>
+                                                <?php if ($userRole === 'Administrador' || $userRole === 'Cajero'): ?>
+                                                <button type="button" class="btn btn-danger w-100" style="margin-bottom: 1em;" data-bs-toggle="modal" data-bs-target="#modalLiberarMesa">Liberar Mesa</button>
+                                                <?php endif; ?>
+</div>
                     <?php } else { ?>
                         <ul class="list-group mb-3">
                             <?php $total = 0;
@@ -334,11 +361,24 @@ function eliminarProductoComanda(idDetalle, cantidad) {
         });
     }
 }
-document.getElementById('formLiberarMesa')?.addEventListener('submit', function(e) {
+
+// Modal Liberar Mesa - submit
+document.getElementById('formLiberarMesaModal')?.addEventListener('submit', function(e) {
     e.preventDefault();
-    const idMesa = this.id_mesa.value;
-    const idVenta = this.id_venta.value;
-    const csrfToken = this.csrf_token.value;
+    const form = this;
+    const idMesa = form.id_mesa.value;
+    const idVenta = form.id_venta.value;
+    const csrfToken = form.csrf_token.value;
+    const motivo = form.motivo.value.trim();
+    const descripcion = form.descripcion.value.trim();
+    const errorDiv = document.getElementById('liberarMesaError');
+    errorDiv.classList.add('d-none');
+    errorDiv.textContent = '';
+    if (!motivo) {
+        errorDiv.textContent = 'El motivo es obligatorio.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
     fetch('<?php echo BASE_URL; ?>comanda/liberar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -346,16 +386,26 @@ document.getElementById('formLiberarMesa')?.addEventListener('submit', function(
         body: new URLSearchParams({
             id_mesa: idMesa,
             id_venta: idVenta,
-            csrf_token: csrfToken
+            csrf_token: csrfToken,
+            motivo: motivo,
+            descripcion: descripcion
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Cerrar modal y recargar
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalLiberarMesa'));
+            modal.hide();
             window.location.href = '<?php echo BASE_URL; ?>mesas';
         } else {
-            alert(data.error || 'Error al liberar la mesa');
+            errorDiv.textContent = data.error || 'Error al liberar la mesa';
+            errorDiv.classList.remove('d-none');
         }
+    })
+    .catch(() => {
+        errorDiv.textContent = 'Error de comunicación con el servidor.';
+        errorDiv.classList.remove('d-none');
     });
 });
 

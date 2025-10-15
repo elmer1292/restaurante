@@ -5,11 +5,13 @@ require_once __DIR__ . '/../models/VentaModel.php';
 
 class ComandaAjaxController extends BaseController {
     public function liberarMesa() {
-        require_once __DIR__ . '/../helpers/Csrf.php';
-        require_once __DIR__ . '/../helpers/Validator.php';
-        require_once __DIR__ . '/../models/MesaModel.php';
-        require_once __DIR__ . '/../models/VentaModel.php';
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once __DIR__ . '/../helpers/Csrf.php';
+    require_once __DIR__ . '/../helpers/Validator.php';
+    require_once __DIR__ . '/../models/MesaModel.php';
+    require_once __DIR__ . '/../models/VentaModel.php';
+    require_once __DIR__ . '/../models/LiberacionMesaModel.php';
+    require_once __DIR__ . '/../config/Session.php';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
             if (!Csrf::validateToken($csrfToken)) {
                 http_response_code(403);
@@ -18,22 +20,33 @@ class ComandaAjaxController extends BaseController {
             }
             $idMesa = Validator::int(Validator::get($_POST, 'id_mesa'));
             $idVenta = Validator::int(Validator::get($_POST, 'id_venta'));
-            if ($idMesa === null || $idVenta === null) {
+            $motivo = Validator::sanitizeString(Validator::get($_POST, 'motivo', ''));
+            $descripcion = Validator::sanitizeString(Validator::get($_POST, 'descripcion', ''));
+            $idUsuario = null;
+            if (isset($_SESSION['user_id'])) {
+                $idUsuario = $_SESSION['user_id'];
+            } elseif (isset($_SESSION['user']['ID_usuario'])) {
+                $idUsuario = $_SESSION['user']['ID_usuario'];
+            }
+            if ($idMesa === null || $idVenta === null || !$motivo || !$idUsuario) {
                 echo json_encode(['success' => false, 'error' => 'Datos insuficientes']);
                 exit;
             }
             $ventaModel = new VentaModel();
-            $mesaModel = new MesaModel();
+            $liberacionModel = new LiberacionMesaModel();
             $detalles = $ventaModel->getSaleDetails($idVenta);
             $conn = (new Database())->connect();
             try {
                 $conn->beginTransaction();
+                // Registrar liberación
+                $liberacionModel->registrarLiberacion($idMesa, $idUsuario, $motivo, $descripcion);
                 if (empty($detalles)) {
                     // Eliminar la venta si no tiene detalles
                     $ventaModel->deleteSale($idVenta);
                 }
-                // Liberar la mesa
-                $mesaModel->updateTableStatus($idMesa, 0); // 0 = libre
+                // Liberar la mesa usando la MISMA conexión
+                $stmt = $conn->prepare('CALL sp_UpdateTableStatus(?, ?)');
+                $stmt->execute([$idMesa, 0]);
                 $conn->commit();
                 echo json_encode(['success' => true]);
             } catch (Exception $e) {

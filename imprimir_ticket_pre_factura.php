@@ -8,7 +8,7 @@ require_once __DIR__ . '/config/base_url.php';
 
 
 // Incluir clases necesarias de escpos-php
-require_once __DIR__ . '\config\autoloader.php';
+require_once __DIR__ . '/config/autoloader.php';
 
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
@@ -32,20 +32,20 @@ if (php_sapi_name() === 'cli') {
     $idMesa = isset($_GET['id_mesa']) ? (int)$_GET['id_mesa'] : 0;
 }
 if (!$idMesa) {
-    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=');
+    header('Location: ' . BASE_URL . 'mesa?id_mesa=');
     exit;
 }
 
 $ventaModel = new VentaModel();
 $comanda = $ventaModel->getVentaActivaByMesa($idMesa);
 if (!$comanda) {
-    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=' . $idMesa);
+    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
     exit;
 }
 $idVenta = $comanda['ID_Venta'];
 $venta = $ventaModel->getVentaById($idVenta);
 if (!$venta) {
-    header('Location: ' . BASE_URL . 'mesas/mesa?id_mesa=' . $idMesa);
+    header('Location: ' . BASE_URL . 'mesa?id_mesa=' . $idMesa);
     exit;
 }
 $mesaModel = new MesaModel();

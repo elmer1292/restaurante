@@ -1,4 +1,16 @@
-<?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
+<?php 
+require_once dirname(__DIR__, 2) . '/config/base_url.php'; 
+require_once dirname(__DIR__, 2) . '/config/Session.php';
+Session::init();
+if ($msg = Session::get('flash_success')) {
+    echo '<div class="alert alert-success">' . htmlspecialchars($msg) . '</div>';
+    Session::set('flash_success', null);
+}
+if ($msg = Session::get('flash_error')) {
+    echo '<div class="alert alert-danger">' . htmlspecialchars($msg) . '</div>';
+    Session::set('flash_error', null);
+}
+?>
 <div class="container py-4">
     <h2 class="mb-4">Reporte de Productos Vendidos por Fecha</h2>
     <form class="row g-3 mb-4" method="get" action="<?= BASE_URL ?>reportes/productos_vendidos">

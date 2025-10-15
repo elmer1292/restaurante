@@ -97,17 +97,13 @@ class ReporteController extends BaseController {
         } else {
             $error = 'No se ha configurado la impresora de tickets.';
         }
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impresión ticket</title>';
-        echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">';
-        echo '</head><body class="p-4">';
+        require_once __DIR__ . '/../config/Session.php';
         if ($ok) {
-            echo '<div class="alert alert-success">Ticket impreso correctamente.</div>';
+            Session::set('flash_success', 'Ticket impreso correctamente.');
         } else {
-            echo '<div class="alert alert-danger">Error al imprimir: ' . htmlspecialchars($error) . '</div>';
-            echo '<pre>' . htmlspecialchars($ticket) . '</pre>';
+            Session::set('flash_error', 'Error al imprimir: ' . $error);
         }
-        echo '<a href="javascript:window.close()" class="btn btn-secondary mt-3">Cerrar</a>';
-        echo '</body></html>';
+        header('Location: ' . BASE_URL . 'reportes/productos_vendidos?fecha=' . urlencode($fecha));
         exit;
     }
 }

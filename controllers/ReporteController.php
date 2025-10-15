@@ -56,4 +56,56 @@ class ReporteController extends BaseController {
 
         $this->render('views/reportes/cierre_caja.php', compact('ventas', 'fecha', 'movimientos'));
     }
+
+        public function imprimir_ticket_productos_vendidos() {
+        require_once __DIR__ . '/../helpers/TicketHelper.php';
+        require_once __DIR__ . '/../config/Session.php';
+        Session::init();
+        $fecha = $_POST['fecha'] ?? date('Y-m-d');
+        $model = new ReporteModel();
+        $ventas = $model->getProductosVendidosPorFecha($fecha);
+        // Agrupar y preparar datos para el ticket
+        $productos = [];
+        $granTotal = 0;
+        foreach ($ventas as $v) {
+            $productos[] = [
+                'nombre' => $v['Nombre_Producto'],
+                'categoria' => $v['Nombre_Categoria'],
+                'cantidad' => $v['Cantidad'],
+                'total' => $v['TotalVendido'],
+            ];
+            $granTotal += $v['TotalVendido'];
+        }
+        $restaurante = 'RESTAURANTE';
+        $moneda = 'C$';
+        $empleado = Session::get('nombre_completo') ?: (Session::get('username') ?: 'Usuario');
+        $ticket = TicketHelper::generarTicketProductosVendidos($restaurante, date('d/m/Y', strtotime($fecha)), $productos, $granTotal, $moneda, $empleado);
+        // Imprimir usando escpos-php o mostrar para copiar
+        require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
+        $impresora = ImpresoraHelper::getNombreImpresora();
+        $ok = false;
+        $error = '';
+        if ($impresora) {
+            try {
+                ImpresoraHelper::imprimirTexto($impresora, $ticket);
+                $ok = true;
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
+        } else {
+            $error = 'No se ha configurado la impresora.';
+        }
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impresión ticket</title>';
+        echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">';
+        echo '</head><body class="p-4">';
+        if ($ok) {
+            echo '<div class="alert alert-success">Ticket impreso correctamente.</div>';
+        } else {
+            echo '<div class="alert alert-danger">Error al imprimir: ' . htmlspecialchars($error) . '</div>';
+            echo '<pre>' . htmlspecialchars($ticket) . '</pre>';
+        }
+        echo '<a href="javascript:window.close()" class="btn btn-secondary mt-3">Cerrar</a>';
+        echo '</body></html>';
+        exit;
+    }
 }

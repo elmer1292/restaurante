@@ -93,4 +93,64 @@ class TicketHelper {
         $out .= str_repeat('-', $maxWidth) . "\n";
         return $out;
     }
+
+        /**
+     * Genera el texto de un ticket para reporte de productos vendidos por fecha.
+     * @param string $restaurante Nombre del restaurante
+     * @param string $fecha Fecha del reporte (formato d/m/Y)
+     * @param array $productos Array de productos: [ ['nombre'=>..., 'cantidad'=>..., 'total'=>...] ]
+     * @param float $granTotal Suma total de todos los productos
+     * @param string $moneda Símbolo de moneda
+     * @param string $empleado Nombre del usuario/empleado que imprime
+     * @return string Texto listo para impresión térmica
+     */
+    public static function generarTicketProductosVendidos($restaurante, $fecha, $productos, $granTotal, $moneda, $empleado) {
+        $maxWidth = 35;
+        $out  = str_pad($restaurante, $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        $out .= str_pad('*** REPORTE DE PRODUCTOS ***', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        $out .= "Fecha: $fecha\n";
+        $out .= str_repeat('=', $maxWidth) . "\n";
+
+        // Agrupar productos por categoría
+        $porCategoria = [];
+        foreach ($productos as $item) {
+            $cat = isset($item['categoria']) ? $item['categoria'] : 'SIN CATEGORIA';
+            if (!isset($porCategoria[$cat])) {
+                $porCategoria[$cat] = [];
+            }
+            $porCategoria[$cat][] = $item;
+        }
+
+        foreach ($porCategoria as $categoria => $items) {
+            $out .= str_pad(strtoupper($categoria), $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+            $out .= str_pad('Cant', 4) . str_pad('Producto', 22) . str_pad('Total', 8, ' ', STR_PAD_LEFT) . "\n";
+            $out .= str_repeat('-', $maxWidth) . "\n";
+            $subtotal = 0;
+            foreach ($items as $item) {
+                $cant = str_pad($item['cantidad'], 4);
+                $nombre = mb_strimwidth(strtoupper($item['nombre']), 0, 22, '');
+                $nombre = str_pad($nombre, 22);
+                $total = str_pad($moneda . number_format($item['total'], 2), 8, ' ', STR_PAD_LEFT);
+                $out .= "$cant$nombre$total\n";
+                $subtotal += $item['total'];
+            }
+            $out .= str_repeat('-', $maxWidth) . "\n";
+            $out .= str_pad('Subtotal:', 26) . str_pad($moneda . number_format($subtotal, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+            $out .= str_repeat('=', $maxWidth) . "\n";
+        }
+
+        $out .= str_pad('GRAN TOTAL:', 26) . str_pad($moneda . number_format($granTotal, 2), 8, ' ', STR_PAD_LEFT) . "\n";
+        $out .= str_repeat('=', $maxWidth) . "\n";
+        $emp = "$empleado";
+        if (mb_strlen($emp) > $maxWidth - 15) {
+            $out .= "Generado por:\n";
+            $out .= wordwrap($emp, $maxWidth, "\n", true) . "\n";
+        } else {
+            $out .= "Generado por: $emp\n";
+        }
+        $out .= "Fecha/Hora: " . date('d/m/Y H:i') . "\n";
+        $out .= "\n";
+        $out .= str_pad('FIN DEL REPORTE', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
+        return $out;
+    }
 }

@@ -35,6 +35,12 @@
             </tbody>
         </table>
     </div>
+    <form method="post" action="<?= BASE_URL ?>reportes/imprimir_ticket_productos_vendidos" target="_blank" class="mt-3">
+        <input type="hidden" name="fecha" value="<?= htmlspecialchars($fecha) ?>">
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-printer"></i> Imprimir ticket
+        </button>
+    </form>
     <?php else: ?>
         <div class="alert alert-info">No hay ventas registradas para esta fecha.</div>
     <?php endif; ?>

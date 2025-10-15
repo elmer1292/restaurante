@@ -64,7 +64,16 @@ $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos;
 // Datos para el ticket
 $configModel = new ConfigModel();
 $restaurante = $configModel->get('nombre_app') ?: 'Restaurante';
-$empleado = (isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido');
+$empleado = null;
+if (isset($_SESSION['nombre_completo']) && $_SESSION['nombre_completo']) {
+    $empleado = $_SESSION['nombre_completo'];
+} elseif (isset($_SESSION['username']) && $_SESSION['username']) {
+    $empleado = $_SESSION['username'];
+} elseif (isset($_SESSION['user']['Nombre_Completo']) && $_SESSION['user']['Nombre_Completo']) {
+    $empleado = $_SESSION['user']['Nombre_Completo'];
+} else {
+    $empleado = 'Desconocido';
+}
 $ticketId = date('Ymd') . rand(100,999);
 $moneda = $configModel->get('moneda') ?: 'C$';
 

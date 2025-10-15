@@ -1,3 +1,4 @@
+
 <?php
 require_once dirname(__DIR__, 2) . '/config/Session.php';
 require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
@@ -10,6 +11,8 @@ require_once dirname(__DIR__, 2) . '/config/base_url.php';
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app');
 ?>
+
+<?php if (Session::isLoggedIn()): ?>
 
 <nav class="h-100">
     <div class="position-sticky h-100">
@@ -122,9 +125,11 @@ $nombreApp = $configModel->get('nombre_app');
                     Cerrar Sesión
                 </a>
             </li>
+
         </ul>
     </div>
 </nav>
+<?php endif; ?>
 
 <?php require_once dirname(__DIR__, 2) . '/config/base_url.php'; ?>
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/styles.css">

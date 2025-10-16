@@ -428,13 +428,17 @@ document.addEventListener('DOMContentLoaded', function() {
             productoSeleccionadoCategoria = categoria;
             productoSeleccionadoPrecio = precio;
             document.getElementById('inputCantidadProducto').value = 1;
-            // Mostrar campo preparación solo si es comida
-            const categoriasComida = ['Buffet', 'Carnes', 'Sopas', 'buffet', 'carnes', 'sopas'];
-            if (categoriasComida.includes((categoria || '').toLowerCase().replace(/^./, c => c.toUpperCase()))) {
-                document.getElementById('preparacionContainer').style.display = '';
-            } else {
-                document.getElementById('preparacionContainer').style.display = 'none';
-                document.getElementById('inputPreparacion').value = '';
+            // Mostrar campo preparación.
+            // Preferimos un atributo emitido por el servidor `data-is-food="1"` para clasificación dinámica.
+            const btn = this; // el botón que disparó el evento
+            const isFoodAttr = btn.getAttribute('data-is-food');
+            if (isFoodAttr !== null) {
+                if (isFoodAttr === '1' || isFoodAttr === 'true') {
+                    document.getElementById('preparacionContainer').style.display = '';
+                } else {
+                    document.getElementById('preparacionContainer').style.display = 'none';
+                    document.getElementById('inputPreparacion').value = '';
+                }
             }
             const modal = new bootstrap.Modal(document.getElementById('modalCantidadProducto'));
             modal.show();

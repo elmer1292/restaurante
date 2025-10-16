@@ -12,7 +12,7 @@ class ProductModel {
     public function getAllProducts() {
         try {
             error_log('Obteniendo todos los productos...');
-            $query = 'SELECT p.*, c.Nombre_Categoria 
+            $query = 'SELECT p.*, c.Nombre_Categoria, c.is_food 
                      FROM productos p 
                      LEFT JOIN categorias c ON p.ID_Categoria = c.ID_Categoria 
                      ORDER BY p.Nombre_Producto';

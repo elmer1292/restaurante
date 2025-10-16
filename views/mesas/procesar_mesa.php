@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config/Session.php';
 require_once '../../models/MesaModel.php';
 
 Session::init();
-Session::checkRole(['Administrador', 'Mesero']);
+Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
 $mesaModel = new MesaModel();
 $mensaje = '';
@@ -22,11 +22,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'toggle_estado') {
 }
 
 // Las siguientes operaciones solo están permitidas para Administradores
-if (Session::get('user_role') !== 'Administrador') {
+/*if (Session::get('user_role') !== 'Administrador') {
     $_SESSION['mensaje'] = 'No tiene permisos para realizar esta operación.';
     header('Location: ' . BASE_URL . 'mesas');
     exit();
-}
+}*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $numeroMesa = isset($_POST['numero_mesa']) ? (int)$_POST['numero_mesa'] : 0;

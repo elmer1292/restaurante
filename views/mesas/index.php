@@ -37,14 +37,12 @@ if (isset($_SESSION['mensaje'])) {
                     Estado: <?php echo $mesa['Estado'] ? 'Ocupada' : 'Libre'; ?>
                 </p>
                 <div class="btn-group">
-                    <?php if ($userRole === 'Administrador'): ?>
                     <button class="btn btn-sm btn-light edit-mesa" 
                             data-id="<?php echo $mesa['ID_Mesa']; ?>"
                             data-numero="<?php echo $mesa['Numero_Mesa']; ?>"
                             data-capacidad="<?php echo $mesa['Capacidad']; ?>">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <?php endif; ?>
                         <form method="get" action="<?php echo BASE_URL; ?>mesa" style="display:inline;">
                             <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                             <input type="hidden" name="id_mesa" value="<?php echo $mesa['ID_Mesa']; ?>">

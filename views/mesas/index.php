@@ -17,6 +17,9 @@ if (isset($_SESSION['mensaje'])) {
     </button>
 </div>
 
+<!-- CSRF token para llamadas JS -->
+<input type="hidden" id="csrf_token_mesas" value="<?= Csrf::getToken() ?>">
+
 <?php if ($mensaje): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     <?php echo htmlspecialchars($mensaje); ?>

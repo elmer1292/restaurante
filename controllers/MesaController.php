@@ -27,11 +27,12 @@ class MesaController extends BaseController {
             exit();
         }
 
-        // Las siguientes operaciones solo están permitidas para Administradores
-        if (Session::get('user_role') !== 'Administrador') {
-            $_SESSION['mensaje'] = 'No tiene permisos para realizar esta operación.';
+        // Permitir que cualquier usuario autenticado pueda crear/editar/alternar mesas.
+        // Solo requerimos que esté logueado.
+        if (!Session::isLoggedIn()) {
+            $_SESSION['mensaje'] = 'Debe iniciar sesión para realizar esta operación.';
             require_once dirname(__DIR__, 1) . '/config/base_url.php';
-            header('Location: ' . BASE_URL . 'mesas');
+            header('Location: ' . BASE_URL . 'login');
             exit();
         }
 

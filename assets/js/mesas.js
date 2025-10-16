@@ -15,11 +15,12 @@ $(document).ready(function() {
         const idMesa = $(this).data('id');
         const estadoActual = $(this).data('estado');
         const nuevoEstado = estadoActual ? 0 : 1;
-
-    $.post(BASE_URL + 'views/mesas/procesar_mesa.php', {
+        const csrf = document.getElementById('csrf_token_mesas') ? document.getElementById('csrf_token_mesas').value : '';
+        $.post(BASE_URL + 'mesas/procesar_mesa', {
             action: 'toggle_estado',
             id_mesa: idMesa,
-            estado: nuevoEstado
+            estado: nuevoEstado,
+            csrf_token: csrf
         }, function(response) {
             location.reload();
         });

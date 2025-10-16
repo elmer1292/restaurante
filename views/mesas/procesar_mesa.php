@@ -2,8 +2,6 @@
 require_once __DIR__ . '/../../config/Session.php';
 require_once '../../models/MesaModel.php';
 
-Session::init();
-Session::checkRole(['Administrador', 'Mesero', 'Cajero']);
 
 $mesaModel = new MesaModel();
 $mensaje = '';

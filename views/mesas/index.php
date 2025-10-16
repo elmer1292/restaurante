@@ -12,11 +12,9 @@ if (isset($_SESSION['mensaje'])) {
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">Gestión de Mesas</h1>
-    <?php if ($userRole === 'Administrador' || $userRole === 'Cajero'): ?>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mesaModal">
         <i class="bi bi-plus-circle"></i> Nueva Mesa
     </button>
-    <?php endif; ?>
 </div>
 
 <?php if ($mensaje): ?>

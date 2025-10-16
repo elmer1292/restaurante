@@ -146,6 +146,15 @@ class EmpleadoController extends BaseController {
                     'telefono' => $telefono,
                     'fecha_contratacion' => $fecha_contratacion
                 ];
+                // Si el username ya existe, retornar error amigable
+                if ($userModel->checkUserExists($usuario)) {
+                    echo json_encode(['success' => false, 'error' => 'El nombre de usuario ya existe']);
+                    exit;
+                }
+                // Normalizar correo/telefono: pasar NULL a la BD si están vacíos para evitar violación de UNIQUE
+                $userData['correo'] = $userData['correo'] !== '' ? $userData['correo'] : null;
+                $userData['telefono'] = $userData['telefono'] !== '' ? $userData['telefono'] : null;
+
                 $result = $userModel->createUserWithEmployee($userData);
                 if ($result === true) {
                     echo json_encode(['success' => true]);

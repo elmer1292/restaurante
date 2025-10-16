@@ -26,9 +26,28 @@ async function abrirEmpleadoModal(id = null) {
                 form.querySelector('[name="nombre"]').value = data.Nombre_Completo;
                 form.querySelector('[name="usuario"]').value = data.Nombre_Usuario;
                 form.querySelector('[name="rol"]').value = data.ID_Rol;
-                form.querySelector('[name="estado"]').value = data.Estado;
+                // Estado puede venir como 'Estado' o 'estado'
+                form.querySelector('[name="estado"]').value = (data.Estado !== undefined) ? data.Estado : (data.estado !== undefined ? data.estado : 1);
                 form.querySelector('[name="password"]').value = '';
                 form.querySelector('[name="password"]').required = false;
+                // Campos opcionales: correo, telefono, fecha_contratacion
+                if (form.querySelector('[name="correo"]')) {
+                    form.querySelector('[name="correo"]').value = data.Correo ?? data.correo ?? '';
+                }
+                if (form.querySelector('[name="telefono"]')) {
+                    form.querySelector('[name="telefono"]').value = data.Telefono ?? data.telefono ?? '';
+                }
+                if (form.querySelector('[name="fecha_contratacion"]')) {
+                    // Fecha puede venir con distintos formatos; intentar establecer un value compatible con input[type=date]
+                    const raw = data.Fecha_Contratacion ?? data.fecha_contratacion ?? '';
+                    if (raw) {
+                        // Intentar parsear YYYY-MM-DD o YYYY-MM-DD HH:MM:SS
+                        const parsed = raw.split(' ')[0];
+                        form.querySelector('[name="fecha_contratacion"]').value = parsed;
+                    } else {
+                        form.querySelector('[name="fecha_contratacion"]').value = '';
+                    }
+                }
                 modal.show();
             })
             .catch(err => {
@@ -40,9 +59,9 @@ async function abrirEmpleadoModal(id = null) {
     form.reset();
     form.querySelector('[name="action"]').value = 'create';
     form.querySelector('[name="id"]').value = '';
-    form.querySelector('[name="correo"]').value = '';
-    form.querySelector('[name="telefono"]').value = '';
-    form.querySelector('[name="fecha_contratacion"]').value = new Date().toISOString().slice(0, 10);
+    if (form.querySelector('[name="correo"]')) form.querySelector('[name="correo"]').value = '';
+    if (form.querySelector('[name="telefono"]')) form.querySelector('[name="telefono"]').value = '';
+    if (form.querySelector('[name="fecha_contratacion"]')) form.querySelector('[name="fecha_contratacion"]').value = new Date().toISOString().slice(0, 10);
     form.querySelector('[name="password"]').required = true;
     modal.show();
     }

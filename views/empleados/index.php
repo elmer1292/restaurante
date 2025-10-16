@@ -107,6 +107,18 @@
                             <option value="3">Cajero</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="correo" name="correo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono" name="telefono">
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_contratacion" class="form-label">Fecha de contratación</label>
+                        <input type="date" class="form-control" id="fecha_contratacion" name="fecha_contratacion">
+                    </div>
                     
                     <div class="mb-3">
                         <label for="estado" class="form-label">Estado</label>

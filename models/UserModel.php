@@ -55,7 +55,7 @@ class UserModel {
             return true;
         } catch (PDOException $e) {
             error_log('Error en createUserWithEmployee: ' . $e->getMessage());
-            return false;
+            return $e->getMessage();
         }
     }
 

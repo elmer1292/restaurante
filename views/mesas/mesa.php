@@ -124,8 +124,25 @@ if (isset($mensaje)) {
                                     </div>
                                 </li>
                             <?php } ?>
-                            <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-light">
-                                <span>Total</span><span class="text-primary">$<?php echo number_format($total, 2); ?></span>
+                            <?php
+                            // Calcular servicio y total general usando la configuración
+                            require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
+                            $configModel = new ConfigModel();
+                            $servicioPct = (float) ($configModel->get('servicio') ?? 0);
+                            $moneda = $configModel->get('moneda') ?: 'C$';
+                            $servicioMonto = $total * $servicioPct;
+                            $totalConServicio = $total + $servicioMonto;
+                            ?>
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                <span>Subtotal</span><span class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($total, 2); ?></span>
+                            </li>
+                            <?php if ($servicioPct > 0): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span class="text-success"><?php echo htmlspecialchars($moneda) . number_format($servicioMonto, 2); ?></span>
+                                </li>
+                            <?php endif; ?>
+                            <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-white">
+                                <span>TOTAL</span><span class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($totalConServicio, 2); ?></span>
                             </li>
                         </ul>
                         <a href="<?php echo BASE_URL; ?>mesas/dividir_cuenta?id_mesa=<?php echo $mesa['ID_Mesa']; ?>" class="btn btn-outline-primary mb-3">

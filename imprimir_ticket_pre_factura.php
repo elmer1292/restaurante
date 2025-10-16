@@ -70,6 +70,9 @@ $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
 $impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_barra'); // Cambia la clave si usas otra
+// Calcular el monto de servicio para la pre-factura usando el porcentaje en la configuración
+$servicioPct = (float) ($configModel->get('servicio') ?? 0);
+$servicioMonto = $total * $servicioPct;
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(
@@ -83,7 +86,7 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $moneda,
     '',
     '',
-    $venta['Servicio'] ?? 0,
+    $servicioMonto,
     true // Indica que es pre-factura
 );
 

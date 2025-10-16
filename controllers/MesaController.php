@@ -11,7 +11,7 @@ class MesaController extends BaseController {
         require_once dirname(__DIR__, 1) . '/models/MesaModel.php';
         require_once dirname(__DIR__, 1) . '/config/Session.php';
         Session::init();
-        Session::checkRole(['Administrador', 'Mesero']);
+        Session::checkRole(['Administrador', 'Mesero','Cajero']);
         $mesaModel = new MesaModel();
         $mensaje = '';
 

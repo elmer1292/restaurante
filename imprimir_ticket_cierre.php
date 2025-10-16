@@ -64,15 +64,23 @@ $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos;
 // Datos para el ticket
 $configModel = new ConfigModel();
 $restaurante = $configModel->get('nombre_app') ?: 'Restaurante';
-$empleado = null;
-if (isset($_SESSION['nombre_completo']) && $_SESSION['nombre_completo']) {
-    $empleado = $_SESSION['nombre_completo'];
-} elseif (isset($_SESSION['username']) && $_SESSION['username']) {
-    $empleado = $_SESSION['username'];
-} elseif (isset($_SESSION['user']['Nombre_Completo']) && $_SESSION['user']['Nombre_Completo']) {
-    $empleado = $_SESSION['user']['Nombre_Completo'];
+// Obtener nombre del empleado desde la sesión (prefiere nombre completo)
+$empleado = 'Desconocido';
+// Intentar usar la clase Session si está disponible
+if (file_exists(__DIR__ . '/config/Session.php')) {
+    require_once __DIR__ . '/config/Session.php';
+    Session::init();
+    $empleado = Session::get('nombre_completo') ?: Session::get('username') ?: 'Desconocido';
 } else {
-    $empleado = 'Desconocido';
+    // Fallback directo a variables de sesión globales
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (!empty($_SESSION['nombre_completo'])) {
+        $empleado = $_SESSION['nombre_completo'];
+    } elseif (!empty($_SESSION['username'])) {
+        $empleado = $_SESSION['username'];
+    } elseif (!empty($_SESSION['user']['Nombre_Completo'])) {
+        $empleado = $_SESSION['user']['Nombre_Completo'];
+    }
 }
 $ticketId = date('Ymd') . rand(100,999);
 $moneda = $configModel->get('moneda') ?: 'C$';

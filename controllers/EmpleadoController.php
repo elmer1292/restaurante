@@ -168,7 +168,9 @@ class EmpleadoController extends BaseController {
                     echo json_encode(['success' => false, 'error' => 'Datos inválidos']);
                     exit;
                 }
-                $result = $userModel->updateUser($id, $usuario, $password, $rol);
+                // updateUser expects signature: updateUser($userId, $username, $roleId, $password = null)
+                // Pass role as the 3rd argument and password as 4th
+                $result = $userModel->updateUser($id, $usuario, $rol, $password);
                 if ($result === true) {
                     $conn = (new Database())->connect();
                     // Actualizar solo Nombre_Completo en empleados

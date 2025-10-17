@@ -9,11 +9,9 @@ class MesaModel {
         $this->conn = $database->connect();
     }
 
-    public function getAllTables($offset = 0, $limit = 10) {
+    public function getAllTables() {
         try {
-            $stmt = $this->conn->prepare('SELECT * FROM mesas ORDER BY Numero_Mesa LIMIT :limit OFFSET :offset');
-            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt = $this->conn->prepare('SELECT * FROM mesas ORDER BY Numero_Mesa');
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {

@@ -56,6 +56,9 @@ $router->add('reportes/cierre_caja', 'ReporteController', 'cierre_caja');
 $router->add('reportes/inventario', 'ReporteController', 'inventario');
 $router->add('reportes/imprimir_ticket_productos_vendidos', 'ReporteController', 'imprimir_ticket_productos_vendidos');
 
+// Ventas del día
+$router->add('ventas/dia', 'VentaController', 'ventas_dia');
+
 // Ejemplo:
 // $router->add('productos/crear', 'ProductoController', 'create');
 // $router->add('productos/editar', 'ProductoController', 'edit');

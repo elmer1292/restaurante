@@ -38,7 +38,10 @@ try {
 }
 ?>
 
-<h1 class="mb-4">Ventas Pendientes</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Ventas Pendientes</h1>
+    <a href="<?= BASE_URL ?>ventas/dia" class="btn btn-sm btn-outline-secondary">Ver ventas del día</a>
+</div>
 <?php if (empty($ventasPendientes)): ?>
     <!-- Si no hay ventas pendientes, mostrar mensaje informativo -->
     <div class="alert alert-info">No hay ventas pendientes.</div>

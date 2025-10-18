@@ -118,4 +118,21 @@ class VentaController extends BaseController {
         // Si usas un sistema de vistas, deberías hacer algo como:
         $this->render('views/ventas/ticket.php');
     }
+
+    public function ventas_dia() {
+        // Mostrar ventas filtradas por fecha (por defecto: hoy)
+        require_once __DIR__ . '/../models/VentaModel.php';
+        require_once __DIR__ . '/../models/ConfigModel.php';
+        $fecha = isset($_GET['fecha']) ? trim($_GET['fecha']) : date('Y-m-d');
+        $ventaModel = new VentaModel();
+        $conn = (new Database())->connect();
+        try {
+            $stmt = $conn->prepare('SELECT v.*, m.Numero_Mesa FROM ventas v LEFT JOIN mesas m ON v.ID_Mesa = m.ID_Mesa WHERE DATE(v.Fecha_Hora) = ? ORDER BY v.Fecha_Hora DESC');
+            $stmt->execute([$fecha]);
+            $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $ventas = [];
+        }
+        $this->render('views/ventas/ventas_dia.php', compact('ventas', 'fecha'));
+    }
 }

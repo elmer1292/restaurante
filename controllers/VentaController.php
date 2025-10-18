@@ -26,9 +26,23 @@ class VentaController extends BaseController {
         }
         $idVenta = isset($_POST['id_venta']) ? (int)$_POST['id_venta'] : 0;
         $metodoPago = isset($_POST['metodo_pago']) ? substr(trim($_POST['metodo_pago']), 0, 200) : '';
-        $monto = isset($_POST['monto']) ? (float)$_POST['monto'] : 0;
-        $servicio = isset($_POST['servicio']) ? (float)$_POST['servicio'] : 0;
-        if (!$idVenta || !$metodoPago || $monto <= 0) {
+    $monto = isset($_POST['monto']) ? (float)$_POST['monto'] : 0;
+    $incluirServicioFlag = isset($_POST['incluir_servicio']) ? ($_POST['incluir_servicio'] === '1' || $_POST['incluir_servicio'] === 'true' ? true : false) : true;
+        // Parse metodo_pago server-side to compute totalPagado (handles multiple methods)
+        $metodosArr = array_filter(array_map('trim', explode(',', $metodoPago)));
+        $totalPagado = 0.0;
+        $hasEfectivo = false;
+        foreach ($metodosArr as $m) {
+            $parts = explode(':', $m);
+            if (isset($parts[1])) {
+                $amt = floatval(trim($parts[1]));
+                $totalPagado += $amt;
+            }
+            if (stripos($m, 'efectivo') !== false) {
+                $hasEfectivo = true;
+            }
+        }
+        if (!$idVenta || !$metodoPago || $totalPagado <= 0) {
             echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
             exit;
         }
@@ -36,25 +50,30 @@ class VentaController extends BaseController {
         $movimientoModel = new MovimientoModel();
         $conn = (new Database())->connect();
         try {
-            $stmt = $conn->prepare('SELECT Total FROM ventas WHERE ID_Venta = ?');
+            // Asegurar que el campo Total en la tabla ventas esté actualizado con la suma de detalle_venta
+            $ventaModel->actualizarTotal($idVenta);
+            $stmt = $conn->prepare('SELECT Total, Servicio FROM ventas WHERE ID_Venta = ?');
             $stmt->execute([$idVenta]);
             $venta = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$venta) throw new Exception('Venta no encontrada');
             $total = (float)$venta['Total'];
-            $totalFactura = $total + $servicio;
-            $metodoPagoLower = strtolower($metodoPago);
-            // Permitir exceso solo si el método es efectivo
-            if ($monto > $totalFactura) {
-                if (strpos($metodoPagoLower, 'efectivo') !== false) {
-                    $cambio = $monto - $totalFactura;
+            // Use Servicio persisted in DB (do not trust client-side value)
+            $servicio = isset($venta['Servicio']) ? (float)$venta['Servicio'] : 0.0;
+            // determinar si en esta operacion se cobrará el servicio (checkbox del cajero)
+            $servicioCobradoEnEstaOperacion = $incluirServicioFlag ? $servicio : 0.0;
+            $totalFactura = $total + $servicioCobradoEnEstaOperacion;
+            // Validar con el total pagado extraido de metodo_pago
+            if ($totalPagado > $totalFactura) {
+                if ($hasEfectivo) {
+                    $cambio = $totalPagado - $totalFactura;
                 } else {
                     throw new Exception('El monto pagado excede el total de la venta');
                 }
             }
-            if ($monto < $totalFactura) throw new Exception('El monto pagado es menor al total de la venta');
-            // Registrar el pago y marcar como pagada, guardar el monto de servicio
-            $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada", Servicio = ? WHERE ID_Venta = ?');
-            $stmtUp->execute([$metodoPago, $servicio, $idVenta]);
+            if ($totalPagado < $totalFactura) throw new Exception('El monto pagado es menor al total de la venta');
+            // Registrar el pago y marcar como pagada (no sobrescribimos Servicio desde el cliente)
+            $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada" WHERE ID_Venta = ?');
+            $stmtUp->execute([$metodoPago, $idVenta]);
             // Liberar la mesa
             $stmtMesa = $conn->prepare("UPDATE mesas SET Estado = 0 WHERE ID_Mesa = (SELECT ID_Mesa FROM ventas WHERE ID_Venta = ?)");
             $stmtMesa->execute([$idVenta]);
@@ -67,7 +86,9 @@ class VentaController extends BaseController {
                 $idUsuario = $_SESSION['user']['ID_usuario'];
             }
             $descripcion = 'Pago de venta ID ' . $idVenta . ' (' . $metodoPago . ')';
-            $movimientoModel->registrarMovimiento('Ingreso', $total, $descripcion, $idUsuario, $idVenta);
+            // Registrar el ingreso correspondiente al total final (incluye servicio). Si hay sobrepago, el cambio se maneja aparte.
+            // Registrar ingreso por el monto efectivamente cobrado en esta operación (respeta incluir_servicio)
+            $movimientoModel->registrarMovimiento('Ingreso', $totalFactura, $descripcion, $idUsuario, $idVenta);
 
             // Llamar a imprimir_ticket.php en segundo plano
             // Forzar la ruta de php.exe para evitar problemas con PHP_BINARY bajo Apache

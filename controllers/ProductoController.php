@@ -45,4 +45,21 @@ class ProductoController extends BaseController {
             exit;
         }
     }
+
+    public function buscar()
+    {
+        header('Content-Type: application/json');
+        $q = isset($_GET['q']) ? trim($_GET['q']) : '';
+        $productModel = new ProductModel();
+        $productos = $productModel->getAllProducts();
+        if ($q !== '') {
+            $qLower = mb_strtolower($q);
+            $productos = array_filter($productos, function($p) use ($qLower) {
+                return mb_stripos($p['Nombre_Producto'], $qLower) !== false;
+            });
+        }
+        // Return limited results
+        $productos = array_slice(array_values($productos), 0, 50);
+        echo json_encode(array_values($productos));
+    }
 }

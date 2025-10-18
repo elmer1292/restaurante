@@ -5,6 +5,14 @@ if (isset($mensaje)) {
     return;
 }
 ?>
+<?php
+// Asegurar que $moneda esté disponible para los scripts que la necesitan
+if (!isset($moneda)) {
+    require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
+    $configModel = new ConfigModel();
+    $moneda = $configModel->get('moneda') ?: 'C$';
+}
+?>
 <div class="row g-4">
     <!-- Modal Liberar Mesa SIEMPRE en el DOM -->
 <div class="modal fade" id="modalLiberarMesa" tabindex="-1" aria-labelledby="modalLiberarMesaLabel" aria-hidden="true">
@@ -102,11 +110,11 @@ if (isset($mensaje)) {
                                                 <?php endif; ?>
 </div>
                     <?php } else { ?>
-                        <ul class="list-group mb-3">
+                        <ul id="lista-detalles-mesa" class="list-group mb-3">
                             <?php $total = 0;
                             foreach ($detalles as $detalle) {
                                 $total += $detalle['Subtotal']; ?>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <li id="detalle-<?php echo $detalle['ID_Detalle']; ?>" class="list-group-item d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
                                         <span class="fw-bold me-2"><?php echo htmlspecialchars($detalle['Nombre_Producto']); ?></span>
                                         <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
@@ -134,15 +142,15 @@ if (isset($mensaje)) {
                             $totalConServicio = $total + $servicioMonto;
                             ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                <span>Subtotal</span><span class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($total, 2); ?></span>
+                                <span>Subtotal</span><span id="subtotal-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($total, 2); ?></span>
                             </li>
                             <?php if ($servicioPct > 0): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span class="text-success"><?php echo htmlspecialchars($moneda) . number_format($servicioMonto, 2); ?></span>
+                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span id="servicio-venta" class="text-success"><?php echo htmlspecialchars($moneda) . number_format($servicioMonto, 2); ?></span>
                                 </li>
                             <?php endif; ?>
                             <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-white">
-                                <span>TOTAL</span><span class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($totalConServicio, 2); ?></span>
+                                <span>TOTAL</span><span id="total-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($totalConServicio, 2); ?></span>
                             </li>
                         </ul>
                         <a href="<?php echo BASE_URL; ?>mesas/dividir_cuenta?id_mesa=<?php echo $mesa['ID_Mesa']; ?>" class="btn btn-outline-primary mb-3">
@@ -333,7 +341,7 @@ function eliminarProductoComanda(idDetalle, cantidad) {
     let csrfToken = '<?php echo htmlspecialchars($csrf_token); ?>';
     let body = 'id_detalle=' + idDetalle + '&csrf_token=' + encodeURIComponent(csrfToken);
     if (cantidad > 1) {
-        showEliminarProductoModal(idDetalle, cantidad).then(cantPrompt => {
+    showEliminarProductoModal(idDetalle, cantidad).then(cantPrompt => {
             if (cantPrompt === null) return;
             if (cantPrompt !== '' && !isNaN(cantPrompt)) {
                 body += '&cantidad=' + encodeURIComponent(cantPrompt);
@@ -349,7 +357,8 @@ function eliminarProductoComanda(idDetalle, cantidad) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    // Refrescar la página para asegurar que todo el estado (botones, mensajes, etc.) quede consistente
+                    setTimeout(() => { location.reload(); }, 300);
                 } else {
                     alert('Error al eliminar producto');
                 }
@@ -368,7 +377,7 @@ function eliminarProductoComanda(idDetalle, cantidad) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                setTimeout(() => { location.reload(); }, 300);
             } else {
                 alert('Error al eliminar producto');
             }
@@ -377,6 +386,50 @@ function eliminarProductoComanda(idDetalle, cantidad) {
             alert('Error de comunicación con el servidor.');
         });
     }
+}
+
+/**
+ * Renderiza la lista de detalles y los totales a partir de la estructura venta retornada por el servidor.
+ * Espera venta.detalles = [{ ID_Detalle, Nombre_Producto, Cantidad, Subtotal, preparacion, Precio_Venta }, ...]
+ */
+function renderDetallesFromVenta(venta) {
+    const lista = document.getElementById('lista-detalles-mesa');
+    const moneda = <?php echo json_encode($moneda); ?>;
+    if (!venta) return;
+    // Limpiar lista
+    if (lista) lista.innerHTML = '';
+    const detalles = venta.detalles || [];
+    let subtotalCalc = 0;
+    detalles.forEach(det => {
+        subtotalCalc += Number(det.Subtotal || 0);
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.id = 'detalle-' + det.ID_Detalle;
+        let inner = '<div class="d-flex align-items-center"><span class="fw-bold me-2">' + (det.Nombre_Producto || '') + '</span>';
+        inner += '<span class="badge bg-secondary me-2">x' + (det.Cantidad || 0) + '</span>';
+        inner += '<span class="text-success fw-bold">' + moneda + Number(det.Subtotal || 0).toFixed(2) + '</span></div>';
+    if (det.preparacion) inner += '<div class="text-muted small ms-3">Preparación: ' + det.preparacion + '</div>';
+        inner += '<div class="d-flex gap-2">';
+        const cant = Number(det.Cantidad || 0);
+        if (cant > 1) {
+            inner += '<button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(' + det.ID_Detalle + ', ' + cant + ')">Eliminar</button>';
+        } else {
+            inner += '<button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(' + det.ID_Detalle + ', 1)">Eliminar</button>';
+        }
+        inner += '</div>';
+        li.innerHTML = inner;
+        if (lista) lista.appendChild(li);
+    });
+    // Actualizar totales visibles usando valores oficiales si vienen en venta, si no usar el calculo local
+    const subtotalEl = document.getElementById('subtotal-venta');
+    const servicioEl = document.getElementById('servicio-venta');
+    const totalEl = document.getElementById('total-venta');
+    const subtotalVal = Number(venta.Total || subtotalCalc || 0).toFixed(2);
+    const servicioVal = Number(venta.Servicio || 0).toFixed(2);
+    const totalVal = (Number(subtotalVal) + Number(servicioVal)).toFixed(2);
+    if (subtotalEl) subtotalEl.textContent = moneda + subtotalVal;
+    if (servicioEl) servicioEl.textContent = moneda + servicioVal;
+    if (totalEl) totalEl.textContent = moneda + totalVal;
 }
 
 // Modal Liberar Mesa - submit
@@ -433,8 +486,12 @@ renderListaProductosAgregados();
 let productoSeleccionado = null;
 let productoSeleccionadoCategoria = null;
 let productoSeleccionadoPrecio = null;
-document.addEventListener('DOMContentLoaded', function() {
+function initProductButtons() {
+    // Attach handlers to buttons
     document.querySelectorAll('.btn-agregar-producto').forEach(btn => {
+        // Avoid attaching multiple times
+        if (btn.__hasProductHandler) return;
+        btn.__hasProductHandler = true;
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             const nombre = this.getAttribute('data-nombre');
@@ -445,10 +502,8 @@ document.addEventListener('DOMContentLoaded', function() {
             productoSeleccionadoCategoria = categoria;
             productoSeleccionadoPrecio = precio;
             document.getElementById('inputCantidadProducto').value = 1;
-            // Mostrar campo preparación.
-            // Preferimos un atributo emitido por el servidor `data-is-food="1"` para clasificación dinámica.
-            const btn = this; // el botón que disparó el evento
-            const isFoodAttr = btn.getAttribute('data-is-food');
+            // Mostrar campo preparación si corresponde
+            const isFoodAttr = this.getAttribute('data-is-food');
             if (isFoodAttr !== null) {
                 if (isFoodAttr === '1' || isFoodAttr === 'true') {
                     document.getElementById('preparacionContainer').style.display = '';
@@ -461,41 +516,52 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.show();
         });
     });
-    // Modal cantidad submit
-    document.getElementById('formCantidadProducto').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
-        const preparacion = document.getElementById('inputPreparacion').value.trim();
-        if (productoSeleccionado && cantidad > 0) {
-            // Si ya existe con la misma preparación, suma la cantidad
-            let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id && (p.preparacion || '') === preparacion);
-            if (idx !== -1) {
-                productosAgregados[idx].cantidad += cantidad;
-            } else {
-                productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion });
+    // Modal cantidad submit (attach once)
+    const formCantidad = document.getElementById('formCantidadProducto');
+    if (formCantidad && !formCantidad.__hasSubmitHandler) {
+        formCantidad.__hasSubmitHandler = true;
+        formCantidad.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
+            const preparacion = document.getElementById('inputPreparacion').value.trim();
+            if (productoSeleccionado && cantidad > 0) {
+                // Si ya existe con la misma preparación, suma la cantidad
+                let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id && (p.preparacion || '') === preparacion);
+                if (idx !== -1) {
+                    productosAgregados[idx].cantidad += cantidad;
+                } else {
+                    productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion });
+                }
+                renderListaProductosAgregados();
+                // Limpiar campo preparación y cantidad
+                document.getElementById('inputPreparacion').value = '';
+                document.getElementById('inputCantidadProducto').value = 1;
+                // Quitar el foco del elemento activo antes de cerrar el modal
+                if (document.activeElement) document.activeElement.blur();
+                // Cerrar modal
+                const modalEl = document.getElementById('modalCantidadProducto');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                // Agregar listener para mover el foco después del cierre
+                const focusAfterClose = () => {
+                    setTimeout(() => {
+                        const btnEnviar = document.querySelector('.btn-success.w-100:not([disabled])');
+                        if (btnEnviar) btnEnviar.focus();
+                        modalEl.removeEventListener('hidden.bs.modal', focusAfterClose);
+                    }, 30);
+                };
+                modalEl.addEventListener('hidden.bs.modal', focusAfterClose);
+                modalInstance.hide();
             }
-            renderListaProductosAgregados();
-            // Limpiar campo preparación y cantidad
-            document.getElementById('inputPreparacion').value = '';
-            document.getElementById('inputCantidadProducto').value = 1;
-            // Quitar el foco del elemento activo antes de cerrar el modal
-            if (document.activeElement) document.activeElement.blur();
-            // Cerrar modal
-            const modalEl = document.getElementById('modalCantidadProducto');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            // Agregar listener para mover el foco después del cierre
-            const focusAfterClose = () => {
-                setTimeout(() => {
-                    const btnEnviar = document.querySelector('.btn-success.w-100:not([disabled])');
-                    if (btnEnviar) btnEnviar.focus();
-                    modalEl.removeEventListener('hidden.bs.modal', focusAfterClose);
-                }, 30); // Espera breve para asegurar que aria-hidden ya no esté
-            };
-            modalEl.addEventListener('hidden.bs.modal', focusAfterClose);
-            modalInstance.hide();
-        }
-    });
-});
+        });
+    }
+}
+
+// Run init immediately if DOM is ready, otherwise wait for DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProductButtons);
+} else {
+    initProductButtons();
+}
 
 // Eliminado: lógica y referencias al modal de dividir cuenta y parciales
 </script>

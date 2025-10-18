@@ -36,8 +36,18 @@ class VentaModel {
     }
     public function actualizarCantidadDetalle($idDetalle, $nuevaCantidad) {
         try {
-            $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = ? WHERE ID_Detalle = ?');
-            return $stmt->execute([$nuevaCantidad, $idDetalle]);
+            // Obtener el precio actual del detalle (Precio_Venta)
+            $stmt = $this->conn->prepare('SELECT Precio_Venta FROM detalle_venta WHERE ID_Detalle = ? LIMIT 1');
+            $stmt->execute([$idDetalle]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                error_log('actualizarCantidadDetalle: detalle no encontrado ID_Detalle=' . $idDetalle);
+                return false;
+            }
+            $precio = (float)$row['Precio_Venta'];
+            $subtotal = $precio * (float)$nuevaCantidad;
+            $stmt2 = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = ?, Subtotal = ? WHERE ID_Detalle = ?');
+            return $stmt2->execute([$nuevaCantidad, $subtotal, $idDetalle]);
         } catch (PDOException $e) {
             error_log('Error en actualizarCantidadDetalle: ' . $e->getMessage());
             return false;
@@ -232,6 +242,67 @@ class VentaModel {
             error_log('Error en actualizarTotal: ' . $e->getMessage());
             return false;
         }
+    }
+    
+    /**
+     * Crea una venta marcada como delivery.
+     * @param int|null $idCliente
+     * @param int|null $idEmpleado
+     * @param string $metodoPago
+     * @return int|false
+     */
+    public function createDeliverySale($idCliente = null, $idEmpleado = null, $metodoPago = 'Delivery') {
+        try {
+            // Reusar createSale (sp) pasando null para mesa
+            return $this->createSale($idCliente, null, $metodoPago, $idEmpleado);
+        } catch (Exception $e) {
+            error_log('Error en createDeliverySale: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Alias para agregar detalle a la venta (compatibilidad)
+     */
+    public function addDetalleVenta($idVenta, $idProducto, $cantidad, $precioVenta, $preparacion = null) {
+        return $this->addSaleDetail($idVenta, $idProducto, $cantidad, $precioVenta, $preparacion);
+    }
+
+    /**
+     * Obtener ventas pendientes de tipo delivery
+     */
+    public function getVentasDeliveryPendientes() {
+        try {
+            $stmt = $this->conn->prepare('SELECT v.*, c.Nombre_Cliente FROM ventas v LEFT JOIN clientes c ON v.ID_Cliente = c.ID_Cliente WHERE v.es_delivery = 1 AND v.Estado = "Pendiente" ORDER BY v.Fecha_Hora DESC');
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error en getVentasDeliveryPendientes: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Actualiza el estado de una venta (ej: Pendiente, Preparado, Entregado, Pagado)
+     */
+    public function updateEstado($idVenta, $estado) {
+        try {
+            $stmt = $this->conn->prepare('UPDATE ventas SET Estado = ? WHERE ID_Venta = ?');
+            return $stmt->execute([$estado, $idVenta]);
+        } catch (PDOException $e) {
+            error_log('Error en updateEstado: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Devuelve venta con sus detalles (compatibilidad con la vista)
+     */
+    public function getVentaConDetalles($idVenta) {
+        $venta = $this->getVentaById($idVenta);
+        if (!$venta) return false;
+        $venta['detalles'] = $this->getSaleDetails($idVenta);
+        return $venta;
     }
     
     public function getVentaActivaByMesa($idMesa) {

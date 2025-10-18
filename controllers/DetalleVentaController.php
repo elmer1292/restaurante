@@ -54,8 +54,20 @@ class DetalleVentaController extends BaseController {
                 }
                 // Actualizar el total de la venta
                 $ventaModel->actualizarTotal($idVenta);
+                // Actualizar monto de servicio en la venta según configuración
+                require_once __DIR__ . '/../models/ConfigModel.php';
+                $configModel = new ConfigModel();
+                $servicioPct = (float) ($configModel->get('servicio') ?? 0);
+                $venta = $ventaModel->getVentaById($idVenta);
+                $totalActual = isset($venta['Total']) ? (float)$venta['Total'] : 0.0;
+                $servicioMonto = $totalActual * $servicioPct;
+                $conn2 = (new Database())->connect();
+                $stmt2 = $conn2->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
+                $stmt2->execute([$servicioMonto, $idVenta]);
+                // Obtener venta actualizada con detalles y devolver totales para que el cliente pueda actualizar la UI sin recargar
+                $ventaActualizada = $ventaModel->getVentaConDetalles($idVenta);
                 header('Content-Type: application/json');
-                echo json_encode(['success' => $result]);
+                echo json_encode(['success' => (bool)$result, 'venta' => $ventaActualizada]);
                 exit;
                 }
             }

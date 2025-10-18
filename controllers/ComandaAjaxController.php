@@ -117,6 +117,16 @@ class ComandaAjaxController extends BaseController {
                     }
                 }
                 $ventaModel->actualizarTotal($idVenta);
+                // Actualizar monto de servicio en la venta según configuración
+                require_once __DIR__ . '/../models/ConfigModel.php';
+                $configModel = new ConfigModel();
+                $servicioPct = (float)($configModel->get('servicio') ?? 0);
+                // Obtener el total actualizado
+                $venta = $ventaModel->getVentaById($idVenta);
+                $totalActual = isset($venta['Total']) ? (float)$venta['Total'] : 0.0;
+                $servicioMonto = $totalActual * $servicioPct;
+                $stmt = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
+                $stmt->execute([$servicioMonto, $idVenta]);
                 $conn->commit();
                 echo json_encode(['success' => true]);
             } catch (Exception $e) {

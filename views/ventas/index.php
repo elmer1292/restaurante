@@ -50,7 +50,7 @@ try {
                 <h2 class="accordion-header" id="heading<?= $venta['ID_Venta'] ?>">
                     <!-- Encabezado con datos de la venta y botón para imprimir ticket -->
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $venta['ID_Venta'] ?>">
-                        Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?> | Venta #<?= $venta['ID_Venta'] ?> | Total: C$<?= number_format($venta['Total'], 2) ?> | Fecha: <?= $venta['Fecha_Hora'] ?>
+                        Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?> | Venta #<?= $venta['ID_Venta'] ?> | Total: C$<?= number_format($venta['Total'] + $venta['Servicio'], 2) ?> | Fecha: <?= $venta['Fecha_Hora'] ?>
                     </button>
                     <!-- Botón de imprimir ticket removido temporalmente -->
                 </h2>
@@ -106,11 +106,11 @@ try {
                                             <div class="mt-3"><b>Saldo pendiente SIN servicio:</b> C$<span id="saldoPendiente<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'], 2) ?></span></div>
                                             <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
                                             <!-- Agregar saldo pendiente para incluir servicio -->
-                                            <div class="mt-3"><b>Saldo pendiente CON servicio:</b> C$<span id="saldoPendienteConServicio<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'] + ($config['servicio'] * $venta['Total']), 2) ?></span></div>
+                                            <div class="mt-3"><b>Saldo pendiente CON servicio:</b> C$<span id="saldoPendienteConServicio<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?></span></div>
                                             <!-- desmarcar SI DESEA quitar el servicio -->
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="incluirServicio" checked>
-                                                <label class="form-check-label" for="incluirServicio">
+                                                <input class="form-check-input" type="checkbox" id="incluirServicio<?= $venta['ID_Venta'] ?>" checked>
+                                                <label class="form-check-label" for="incluirServicio<?= $venta['ID_Venta'] ?>">
                                                     ¿Incluir servicio? (<?= ($config['servicio']*100) ?? 0 ?>%)
                                                 </label>
                                             </div>
@@ -168,13 +168,19 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         const idVenta = form.getAttribute('data-id-venta');
         const ventaData = ventasPendientesData.find(v => v.ID_Venta == idVenta);
         const servicioPct = <?= isset($config['servicio']) ? (float)$config['servicio'] : 0 ?>;
-        let incluirServicio = form.querySelector('#incluirServicio').checked;
+        let incluirServicio = form.querySelector('#incluirServicio' + idVenta)?.checked;
         let subtotal = parseFloat(ventaData.Total);
-        let servicioMonto = incluirServicio ? subtotal * servicioPct : 0;
+        // Preferir Servicio ya calculado en la base de datos si está presente
+        let servicioMonto = 0;
+        if (typeof ventaData.Servicio !== 'undefined' && ventaData.Servicio !== null) {
+            servicioMonto = incluirServicio ? parseFloat(ventaData.Servicio) : 0;
+        } else {
+            servicioMonto = incluirServicio ? subtotal * servicioPct : 0;
+        }
         let totalConServicio = subtotal + servicioMonto;
 
         // Actualizar los saldos mostrados
-        const saldoElem = document.getElementById('saldoPendiente');
+        const saldoElem = document.getElementById('saldoPendiente' + idVenta);
         const saldoConServicioElem = document.getElementById('saldoPendienteConServicio' + idVenta);
         if (incluirServicio) {
             if(saldoElem && saldoConServicioElem){
@@ -210,7 +216,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
 
         // Validaciones de monto
         let saldo = incluirServicio ? totalConServicio : subtotal;
-        if (totalPagado < saldo) {
+            if (totalPagado < saldo) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3 alert alert-danger';
             msgDiv.textContent = 'El monto pagado es menor al saldo pendiente.';
@@ -282,7 +288,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         mostrarModalConfirmacion(getDetalleConfirmacion(), registrarPago);
 
         // Función para registrar el pago y recargar la página tras éxito
-        function registrarPago() {
+            function registrarPago() {
             let metodoPagoStr = pagos.join(', ');
             if (metodoPagoStr.length > 200) metodoPagoStr = metodoPagoStr.substring(0, 200);
             const csrfToken = form.querySelector('input[name="csrf_token"]').value;
@@ -293,8 +299,10 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
                 body: new URLSearchParams({
                     id_venta: idVenta,
                     metodo_pago: metodoPagoStr,
-                    monto: saldo, // Enviar el total correcto (con o sin servicio)
-                    servicio: incluirServicio ? servicioMonto.toFixed(2) : 0,
+                        monto: saldo, // Enviar el total correcto (con o sin servicio)
+                        // NOTA: el servidor usará el Servicio almacenado en DB; no confiar en el cliente
+                        servicio: incluirServicio ? servicioMonto.toFixed(2) : 0,
+                        incluir_servicio: incluirServicio ? '1' : '0',
                     csrf_token: csrfToken
                 })
             })

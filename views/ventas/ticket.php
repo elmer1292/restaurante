@@ -6,6 +6,7 @@ require_once dirname(__DIR__, 2) . '/models/VentaModel.php';
 require_once dirname(__DIR__, 2) . '/models/MesaModel.php';
 require_once dirname(__DIR__, 2) . '/models/UserModel.php';
 require_once dirname(__DIR__, 2) . '/helpers/TicketHelper.php';
+
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -21,11 +22,11 @@ $userModel = new UserModel();
 $usuario = $userModel->getUserById($venta['ID_Usuario']);
 $productos = $ventaModel->getSaleDetails($idVenta);
 
-// Adaptar productos al formato esperado por TicketHelper
+// Adaptar productos al formato esperado por TicketHelper y calcular subtotal
 $detalles = [];
-$total = 0;
+$total = 0.0;
 foreach ($productos as $prod) {
-    $subtotal = $prod['Cantidad'] * $prod['Precio_Venta'];
+    $subtotal = (float)$prod['Cantidad'] * (float)$prod['Precio_Venta'];
     $detalles[] = [
         'cantidad' => $prod['Cantidad'],
         'nombre' => $prod['Nombre_Producto'],
@@ -33,18 +34,19 @@ foreach ($productos as $prod) {
     ];
     $total += $subtotal;
 }
-//se extrae el valor de metodo de pago $venta['Metodo_Pago'] segun el campo Efectivo: 300, o Efectivo:1100, Tarjeta:90 son algunos ejemplos
 
-// Extraer el monto total pagado (puede ser varios métodos separados por coma)
-$metodos = explode(',', $venta['Metodo_Pago'] ?? '');
-$totalPagado = 0;
+// Extraer el monto total pagado (puede ser varios métodos separados por coma: "Efectivo:300, Tarjeta:100")
+$metodos = array_filter(array_map('trim', explode(',', $venta['Metodo_Pago'] ?? '')));
+$totalPagado = 0.0;
 foreach ($metodos as $metodo) {
     $partes = explode(':', $metodo);
     if (isset($partes[1])) {
-        $totalPagado += floatval($partes[1]);
+        $totalPagado += floatval(trim($partes[1]));
     }
 }
-$cambio = $totalPagado > $total ? $totalPagado - $total : 0;
+$servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0.0;
+$cambio = $totalPagado > ($total + $servicio) ? $totalPagado - ($total + $servicio) : 0.0;
+
 $moneda = $configModel->get('moneda') ?: 'C$';
 $ticketTxt = TicketHelper::generarTicketVenta(
     $nombreApp,
@@ -56,7 +58,8 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $venta['ID_Venta'],
     $moneda,
     $venta['Metodo_Pago'] ?? 'N/A',
-    $cambio ?? 0
+    $cambio,
+    $servicio
 );
 ?>
 

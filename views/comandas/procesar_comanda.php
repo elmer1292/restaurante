@@ -67,6 +67,16 @@ try {
         if (!$ventaModel->actualizarTotal($idVenta)) {
             throw new Exception('Error al actualizar el total de la venta');
         }
+        // Actualizar monto de servicio en la venta según configuración
+        require_once __DIR__ . '/../../models/ConfigModel.php';
+        $configModel = new ConfigModel();
+        $servicioPct = (float) ($configModel->get('servicio') ?? 0);
+        $venta = $ventaModel->getVentaById($idVenta);
+        $totalActual = isset($venta['Total']) ? (float)$venta['Total'] : 0.0;
+        $servicioMonto = $totalActual * $servicioPct;
+        $conn = (new \Database())->connect();
+        $stmt = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
+        $stmt->execute([$servicioMonto, $idVenta]);
     // Validación de estado de preparación eliminada
     }
 

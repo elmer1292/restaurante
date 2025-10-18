@@ -3,7 +3,7 @@
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'rest_bar');
 define('DB_USER', 'root');
-define('DB_PASS', 'root123');
+define('DB_PASS', '');
 
 // Configuración de la aplicación
 define('APP_NAME', 'RestBar');

@@ -77,6 +77,18 @@ class VentaController extends BaseController {
             $total = (float)$venta['Total'];
             // Use Servicio persisted in DB (do not trust client-side value)
             $servicio = isset($venta['Servicio']) ? (float)$venta['Servicio'] : 0.0;
+            // If the cashier chose NOT to include service, persist that change so prints/reports reflect it
+            if (!$incluirServicioFlag && $servicio > 0) {
+                try {
+                    $stmtUpd = $conn->prepare('UPDATE ventas SET Servicio = 0 WHERE ID_Venta = ?');
+                    $stmtUpd->execute([$idVenta]);
+                    // reflect change locally for calculations
+                    $servicio = 0.0;
+                } catch (Exception $e) {
+                    // Non-fatal: log and continue (we'll still calculate without charging service this operation)
+                    error_log('No se pudo actualizar Servicio a 0 para venta ' . $idVenta . ': ' . $e->getMessage());
+                }
+            }
             // determinar si en esta operacion se cobrará el servicio (checkbox del cajero)
             $servicioCobradoEnEstaOperacion = $incluirServicioFlag ? $servicio : 0.0;
             $totalFactura = $total + $servicioCobradoEnEstaOperacion;

@@ -7,6 +7,7 @@ require_once __DIR__ . '/models/ReporteModel.php';
 require_once __DIR__ . '/models/MovimientoModel.php';
 require_once __DIR__ . '/helpers/TicketHelper.php';
 require_once __DIR__ . '/models/ConfigModel.php';
+require_once __DIR__ . '/models/PagoModel.php';
 
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
@@ -25,30 +26,59 @@ if ($ventas && count($ventas) > 0) {
         $granTotal += $venta['Total'];
         $granServicio += $venta['Servicio'];
         $granFinal += $venta['TotalFinal'];
-        $mp = $venta['Metodo_Pago'];
+        // Preferir pagos persistidos
+        $pagoModel = new PagoModel();
+        $pagosVenta = $pagoModel->getPagosByVenta($venta['ID_Venta']);
         $restante = $venta['TotalFinal'];
-        if ($mp) {
-            $partes = explode(',', $mp);
-            foreach ($partes as $parte) {
-                $parte = trim($parte);
-                if (stripos($parte, 'Efectivo:') !== false) {
-                    $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+        $sumaCambioRegistrado = 0.0;
+        if ($pagosVenta && is_array($pagosVenta)) {
+            foreach ($pagosVenta as $p) {
+                $metodoRaw = trim($p['Metodo']);
+                $monto = (float)$p['Monto'];
+                if ((int)$p['Es_Cambio'] === 1) {
+                    $sumaCambioRegistrado += $monto;
+                    continue;
+                }
+                if (stripos($metodoRaw, 'efectivo') !== false) {
                     $totalesPago['Efectivo'] += $monto;
-                    $restante -= $monto;
-                } elseif (stripos($parte, 'Tarjeta:') !== false) {
-                    $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+                } elseif (stripos($metodoRaw, 'tarjeta') !== false || stripos($metodoRaw, 'card') !== false) {
                     $totalesPago['Tarjeta'] += $monto;
-                    $restante -= $monto;
-                } elseif (stripos($parte, 'Transferencia:') !== false || stripos($parte, 'Transf') !== false) {
-                    $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+                } elseif (stripos($metodoRaw, 'transfer') !== false || stripos($metodoRaw, 'transf') !== false) {
                     $totalesPago['Transferencia'] += $monto;
-                    $restante -= $monto;
+                } else {
+                    $totalesPago['Otro'] += $monto;
+                }
+                $restante -= $monto;
+            }
+        } else {
+            // Fallback al parsing legacy
+            $mp = $venta['Metodo_Pago'];
+            $restante = $venta['TotalFinal'];
+            if ($mp) {
+                $partes = explode(',', $mp);
+                foreach ($partes as $parte) {
+                    $parte = trim($parte);
+                    if (stripos($parte, 'Efectivo:') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+                        $totalesPago['Efectivo'] += $monto;
+                        $restante -= $monto;
+                    } elseif (stripos($parte, 'Tarjeta:') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+                        $totalesPago['Tarjeta'] += $monto;
+                        $restante -= $monto;
+                    } elseif (stripos($parte, 'Transferencia:') !== false || stripos($parte, 'Transf') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
+                        $totalesPago['Transferencia'] += $monto;
+                        $restante -= $monto;
+                    }
                 }
             }
+            if ($restante > 0.01) {
+                $totalesPago['Otro'] += $restante;
+            }
         }
-        if ($restante > 0.01) {
-            $totalesPago['Otro'] += $restante;
-        }
+        if (!isset($totalesCambio)) $totalesCambio = 0.0;
+        $totalesCambio += $sumaCambioRegistrado;
     }
 }
 $apertura = 0; $egresos = 0;

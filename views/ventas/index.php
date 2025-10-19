@@ -291,21 +291,23 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         mostrarModalConfirmacion(getDetalleConfirmacion(), registrarPago);
 
         // Función para registrar el pago y recargar la página tras éxito
-            function registrarPago() {
+        function registrarPago() {
             let metodoPagoStr = pagos.join(', ');
-            if (metodoPagoStr.length > 200) metodoPagoStr = metodoPagoStr.substring(0, 200);
+            // No truncamos en cliente: el servidor procesará la estructura JSON si es necesario.
             const csrfToken = form.querySelector('input[name="csrf_token"]').value;
             form.querySelectorAll('button, input[type="submit"]').forEach(btn => btn.disabled = true);
+            // Construir estructura segura de métodos de pago a partir del objeto `metodos`
+            const metodosArray = Object.keys(metodos).map(m => ({ metodo: m, monto: metodos[m] }));
             fetch('<?php echo BASE_URL; ?>ventas/registrarPago', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
                     id_venta: idVenta,
                     metodo_pago: metodoPagoStr,
-                        monto: saldo, // Enviar el total correcto (con o sin servicio)
-                        // NOTA: el servidor usará el Servicio almacenado en DB; no confiar en el cliente
-                        servicio: incluirServicio ? servicioMonto.toFixed(2) : 0,
-                        incluir_servicio: incluirServicio ? '1' : '0',
+                    monto: saldo, // Enviar el total correcto (con o sin servicio) - informativo
+                    // NOTA: el servidor usará el Servicio almacenado en DB; no confiar en el cliente
+                    incluir_servicio: incluirServicio ? '1' : '0',
+                    metodos_json: JSON.stringify(metodosArray),
                     csrf_token: csrfToken
                 })
             })

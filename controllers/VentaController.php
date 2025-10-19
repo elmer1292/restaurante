@@ -28,27 +28,45 @@ class VentaController extends BaseController {
         $metodoPago = isset($_POST['metodo_pago']) ? substr(trim($_POST['metodo_pago']), 0, 200) : '';
     $monto = isset($_POST['monto']) ? (float)$_POST['monto'] : 0;
     $incluirServicioFlag = isset($_POST['incluir_servicio']) ? ($_POST['incluir_servicio'] === '1' || $_POST['incluir_servicio'] === 'true' ? true : false) : true;
-        // Parse metodo_pago server-side to compute totalPagado (handles multiple methods)
-        $metodosArr = array_filter(array_map('trim', explode(',', $metodoPago)));
+        // Parse payment methods server-side. Prefer structured JSON 'metodos_json' if present (safer), else fallback to comma-separated 'metodo_pago'.
         $totalPagado = 0.0;
         $hasEfectivo = false;
-        foreach ($metodosArr as $m) {
-            $parts = explode(':', $m);
-            if (isset($parts[1])) {
-                $amt = floatval(trim($parts[1]));
-                $totalPagado += $amt;
+        $metodosStructured = [];
+        if (!empty($_POST['metodos_json'])) {
+            $raw = $_POST['metodos_json'];
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $entry) {
+                    $mname = isset($entry['metodo']) ? trim($entry['metodo']) : '';
+                    $montoEntry = isset($entry['monto']) ? floatval($entry['monto']) : 0.0;
+                    $metodosStructured[] = ['metodo' => $mname, 'monto' => $montoEntry];
+                    $totalPagado += $montoEntry;
+                    if (stripos($mname, 'efectivo') !== false) $hasEfectivo = true;
+                }
             }
-            if (stripos($m, 'efectivo') !== false) {
-                $hasEfectivo = true;
+        } else {
+            // Fallback to legacy parsing
+            $metodosArr = array_filter(array_map('trim', explode(',', $metodoPago)));
+            foreach ($metodosArr as $m) {
+                $parts = explode(':', $m);
+                if (isset($parts[1])) {
+                    $amt = floatval(trim($parts[1]));
+                    $totalPagado += $amt;
+                }
+                if (stripos($m, 'efectivo') !== false) {
+                    $hasEfectivo = true;
+                }
             }
         }
         if (!$idVenta || !$metodoPago || $totalPagado <= 0) {
             echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
             exit;
         }
-        $ventaModel = new VentaModel();
-        $movimientoModel = new MovimientoModel();
-        $conn = (new Database())->connect();
+    $ventaModel = new VentaModel();
+    $movimientoModel = new MovimientoModel();
+    require_once __DIR__ . '/../models/PagoModel.php';
+    $pagoModel = new PagoModel();
+    $conn = (new Database())->connect();
         try {
             // Asegurar que el campo Total en la tabla ventas esté actualizado con la suma de detalle_venta
             $ventaModel->actualizarTotal($idVenta);
@@ -90,6 +108,33 @@ class VentaController extends BaseController {
             // Registrar ingreso por el monto efectivamente cobrado en esta operación (respeta incluir_servicio)
             $movimientoModel->registrarMovimiento('Ingreso', $totalFactura, $descripcion, $idUsuario, $idVenta);
 
+            // Registrar cada metodo de pago en la tabla pagos
+            try {
+                if (!empty($metodosStructured)) {
+                    foreach ($metodosStructured as $entry) {
+                        $mname = $entry['metodo'] ?? '';
+                        $montoEntry = floatval($entry['monto'] ?? 0);
+                        if ($montoEntry > 0) {
+                            $pagoModel->registrarPago($idVenta, $mname, $montoEntry, false);
+                        }
+                    }
+                } else {
+                    // Legacy: parse metodoPago string like "Efectivo:100,Card:50"
+                    $metodosArr = array_filter(array_map('trim', explode(',', $metodoPago)));
+                    foreach ($metodosArr as $m) {
+                        $parts = explode(':', $m);
+                        $mname = trim($parts[0]);
+                        $montoEntry = isset($parts[1]) ? floatval(trim($parts[1])) : 0.0;
+                        if ($montoEntry > 0) {
+                            $pagoModel->registrarPago($idVenta, $mname, $montoEntry, false);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // Non-fatal: log and continue
+                error_log('Error registrando pagos: ' . $e->getMessage());
+            }
+
             // Llamar a imprimir_ticket.php en segundo plano
             // Forzar la ruta de php.exe para evitar problemas con PHP_BINARY bajo Apache
             $phpPath = 'C:/xampp/php/php.exe';
@@ -103,10 +148,17 @@ class VentaController extends BaseController {
                 exec($cmd);
             }
 
-            $response = ['success' => true];
-            if (isset($cambio)) {
-                $response['cambio'] = $cambio;
+            // Si hay cambio y se pagó en efectivo, registrar cambio como pago con Es_Cambio=1 (monto positivo siendo entregado como cambio)
+            if (isset($cambio) && $cambio > 0 && $hasEfectivo) {
+                try {
+                    $pagoModel->registrarPago($idVenta, 'Cambio', $cambio, true);
+                } catch (Exception $e) {
+                    error_log('Error al registrar cambio: ' . $e->getMessage());
+                }
             }
+
+            $response = ['success' => true];
+            if (isset($cambio)) $response['cambio'] = $cambio;
             echo json_encode($response);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);

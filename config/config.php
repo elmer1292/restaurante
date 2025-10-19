@@ -32,7 +32,7 @@ define('VENTA_CANCELADA', 'Cancelada');
 define('ITEMS_POR_PAGINA', 10);
 
 // Configuración de zona horaria
-date_default_timezone_set('America/Mexico_City');
+date_default_timezone_set('America/Managua');
 
 // Configuración de errores
 ini_set('display_errors', 1);

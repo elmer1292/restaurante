@@ -16,7 +16,6 @@ require_once __DIR__ . '/models/ConfigModel.php';
 require_once __DIR__ . '/models/VentaModel.php';
 require_once __DIR__ . '/models/MesaModel.php';
 require_once __DIR__ . '/models/UserModel.php';
-require_once __DIR__ . '/models/PagoModel.php';
 require_once __DIR__ . '/helpers/TicketHelper.php';
 
 
@@ -50,50 +49,31 @@ $productos = $ventaModel->getSaleDetails($idVenta);
 
 // Adaptar productos al formato esperado por TicketHelper
 $detalles = [];
-$total_calc = 0;
+$total = 0;
 foreach ($productos as $prod) {
-    // Preferir Subtotal persistido en detalle_venta cuando esté disponible
-    $subtotal = isset($prod['Subtotal']) ? (float)$prod['Subtotal'] : ((float)$prod['Cantidad'] * (float)$prod['Precio_Venta']);
-    // Capturar preparación si existe (aceptar mayúsculas/minúsculas)
-    $prep = '';
-    if (isset($prod['preparacion'])) $prep = $prod['preparacion'];
-    if (isset($prod['Preparacion'])) $prep = $prep ?: $prod['Preparacion'];
+    $subtotal = $prod['Cantidad'] * $prod['Precio_Venta'];
     $detalles[] = [
         'cantidad' => $prod['Cantidad'],
         'nombre' => $prod['Nombre_Producto'],
-        'subtotal' => $subtotal,
-        'preparacion' => $prep
+        'subtotal' => $subtotal
     ];
-    $total_calc += $subtotal;
+    $total += $subtotal;
 }
-// Preferir total persistido en ventas si existe
-$total = isset($venta['Total']) ? (float)$venta['Total'] : $total_calc;
-// Obtener pagos desde la tabla 'pagos' si está disponible (no se realizan escrituras aquí)
-$pagoModel = new PagoModel();
-$pagos = $pagoModel->getPagosByVenta($idVenta);
+// Extraer el monto total pagado (puede ser varios métodos separados por coma)
+$metodos = explode(',', $venta['Metodo_Pago'] ?? '');
 $totalPagado = 0;
-$cambio = 0;
-$metodoPagoStr = $venta['Metodo_Pago'] ?? 'N/A';
+foreach ($metodos as $metodo) {
+    $partes = explode(':', $metodo);
+    if (isset($partes[1])) {
+        $totalPagado += floatval($partes[1]);
+    }
+}
 $servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0;
+$cambio = $totalPagado > ($total + $servicio) ? $totalPagado - ($total + $servicio) : 0;
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
 $impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_cocina'); // Cambia la clave si usas otra
-if ($pagos && is_array($pagos)) {
-    $metodosArr = [];
-    foreach ($pagos as $p) {
-        if ((int)$p['Es_Cambio'] === 1) {
-            $cambio += (float)$p['Monto'];
-        } else {
-            $totalPagado += (float)$p['Monto'];
-            $metodosArr[] = $p['Metodo'] . ':' . number_format((float)$p['Monto'], 2);
-        }
-    }
-    if (!empty($metodosArr)) $metodoPagoStr = implode(', ', $metodosArr);
-    if ($cambio <= 0 && $totalPagado > ($total + $servicio)) {
-        $cambio = $totalPagado - ($total + $servicio);
-    }
-}
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(
@@ -105,8 +85,8 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $usuario['Nombre_Completo'] ?? '',
     $venta['ID_Venta'],
     $moneda,
-    $metodoPagoStr,
-    $cambio,
+    $venta['Metodo_Pago'] ?? 'N/A',
+    $cambio ?? 0,
     $venta['Servicio'] ?? 0,
     false
 );
@@ -120,9 +100,7 @@ try {
     $printer->cut();
     $printer->pulse(); // Abre el cajón de dinero
     $printer->close();
-    //redirigir a ventas
-    header('Location: ventas');
-    exit();
+    echo 'Ticket enviado a la impresora.';
 } catch (Exception $e) {
     echo 'Error al imprimir: ' . $e->getMessage();
 }

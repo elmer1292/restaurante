@@ -33,69 +33,32 @@
             $granTotal += $venta['Total'];
             $granServicio += $venta['Servicio'];
             $granFinal += $venta['TotalFinal'];
-            // Desglose de métodos de pago por venta usando la tabla `pagos` cuando esté disponible
-            // Esto evita depender de la cadena Metodo_Pago y permite un desglose más preciso.
-            require_once dirname(__DIR__, 2) . '/models/PagoModel.php';
-            $pagoModel = new PagoModel();
-            $pagosVenta = $pagoModel->getPagosByVenta($venta['ID_Venta']);
-            $restante = (float)$venta['TotalFinal'];
-            $sumaPagosClasificados = 0.0;
-            $sumaCambioRegistrado = 0.0;
-            if ($pagosVenta && is_array($pagosVenta)) {
-                foreach ($pagosVenta as $p) {
-                    $metodoRaw = trim($p['Metodo']);
-                    $monto = (float)$p['Monto'];
-                    if ((int)$p['Es_Cambio'] === 1) {
-                        // monto registrado como cambio (efectivo devuelto)
-                        $sumaCambioRegistrado += $monto;
-                        continue;
-                    }
-                    // Clasificar por palabras clave
-                    if (stripos($metodoRaw, 'efectivo') !== false) {
+            // Desglose de métodos de pago por venta
+            $mp = $venta['Metodo_Pago'];
+            $restante = $venta['TotalFinal'];
+            if ($mp) {
+                $partes = explode(',', $mp);
+                foreach ($partes as $parte) {
+                    $parte = trim($parte);
+                    if (stripos($parte, 'Efectivo:') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
                         $totalesPago['Efectivo'] += $monto;
-                    } elseif (stripos($metodoRaw, 'tarjeta') !== false || stripos($metodoRaw, 'card') !== false) {
+                        $restante -= $monto;
+                    } elseif (stripos($parte, 'Tarjeta:') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
                         $totalesPago['Tarjeta'] += $monto;
-                    } elseif (stripos($metodoRaw, 'transfer') !== false || stripos($metodoRaw, 'transf') !== false) {
+                        $restante -= $monto;
+                    } elseif (stripos($parte, 'Transferencia:') !== false || stripos($parte, 'Transf') !== false) {
+                        $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
                         $totalesPago['Transferencia'] += $monto;
-                    } else {
-                        $totalesPago['Otro'] += $monto;
-                    }
-                    $sumaPagosClasificados += $monto;
-                    $restante -= $monto;
-                }
-            } else {
-                // Fallback: si no hay registros en pagos, intentar parsear Metodo_Pago legacy
-                $mp = $venta['Metodo_Pago'];
-                if ($mp) {
-                    $partes = explode(',', $mp);
-                    foreach ($partes as $parte) {
-                        $parte = trim($parte);
-                        $monto = 0.0;
-                        if (stripos($parte, ':') !== false) {
-                            $monto = floatval(preg_replace('/[^0-9.]/', '', substr($parte, stripos($parte, ':')+1)));
-                        }
-                        if ($monto <= 0) continue;
-                        if (stripos($parte, 'Efectivo:') !== false) {
-                            $totalesPago['Efectivo'] += $monto;
-                        } elseif (stripos($parte, 'Tarjeta:') !== false) {
-                            $totalesPago['Tarjeta'] += $monto;
-                        } elseif (stripos($parte, 'Transferencia:') !== false || stripos($parte, 'Transf') !== false) {
-                            $totalesPago['Transferencia'] += $monto;
-                        } else {
-                            $totalesPago['Otro'] += $monto;
-                        }
-                        $sumaPagosClasificados += $monto;
                         $restante -= $monto;
                     }
                 }
             }
-            // Si queda algún monto sin clasificar (por redondeos), contabilizarlo en 'Otro'
+            // Si queda algún monto sin clasificar, va a "Otro"
             if ($restante > 0.01) {
                 $totalesPago['Otro'] += $restante;
             }
-            // Registrar el impacto del cambio en efectivo: reducir el efectivo a entregar
-            if (!isset($totalesCambio)) $totalesCambio = 0.0;
-            $totalesCambio += $sumaCambioRegistrado;
         }
     }
 
@@ -111,9 +74,7 @@
     require_once dirname(__DIR__, 2) . '/models/MovimientoModel.php';
     $movModel = new MovimientoModel();
     $ingresos = $movModel->obtenerIngresosNoVentas($fecha);
-    // Restar el total de cambios entregados al efectivo a entregar
-    $totalesCambio = $totalesCambio ?? 0.0;
-    $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos - $totalesCambio;
+    $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos;
     ?>
 
     <div class="row mb-4">
@@ -126,7 +87,6 @@
                         <tr><th>Ingresos (no ventas)</th><td class="text-end">C$ <?= number_format($ingresos, 2) ?></td></tr>
                         <tr><th>Egresos</th><td class="text-end">C$ <?= number_format($egresos, 2) ?></td></tr>
                         <tr class="table-info"><th>Efectivo por Ventas</th><td class="text-end">C$ <?= number_format($totalesPago['Efectivo'], 2) ?></td></tr>
-                        <tr class="table-info"><th>Cambio entregado</th><td class="text-end">C$ <?= number_format($totalesCambio, 2) ?></td></tr>
                         <tr class="table-success fw-bold"><th>Efectivo a Entregar</th><td class="text-end">C$ <?= number_format($efectivoEntregar, 2) ?></td></tr>
                     </table>
                 </div>
@@ -191,5 +151,4 @@
     <?php endif; ?>
     <a href="<?= BASE_URL ?>reportes" class="btn btn-secondary btn-sm mt-3">Volver a reportes</a>
     <a href="<?= BASE_URL ?>imprimir_ticket_cierre.php?fecha=<?= htmlspecialchars($fecha) ?>" class="btn btn-primary btn-sm mt-3">Imprimir Ticket Cierre</a>
-    <a href="<?= BASE_URL ?>reportes/cierre_caja_export?fecha=<?= htmlspecialchars($fecha) ?>" class="btn btn-outline-secondary btn-sm mt-3 ms-2">Exportar cierre (HTML)</a>
 </div>

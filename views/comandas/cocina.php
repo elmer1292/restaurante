@@ -47,16 +47,11 @@ foreach ($comandasCocina as $comanda) {
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
                                 <?php foreach ($comanda['items'] as $item): ?>
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span class="item-cantidad"><?php echo $item['Cantidad']; ?>x</span>
-                                            <?php echo htmlspecialchars($item['Nombre_Producto']); ?>
-                                        </div>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="item-cantidad"><?php echo $item['Cantidad']; ?>x</span>
+                                        <?php echo htmlspecialchars($item['Nombre_Producto']); ?>
                                     </div>
-                                    <?php if (isset($item['preparacion']) && trim($item['preparacion']) !== ''): ?>
-                                        <div class="mt-2 ms-2 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2"><?php echo htmlspecialchars(trim($item['preparacion'])); ?></span></div>
-                                    <?php endif; ?>
                                 </li>
                                 <?php endforeach; ?>
                             </ul>

@@ -5,9 +5,6 @@ CREATE TABLE `categorias` (
   `Nombre_Categoria` varchar(50) NOT NULL,
   PRIMARY KEY (`ID_Categoria`)
 );
--- Add column (tinyint used for maximum compatibility)
-ALTER TABLE categorias
-  ADD COLUMN is_food TINYINT(1) NOT NULL DEFAULT 1;
 
 CREATE TABLE `clientes` (
   `ID_Cliente` int NOT NULL AUTO_INCREMENT,
@@ -158,19 +155,6 @@ CREATE TABLE `liberaciones_mesa` (
     `Fecha_Hora` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`ID_Mesa`) REFERENCES mesas(`ID_Mesa`),
     FOREIGN KEY (`ID_Usuario`) REFERENCES usuarios(`ID_Usuario`)
-);
-
-
-CREATE TABLE IF NOT EXISTS `pagos` (
-  `ID_Pago` int(11) NOT NULL AUTO_INCREMENT,
-  `ID_Venta` int(11) NOT NULL,
-  `Metodo` varchar(255) DEFAULT NULL,
-  `Monto` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `Es_Cambio` tinyint(1) NOT NULL DEFAULT '0',
-  `Fecha_Hora` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`ID_Pago`),
-  KEY `idx_pago_venta` (`ID_Venta`),
-  CONSTRAINT `fk_pagos_venta` FOREIGN KEY (`ID_Venta`) REFERENCES `ventas` (`ID_Venta`) ON DELETE CASCADE
 );
 
 DELIMITER ;;

@@ -42,9 +42,6 @@ $router->add('user/update', 'UserController', 'actualizarPerfil');
 $router->add('mesas/dividir_cuenta', 'MesaController', 'dividirCuenta');
 
 $router->add('mesas/procesar_mesa', 'MesaController', 'procesarMesa');
-// Endpoints added for trasladar feature
-$router->add('mesas/listar_libres', 'MesaController', 'listarLibres');
-$router->add('mesas/trasladar', 'MesaController', 'trasladar');
 
 $router->add('caja/apertura', 'CajaController', 'apertura');
 $router->add('caja/cierre', 'CajaController', 'cierre');
@@ -56,7 +53,6 @@ $router->add('reportes', 'ReporteController', 'index');
 $router->add('reportes/ventas_dia', 'ReporteController', 'ventas_dia');
 $router->add('reportes/productos_vendidos', 'ReporteController', 'productos_vendidos');
 $router->add('reportes/cierre_caja', 'ReporteController', 'cierre_caja');
-$router->add('reportes/cierre_caja_export', 'ReporteController', 'cierre_caja_export');
 $router->add('reportes/inventario', 'ReporteController', 'inventario');
 $router->add('reportes/imprimir_ticket_productos_vendidos', 'ReporteController', 'imprimir_ticket_productos_vendidos');
 

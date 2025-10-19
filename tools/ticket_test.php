@@ -1,22 +1,8 @@
 <?php
 require_once __DIR__ . '/../helpers/TicketHelper.php';
 require_once __DIR__ . '/../models/VentaModel.php';
-require_once __DIR__ . '/../models/PagoModel.php';
 
-// Soporta pasar el id por CLI: php ticket_test.php id=5, o por GET si se usa en web
-$idVenta = 0;
-if (php_sapi_name() === 'cli') {
-    foreach ($argv as $arg) {
-        if (strpos($arg, 'id=') === 0) {
-            $idVenta = (int)substr($arg, 3);
-            break;
-        }
-    }
-} else {
-    $idVenta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-}
-if (!$idVenta) $idVenta = 3; // valor por defecto si no se pasa
-
+$idVenta = 3; // cambiar según sea necesario
 $ventaModel = new VentaModel();
 $venta = $ventaModel->getVentaById($idVenta);
 if (!$venta) {
@@ -25,7 +11,7 @@ if (!$venta) {
 }
 $detalles = $ventaModel->getSaleDetails($idVenta);
 
-// Preparar parámetros
+// Preparar parámetros para el helper
 $restaurante = isset($venta['Nombre_Cliente']) ? $venta['Nombre_Cliente'] : 'Restaurante';
 $mesa = isset($venta['Numero_Mesa']) ? $venta['Numero_Mesa'] : ($venta['ID_Mesa'] ?? '');
 $fechaHora = isset($venta['Fecha_Hora']) ? $venta['Fecha_Hora'] : date('Y-m-d H:i');
@@ -34,37 +20,28 @@ $empleado = isset($venta['Empleado']) ? $venta['Empleado'] : (isset($venta['Nomb
 $ticketId = $idVenta;
 $moneda = 'C$';
 
-// Obtener pagos desde la tabla pagos
-$pagoModel = new PagoModel();
-$pagos = $pagoModel->getPagosByVenta($idVenta);
-$totalPagado = 0.0;
+// Metodo pago viene en ventas.Metodo_Pago, y debe imprimirse tal cual
+$metodoPago = isset($venta['Metodo_Pago']) ? $venta['Metodo_Pago'] : '';
+
+// Calcular cambio: sumar importes del metodoPago (si tiene formato Metodo:cantidad, Metodo:cantidad)
 $cambio = 0.0;
-$metodoPago = $venta['Metodo_Pago'] ?? '';
-if ($pagos && is_array($pagos)) {
-    $metodosArr = [];
-    foreach ($pagos as $p) {
-        if ((int)$p['Es_Cambio'] === 1) {
-            $cambio += (float)$p['Monto'];
-        } else {
-            $totalPagado += (float)$p['Monto'];
-            $metodosArr[] = $p['Metodo'] . ':' . number_format((float)$p['Monto'], 2);
+if (!empty($metodoPago)) {
+    // Extraer números con regex (buscar montos en la cadena)
+    preg_match_all('/([0-9]+(?:\.[0-9]+)?)/', $metodoPago, $m);
+    $sumaPagos = 0.0;
+    if (!empty($m[0])) {
+        foreach ($m[0] as $num) {
+            $sumaPagos += (float)$num;
         }
     }
-    if (!empty($metodosArr)) $metodoPago = implode(', ', $metodosArr);
-    if ($cambio <= 0 && $totalPagado > ($total + ($venta['Servicio'] ?? 0))) {
-        $cambio = $totalPagado - ($total + ($venta['Servicio'] ?? 0));
+    // El importe a cobrar debe incluir el servicio si existe
+    $importeCobrar = $total;
+    // Si existe campo servicio en la venta, sumarlo
+    // Nota: en este script vendemos $servicio posteriormente, pero asegurémonos de usarlo si está presente
+    if (isset($venta['Servicio'])) {
+        $importeCobrar += (float)$venta['Servicio'];
     }
-} else {
-    // Fallback: intentar inferir cambio desde Metodo_Pago legacy
-    if (!empty($metodoPago)) {
-        preg_match_all('/([0-9]+(?:\.[0-9]+)?)/', $metodoPago, $m);
-        $sumaPagos = 0.0;
-        if (!empty($m[0])) {
-            foreach ($m[0] as $num) $sumaPagos += (float)$num;
-        }
-        $importeCobrar = $total + ($venta['Servicio'] ?? 0);
-        $cambio = $sumaPagos - $importeCobrar;
-    }
+    $cambio = $sumaPagos - $importeCobrar;
 }
 
 $servicio = isset($venta['Servicio']) ? (float)$venta['Servicio'] : 0.0;

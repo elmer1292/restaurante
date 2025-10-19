@@ -243,6 +243,84 @@ class VentaModel {
             return false;
         }
     }
+
+    /**
+     * Traslada una venta completa de su mesa actual a otra mesa destino.
+     * - Verifica que la venta exista y tenga detalles
+     * - Verifica que la mesa destino exista y esté libre (Estado = 0)
+     * - Realiza la operación en transacción y pone locks sobre las filas de mesas para evitar race conditions
+     * - Registra una entrada de auditoría en movimientos (tipo 'Traslado')
+     * @param int $idVenta
+     * @param int $idMesaDestino
+     * @param int|null $idUsuario
+     * @return array ['success' => bool, 'error' => string|null, 'origen' => int|null]
+     */
+    public function trasladarVentaAMesa($idVenta, $idMesaDestino, $idUsuario = null) {
+        try {
+            // Validar existencia de venta y que tenga pedidos
+            $stmt = $this->conn->prepare('SELECT ID_Venta, ID_Mesa FROM ventas WHERE ID_Venta = ? LIMIT 1');
+            $stmt->execute([$idVenta]);
+            $venta = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$venta) return ['success' => false, 'error' => 'Venta no encontrada', 'origen' => null];
+            $idMesaOrigen = $venta['ID_Mesa'];
+            // Verificar tiene detalles
+            $stmtD = $this->conn->prepare('SELECT COUNT(*) as cnt FROM detalle_venta WHERE ID_Venta = ?');
+            $stmtD->execute([$idVenta]);
+            $cnt = (int)$stmtD->fetch(PDO::FETCH_ASSOC)['cnt'];
+            if ($cnt === 0) return ['success' => false, 'error' => 'La venta no tiene pedidos que trasladar', 'origen' => $idMesaOrigen];
+
+            // Iniciar transacción
+            $this->conn->beginTransaction();
+
+            // Lock mesas involucradas para evitar concurrencia
+            $stmtLock = $this->conn->prepare('SELECT ID_Mesa, Estado FROM mesas WHERE ID_Mesa IN (?, ?) FOR UPDATE');
+            $stmtLock->execute([$idMesaDestino, $idMesaOrigen]);
+            $mesasLock = $stmtLock->fetchAll(PDO::FETCH_ASSOC);
+
+            // Verificar mesa destino existe y está libre
+            $stmtCheck = $this->conn->prepare('SELECT Estado FROM mesas WHERE ID_Mesa = ? LIMIT 1');
+            $stmtCheck->execute([$idMesaDestino]);
+            $rowDest = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            if (!$rowDest) {
+                $this->conn->rollBack();
+                return ['success' => false, 'error' => 'Mesa destino no encontrada', 'origen' => $idMesaOrigen];
+            }
+            if ((int)$rowDest['Estado'] !== 0) {
+                $this->conn->rollBack();
+                return ['success' => false, 'error' => 'Mesa destino no está libre', 'origen' => $idMesaOrigen];
+            }
+
+            // Actualizar venta a la nueva mesa
+            $stmtUpd = $this->conn->prepare('UPDATE ventas SET ID_Mesa = ? WHERE ID_Venta = ?');
+            $stmtUpd->execute([$idMesaDestino, $idVenta]);
+
+            // Ocupar mesa destino y liberar origen si aplica
+            $stmtOcc = $this->conn->prepare('UPDATE mesas SET Estado = 1 WHERE ID_Mesa = ?');
+            $stmtOcc->execute([$idMesaDestino]);
+            if ($idMesaOrigen) {
+                $stmtFree = $this->conn->prepare('UPDATE mesas SET Estado = 0 WHERE ID_Mesa = ?');
+                $stmtFree->execute([$idMesaOrigen]);
+            }
+
+            // Registrar movimiento/auditoría
+            try {
+                require_once __DIR__ . '/MovimientoModel.php';
+                $mov = new MovimientoModel();
+                $desc = 'Traslado venta ID ' . $idVenta . ' de mesa ' . ($idMesaOrigen ?? 'N/A') . ' a mesa ' . $idMesaDestino;
+                $mov->registrarMovimiento('Traslado', 0, $desc, $idUsuario, $idVenta);
+            } catch (Exception $e) {
+                // No fatal: solo log
+                error_log('Aviso: no se pudo registrar movimiento de traslado: ' . $e->getMessage());
+            }
+
+            $this->conn->commit();
+            return ['success' => true, 'error' => null, 'origen' => $idMesaOrigen];
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) $this->conn->rollBack();
+            error_log('Error en trasladarVentaAMesa: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Error en la base de datos', 'origen' => null];
+        }
+    }
     
     /**
      * Crea una venta marcada como delivery.

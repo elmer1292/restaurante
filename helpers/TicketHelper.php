@@ -45,6 +45,17 @@ class TicketHelper {
             $nombre = self::mb_str_pad($nombre, 22);
             $subtotal = self::mb_str_pad($moneda . number_format($item['subtotal'], 2), 8, ' ', STR_PAD_LEFT);
             $out .= "$cant$nombre$subtotal\n";
+            // Si hay preparación, imprimirla en la línea siguiente con indent
+            $prep = '';
+            if (isset($item['preparacion'])) $prep = $item['preparacion'];
+            if (isset($item['Preparacion'])) $prep = $prep ?: $item['Preparacion'];
+            if ($prep !== null && trim($prep) !== '') {
+                $prepWrapped = wordwrap(trim($prep), $maxWidth - 4, "\n", true);
+                $lines = explode("\n", $prepWrapped);
+                foreach ($lines as $l) {
+                    $out .= '   ' . self::mb_str_pad('> ' . $l, $maxWidth) . "\n";
+                }
+            }
         }
         $out .= str_repeat('-', $maxWidth) . "\n";
         $out .= str_repeat('-', $maxWidth) . "\n";
@@ -162,12 +173,25 @@ class TicketHelper {
      * @return string
      */
     public static function generarComandaTraslado($venta, $origen = null, $destino = null, $tipo = 'ambos', $width = 40) {
-        // Reusar la lógica de separación por categorías de generarComandaDelivery
+        // Separación por is_food cuando esté disponible; si no, fallback a categoría
         $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
         $detalles = $venta['detalles'] ?? [];
         $barra = [];
         $cocina = [];
         foreach ($detalles as $d) {
+            // Priorizar campo is_food (1=true comida -> cocina, 0=false bebida -> barra)
+            if (isset($d['is_food'])) {
+                $isFood = $d['is_food'];
+                // Normalizar valores comunes (string '1','0', boolean, int)
+                $flag = false;
+                if (is_bool($isFood)) $flag = $isFood;
+                else if (is_numeric($isFood)) $flag = intval($isFood) === 1;
+                else $flag = in_array(strtolower((string)$isFood), ['1','true','yes','si'], true);
+                if ($flag) $cocina[] = $d; else $barra[] = $d;
+                continue;
+            }
+
+            // Fallback a categoría cuando no exista is_food
             $cat = isset($d['Nombre_Categoria']) ? trim($d['Nombre_Categoria']) : (isset($d['categoria']) ? trim($d['categoria']) : '');
             if ($cat !== '' && in_array($cat, $categoriasBarra)) $barra[] = $d; else $cocina[] = $d;
         }
@@ -175,6 +199,7 @@ class TicketHelper {
         if ($tipo === 'barra' && empty($barra)) return '';
         if ($tipo === 'cocina' && empty($cocina)) return '';
 
+        if (session_status() == PHP_SESSION_NONE) session_start();
         $usuario = isset($_SESSION['username']) ? $_SESSION['username'] : (isset($_SESSION['user']['Nombre_Completo']) ? $_SESSION['user']['Nombre_Completo'] : 'Desconocido');
         $cliente = $venta['Nombre_Cliente'] ?? ($venta['cliente'] ?? 'Cliente');
         $idVenta = $venta['ID_Venta'] ?? ($venta['id'] ?? '0');
@@ -183,7 +208,7 @@ class TicketHelper {
         $out = "\n";
         $buildSection = function($items, $sectionName) use ($width, $usuario, $cliente, $idVenta, $fecha, $origen, $destino) {
             $s = "";
-            $s .= str_pad("====== AVISO TRASLADO $sectionName ======", $width, ' ', STR_PAD_BOTH) . "\n";
+            $s .= self::mb_str_pad("====== AVISO TRASLADO $sectionName ======", $width, ' ', STR_PAD_BOTH) . "\n";
             $s .= "Usuario: " . $usuario . "\n";
             $s .= "Venta ID: " . $idVenta . "\n";
             $s .= "Cliente: " . $cliente . "\n";
@@ -194,7 +219,9 @@ class TicketHelper {
                 $qty = isset($item['Cantidad']) ? $item['Cantidad'] : (isset($item['cantidad']) ? $item['cantidad'] : 1);
                 $name = isset($item['Nombre_Producto']) ? $item['Nombre_Producto'] : (isset($item['nombre']) ? $item['nombre'] : 'Producto');
                 $prep = isset($item['Preparacion']) ? $item['Preparacion'] : (isset($item['preparacion']) ? $item['preparacion'] : '');
-                $line = $qty . ' x ' . mb_strtoupper($name);
+                // Truncar el nombre de forma multibyte para evitar roturas con wordwrap
+                $nameClean = mb_strimwidth(mb_strtoupper($name), 0, max(0, $width - 6), '');
+                $line = $qty . ' x ' . $nameClean;
                 $wrapped = wordwrap($line, $width, "\n", true);
                 $s .= $wrapped . "\n";
                 if (!empty($prep)) {
@@ -227,7 +254,7 @@ class TicketHelper {
         $out .= str_pad('*** CIERRE DE CAJA ***', $maxWidth, ' ', STR_PAD_BOTH) . "\n";
         $out .= "RUC: 0810509961001U\n";
         $out .= "Tel: 8882-3804\n";
-        $out .= "Dirección: Frente al nuevo \nhospital HEODRA\n";
+        $out .= "Dirección: Frente al nuevo \nhospital HEODRA-León\n";
         $out .= str_repeat('=', $maxWidth) . "\n";
         $out .= "Desde: $fechaInicio\n";
         $out .= "Hasta: $fechaFin\n";

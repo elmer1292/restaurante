@@ -54,17 +54,21 @@ $userModel = new UserModel();
 $usuario = $userModel->getUserById($venta['ID_Usuario']);
 $productos = $ventaModel->getSaleDetails($idVenta);
 
-// Adaptar productos al formato esperado por TicketHelper
 $detalles = [];
-$total = 0;
+$total_calc = 0;
 foreach ($productos as $prod) {
-    $subtotal = $prod['Cantidad'] * $prod['Precio_Venta'];
+    // Preferir el Subtotal persistido en la tabla detalle_venta
+    $subtotal = isset($prod['Subtotal']) ? (float)$prod['Subtotal'] : ((float)$prod['Cantidad'] * (float)$prod['Precio_Venta']);
+    $prep = '';
+    if (isset($prod['preparacion'])) $prep = $prod['preparacion'];
+    if (isset($prod['Preparacion'])) $prep = $prep ?: $prod['Preparacion'];
     $detalles[] = [
         'cantidad' => $prod['Cantidad'],
         'nombre' => $prod['Nombre_Producto'],
-        'subtotal' => $subtotal
+        'subtotal' => $subtotal,
+        'preparacion' => $prep
     ];
-    $total += $subtotal;
+    $total_calc += $subtotal;
 }
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
@@ -72,7 +76,9 @@ $moneda = $configModel->get('moneda') ?: 'C$';
 $impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_barra'); // Cambia la clave si usas otra
 // Calcular el monto de servicio para la pre-factura usando el porcentaje en la configuración
 $servicioPct = (float) ($configModel->get('servicio') ?? 0);
-$servicioMonto = $total * $servicioPct;
+// Preferir los montos persistidos en ventas (Total, Servicio) si existen
+$total = isset($venta['Total']) ? (float)$venta['Total'] : $total_calc;
+$servicioMonto = isset($venta['Servicio']) ? (float)$venta['Servicio'] : ($total * $servicioPct);
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(

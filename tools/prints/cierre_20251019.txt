@@ -1,0 +1,23 @@
+            Uy Que Rico            
+      *** CIERRE DE CAJA ***       
+RUC: 0810509961001U
+Tel: 8882-3804
+Dirección: Frente al nuevo 
+hospital HEODRA
+===================================
+Desde: 2025-10-19
+Hasta: 2025-10-19
+-----------------------------------
+Total Efectivo:           C$1,400.00
+Total Tarjeta:            C$378.00
+Total Servicio:            C$36.00
+-----------------------------------
+Total Ventas:             C$1,680.00
+===================================
+TOTAL GENERAL:            C$1,716.00
+-----------------------------------
+Cerrado por: Prueba
+Ticket: #TEST20251019123438
+Fecha: 2025-10-19 12:34:38
+¡Gracias por su visita!
+-----------------------------------

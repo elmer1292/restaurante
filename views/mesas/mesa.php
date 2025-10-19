@@ -136,20 +136,24 @@ if (!isset($moneda)) {
                                 </li>
                             <?php } ?>
                             <?php
-                            // Calcular servicio y total general usando la configuración
+                            // Mostrar los totales usando los valores persistidos en la BD si la comanda existe.
                             require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
                             $configModel = new ConfigModel();
                             $servicioPct = (float) ($configModel->get('servicio') ?? 0);
                             $moneda = $configModel->get('moneda') ?: 'C$';
-                            $servicioMonto = $total * $servicioPct;
-                            $totalConServicio = $total + $servicioMonto;
+                            // Si la venta/comanda viene del controlador, preferir sus valores (DB authoritative)
+                            $dbTotal = isset($comanda['Total']) ? (float)$comanda['Total'] : $total;
+                            $dbServicio = isset($comanda['Servicio']) ? (float)$comanda['Servicio'] : ($dbTotal * $servicioPct);
+                            $displaySubtotal = $dbTotal;
+                            $displayServicio = $dbServicio;
+                            $totalConServicio = $displaySubtotal + $displayServicio;
                             ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                <span>Subtotal</span><span id="subtotal-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($total, 2); ?></span>
+                                <span>Subtotal</span><span id="subtotal-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($displaySubtotal, 2); ?></span>
                             </li>
                             <?php if ($servicioPct > 0): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span id="servicio-venta" class="text-success"><?php echo htmlspecialchars($moneda) . number_format($servicioMonto, 2); ?></span>
+                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span id="servicio-venta" class="text-success"><?php echo htmlspecialchars($moneda) . number_format($displayServicio, 2); ?></span>
                                 </li>
                             <?php endif; ?>
                             <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-white">
@@ -269,37 +273,8 @@ function enviarProductosComanda() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Mapear productos a la estructura esperada por el backend
-            const mapProducto = p => ({
-                Cantidad: p.cantidad,
-                Nombre_Producto: p.nombre,
-                Preparacion: p.preparacion || '',
-                categoria: p.categoria || ''
-            });
-            let promesas = [];
-            if (productosBarra.length > 0) {
-                promesas.push(
-                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra', productos: productosBarra.map(mapProducto) })
-                    }).then(res => res.json())
-                );
-            }
-            if (productosCocina.length > 0) {
-                promesas.push(
-                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina', productos: productosCocina.map(mapProducto) })
-                    }).then(res => res.json())
-                );
-            }
-            Promise.all(promesas)
-                .catch(() => {})
-                .finally(() => {
-                    window.location.reload();
-                });
+            // Recargar la página para que la vista se actualice desde la BD
+            window.location.reload();
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }
@@ -430,6 +405,8 @@ function renderDetallesFromVenta(venta) {
 
     detalles.forEach(det => {
         subtotalCalc += Number(det.Subtotal || 0);
+        // Normalize preparación key: backend may return 'Preparacion' or 'preparacion'
+        det.preparacion = (typeof det.preparacion !== 'undefined' && det.preparacion !== null) ? det.preparacion : (typeof det.Preparacion !== 'undefined' ? det.Preparacion : '');
         const li = document.createElement('li');
         li.className = 'list-group-item';
         li.id = 'detalle-' + det.ID_Detalle;

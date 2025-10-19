@@ -48,7 +48,9 @@ class ComandaAjaxController extends BaseController {
                 $stmt = $conn->prepare('CALL sp_UpdateTableStatus(?, ?)');
                 $stmt->execute([$idMesa, 0]);
                 $conn->commit();
-                echo json_encode(['success' => true]);
+                // Obtener venta actualizada con detalles para devolver al cliente
+                $ventaActualizada = $ventaModel->getVentaConDetalles($idVenta);
+                echo json_encode(['success' => true, 'venta' => $ventaActualizada]);
             } catch (Exception $e) {
                 $conn->rollBack();
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -128,7 +130,9 @@ class ComandaAjaxController extends BaseController {
                 $stmt = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
                 $stmt->execute([$servicioMonto, $idVenta]);
                 $conn->commit();
-                echo json_encode(['success' => true]);
+                // Devolver la venta actualizada con detalles para que el cliente pueda actualizar la UI
+                $ventaActualizada = $ventaModel->getVentaConDetalles($idVenta);
+                echo json_encode(['success' => true, 'venta' => $ventaActualizada]);
             } catch (Exception $e) {
                 $conn->rollBack();
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);

@@ -16,6 +16,7 @@ require_once __DIR__ . '/models/ConfigModel.php';
 require_once __DIR__ . '/models/VentaModel.php';
 require_once __DIR__ . '/models/MesaModel.php';
 require_once __DIR__ . '/models/UserModel.php';
+require_once __DIR__ . '/models/PagoModel.php';
 require_once __DIR__ . '/helpers/TicketHelper.php';
 
 
@@ -59,21 +60,32 @@ foreach ($productos as $prod) {
     ];
     $total += $subtotal;
 }
-// Extraer el monto total pagado (puede ser varios métodos separados por coma)
-$metodos = explode(',', $venta['Metodo_Pago'] ?? '');
+// Obtener pagos desde la tabla 'pagos' si está disponible (no se realizan escrituras aquí)
+$pagoModel = new PagoModel();
+$pagos = $pagoModel->getPagosByVenta($idVenta);
 $totalPagado = 0;
-foreach ($metodos as $metodo) {
-    $partes = explode(':', $metodo);
-    if (isset($partes[1])) {
-        $totalPagado += floatval($partes[1]);
-    }
-}
+$cambio = 0;
+$metodoPagoStr = $venta['Metodo_Pago'] ?? 'N/A';
 $servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0;
-$cambio = $totalPagado > ($total + $servicio) ? $totalPagado - ($total + $servicio) : 0;
 $configModel = new ConfigModel();
 $nombreApp = $configModel->get('nombre_app') ?: 'RESTAURANTE';
 $moneda = $configModel->get('moneda') ?: 'C$';
 $impresora = $configModel->get('impresora_ticket') ?: $configModel->get('impresora_cocina'); // Cambia la clave si usas otra
+if ($pagos && is_array($pagos)) {
+    $metodosArr = [];
+    foreach ($pagos as $p) {
+        if ((int)$p['Es_Cambio'] === 1) {
+            $cambio += (float)$p['Monto'];
+        } else {
+            $totalPagado += (float)$p['Monto'];
+            $metodosArr[] = $p['Metodo'] . ':' . number_format((float)$p['Monto'], 2);
+        }
+    }
+    if (!empty($metodosArr)) $metodoPagoStr = implode(', ', $metodosArr);
+    if ($cambio <= 0 && $totalPagado > ($total + $servicio)) {
+        $cambio = $totalPagado - ($total + $servicio);
+    }
+}
 
 // Generar el texto del ticket
 $ticketTxt = TicketHelper::generarTicketVenta(
@@ -85,8 +97,8 @@ $ticketTxt = TicketHelper::generarTicketVenta(
     $usuario['Nombre_Completo'] ?? '',
     $venta['ID_Venta'],
     $moneda,
-    $venta['Metodo_Pago'] ?? 'N/A',
-    $cambio ?? 0,
+    $metodoPagoStr,
+    $cambio,
     $venta['Servicio'] ?? 0,
     false
 );

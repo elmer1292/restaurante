@@ -200,6 +200,31 @@ class MesaController extends BaseController {
         header('Content-Type: application/json');
         if ($res['success']) {
             echo json_encode(['success' => true, 'origen' => $res['origen'], 'message' => 'Traslado exitoso']);
+            // Si se solicitó, generar avisos a cocina/barra
+            try {
+                if ($imprimirAvisos) {
+                    require_once __DIR__ . '/../helpers/TicketHelper.php';
+                    require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
+                    // Obtener venta y detalles
+                    $venta = $ventaModel->getVentaConDetalles($idVenta);
+                    if ($venta) {
+                        // Generar comanda de TRASLADO para cocina y barra por separado
+                        $comandaCocina = TicketHelper::generarComandaTraslado($venta, $res['origen'], $idMesaDestino, 'cocina', 40);
+                        $comandaBarra = TicketHelper::generarComandaTraslado($venta, $res['origen'], $idMesaDestino, 'barra', 40);
+                        // Imprimir si hay contenido
+                        if (!empty(trim($comandaCocina))) {
+                            $ok = ImpresoraHelper::imprimir('impresora_cocina', $comandaCocina);
+                            if (!$ok) error_log('Aviso: fallo al imprimir comanda cocina para traslado venta ' . $idVenta);
+                        }
+                        if (!empty(trim($comandaBarra))) {
+                            $ok2 = ImpresoraHelper::imprimir('impresora_barra', $comandaBarra);
+                            if (!$ok2) error_log('Aviso: fallo al imprimir comanda barra para traslado venta ' . $idVenta);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                error_log('Error al generar/mandar avisos tras traslado: ' . $e->getMessage());
+            }
         } else {
             echo json_encode(['success' => false, 'error' => $res['error'] ?? 'Error desconocido']);
         }

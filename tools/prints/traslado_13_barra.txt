@@ -1,0 +1,11 @@
+
+   ====== AVISO TRASLADO BARRA ======   
+Usuario: Desconocido
+Venta ID: 13
+Cliente: C/F
+Hora: 2025-10-18 22:00:24
+Origen: 1  -> Destino: 2
+----------------------------------------
+1 x TOÑA
+----------------------------------------
+

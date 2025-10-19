@@ -150,6 +150,76 @@ class TicketHelper {
 
         return $out;
     }
+
+    /**
+     * Genera una comanda/aviso específica para traslado de mesa.
+     * Incluye mesa origen y destino y separa items por cocina/barra como en delivery.
+     * @param array $venta
+     * @param int|null $origen
+     * @param int|null $destino
+     * @param string $tipo 'cocina'|'barra'|'ambos'
+     * @param int $width
+     * @return string
+     */
+    public static function generarComandaTraslado($venta, $origen = null, $destino = null, $tipo = 'ambos', $width = 40) {
+        // Reusar la lógica de separación por categorías de generarComandaDelivery
+        $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+        $detalles = $venta['detalles'] ?? [];
+        $barra = [];
+        $cocina = [];
+        foreach ($detalles as $d) {
+            $cat = isset($d['Nombre_Categoria']) ? trim($d['Nombre_Categoria']) : (isset($d['categoria']) ? trim($d['categoria']) : '');
+            if ($cat !== '' && in_array($cat, $categoriasBarra)) $barra[] = $d; else $cocina[] = $d;
+        }
+
+        if ($tipo === 'barra' && empty($barra)) return '';
+        if ($tipo === 'cocina' && empty($cocina)) return '';
+
+        $usuario = isset($_SESSION['username']) ? $_SESSION['username'] : (isset($_SESSION['user']['Nombre_Completo']) ? $_SESSION['user']['Nombre_Completo'] : 'Desconocido');
+        $cliente = $venta['Nombre_Cliente'] ?? ($venta['cliente'] ?? 'Cliente');
+        $idVenta = $venta['ID_Venta'] ?? ($venta['id'] ?? '0');
+        $fecha = $venta['Fecha_Hora'] ?? date('Y-m-d H:i:s');
+
+        $out = "\n";
+        $buildSection = function($items, $sectionName) use ($width, $usuario, $cliente, $idVenta, $fecha, $origen, $destino) {
+            $s = "";
+            $s .= str_pad("====== AVISO TRASLADO $sectionName ======", $width, ' ', STR_PAD_BOTH) . "\n";
+            $s .= "Usuario: " . $usuario . "\n";
+            $s .= "Venta ID: " . $idVenta . "\n";
+            $s .= "Cliente: " . $cliente . "\n";
+            $s .= "Hora: " . $fecha . "\n";
+            $s .= "Origen: " . ($origen ?? 'N/A') . "  -> Destino: " . ($destino ?? 'N/A') . "\n";
+            $s .= str_repeat('-', $width) . "\n";
+            foreach ($items as $item) {
+                $qty = isset($item['Cantidad']) ? $item['Cantidad'] : (isset($item['cantidad']) ? $item['cantidad'] : 1);
+                $name = isset($item['Nombre_Producto']) ? $item['Nombre_Producto'] : (isset($item['nombre']) ? $item['nombre'] : 'Producto');
+                $prep = isset($item['Preparacion']) ? $item['Preparacion'] : (isset($item['preparacion']) ? $item['preparacion'] : '');
+                $line = $qty . ' x ' . mb_strtoupper($name);
+                $wrapped = wordwrap($line, $width, "\n", true);
+                $s .= $wrapped . "\n";
+                if (!empty($prep)) {
+                    $prepWrapped = wordwrap($prep, $width - 4, "\n", true);
+                    $lines = explode("\n", $prepWrapped);
+                    foreach ($lines as $l) {
+                        $s .= '   > ' . $l . "\n";
+                    }
+                }
+            }
+            $s .= str_repeat('-', $width) . "\n\n";
+            return $s;
+        };
+
+        if ($tipo === 'barra') {
+            $out .= $buildSection($barra, 'BARRA');
+        } elseif ($tipo === 'cocina') {
+            $out .= $buildSection($cocina, 'COCINA');
+        } else {
+            if (!empty($barra)) $out .= $buildSection($barra, 'BARRA');
+            if (!empty($cocina)) $out .= $buildSection($cocina, 'COCINA');
+        }
+
+        return $out;
+    }
     // Generar ticket de cierre de caja - ventas diarias
     public static function generarTicketCierreCaja($restaurante, $fechaInicio, $fechaFin, $totalEfectivo, $totalTarjeta, $totalVentas, $totalServicio, $totalGeneral, $empleado, $ticketId, $moneda) {
         $maxWidth = 35;

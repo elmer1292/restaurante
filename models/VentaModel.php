@@ -115,7 +115,11 @@ class VentaModel {
         try {
             // Si hay preparación, insertar directo, si no, usar el SP para compatibilidad
             if ($preparacion !== null && $preparacion !== '') {
-                $stmt = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND (preparacion IS NULL OR preparacion = ?) LIMIT 1');
+                // Normalizar la preparación: trim, colapsar espacios y comparar case-insensitive
+                $preparacion = preg_replace('/\s+/u', ' ', trim($preparacion));
+                // Buscar un detalle que tenga la misma preparación normalizada (case-insensitive).
+                // Usamos COLLATE utf8mb4_general_ci para igualdad insensible a mayúsculas y acentos en la mayoría de setups.
+                $stmt = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND preparacion COLLATE utf8mb4_general_ci = ? LIMIT 1');
                 $stmt->execute([$idVenta, $idProducto, $preparacion]);
                 $detalle = $stmt->fetch(PDO::FETCH_ASSOC);
                 if ($detalle && isset($detalle['ID_Detalle'])) {
@@ -123,6 +127,7 @@ class VentaModel {
                     $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = Cantidad + ?, Subtotal = (Cantidad + ?) * ? WHERE ID_Detalle = ?');
                     return $stmt->execute([$cantidad, $cantidad, $precioVenta, $detalle['ID_Detalle']]);
                 } else {
+                    // Insertar la preparación ya normalizada
                     $stmt = $this->conn->prepare('INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal, preparacion) VALUES (?, ?, ?, ?, ?, ?)');
                     return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta, $cantidad * $precioVenta, $preparacion]);
                 }

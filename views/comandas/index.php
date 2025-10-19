@@ -39,6 +39,9 @@
                                                     </span>
                                                 <?php endif; ?>
                                             </div>
+                                            <?php if (isset($item['preparacion']) && trim($item['preparacion']) !== ''): ?>
+                                                <div class="mt-2 ms-2 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2"><?php echo htmlspecialchars(trim($item['preparacion'])); ?></span></div>
+                                            <?php endif; ?>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>

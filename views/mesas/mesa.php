@@ -114,22 +114,25 @@ if (!isset($moneda)) {
                             <?php $total = 0;
                             foreach ($detalles as $detalle) {
                                 $total += $detalle['Subtotal']; ?>
-                                <li id="detalle-<?php echo $detalle['ID_Detalle']; ?>" class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-bold me-2"><?php echo htmlspecialchars($detalle['Nombre_Producto']); ?></span>
-                                        <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
-                                        <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
+                                <li id="detalle-<?php echo $detalle['ID_Detalle']; ?>" class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold me-2"><?php echo htmlspecialchars($detalle['Nombre_Producto']); ?></span>
+                                            <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
+                                            <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <?php if ($detalle['Cantidad'] > 1): ?>
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
+                                            <?php else: ?>
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, 1)">Eliminar</button>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                    <?php if (!empty($detalle['preparacion'])): ?>
-                                        <div class="text-muted small ms-3">Preparación: <?php echo htmlspecialchars($detalle['preparacion']); ?></div>
+                                    <?php if (isset($detalle['Preparacion']) && trim($detalle['Preparacion']) !== ''): ?>
+                                        <?php $prepTrim = trim($detalle['Preparacion']); ?>
+                                        <div class="mt-2 ms-3 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2"><?php echo htmlspecialchars($prepTrim); ?></span></div>
                                     <?php endif; ?>
-                                    <div class="d-flex gap-2">
-                                        <?php if ($detalle['Cantidad'] > 1): ?>
-                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
-                                        <?php else: ?>
-                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, 1)">Eliminar</button>
-                                        <?php endif; ?>
-                                    </div>
                                 </li>
                             <?php } ?>
                             <?php
@@ -211,10 +214,13 @@ function agregarProducto(nombre, cantidad, id, preparacion = '') {
     for (let btn of btns) {
         if (btn.dataset.id == id) {
             categoria = btn.dataset.categoria || '';
+            // Leer el flag is_food desde el dataset (valores '1'|'0' o 'true'|'false')
+            var isFoodRaw = btn.dataset.isFood;
+            var isFoodVal = (isFoodRaw === '1' || isFoodRaw === 'true' || isFoodRaw === 1 || isFoodRaw === true) ? '1' : '0';
             break;
         }
     }
-    productosAgregados.push({ nombre, cantidad, id, preparacion, categoria });
+    productosAgregados.push({ nombre, cantidad, id, preparacion, categoria, is_food: isFoodVal });
     renderListaProductosAgregados();
 }
 function eliminarProductoAgregado(idx) {
@@ -235,10 +241,17 @@ function enviarProductosComanda() {
             agrupados.push({ ...prod });
         }
     }
-    // Separar productos para barra y cocina según categoría
+    // Separar productos para barra y cocina según flag is_food (preferido).
+    // is_food === '1' => comida (cocina), '0' => bebida (barra)
     const categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
-    const productosBarra = agrupados.filter(p => categoriasBarra.includes((p.categoria || '').trim()));
-    const productosCocina = agrupados.filter(p => !categoriasBarra.includes((p.categoria || '').trim()));
+    const productosBarra = agrupados.filter(p => {
+        if (typeof p.is_food !== 'undefined') return String(p.is_food) === '0';
+        return categoriasBarra.includes((p.categoria || '').trim());
+    });
+    const productosCocina = agrupados.filter(p => {
+        if (typeof p.is_food !== 'undefined') return String(p.is_food) === '1';
+        return !categoriasBarra.includes((p.categoria || '').trim());
+    });
     let idMesaInput = document.querySelector('input[name="id_mesa"]');
     let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
@@ -400,15 +413,30 @@ function renderDetallesFromVenta(venta) {
     if (lista) lista.innerHTML = '';
     const detalles = venta.detalles || [];
     let subtotalCalc = 0;
+    // helper to escape text inserted into HTML
+    const escapeHtml = (str) => {
+        if (str === null || typeof str === 'undefined') return '';
+        return String(str).replace(/[&<>"'`]/g, function (s) {
+            return ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+                '`': '&#96;'
+            })[s];
+        });
+    };
+
     detalles.forEach(det => {
         subtotalCalc += Number(det.Subtotal || 0);
         const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.className = 'list-group-item';
         li.id = 'detalle-' + det.ID_Detalle;
-        let inner = '<div class="d-flex align-items-center"><span class="fw-bold me-2">' + (det.Nombre_Producto || '') + '</span>';
+        let inner = '<div class="d-flex justify-content-between align-items-center">';
+        inner += '<div class="d-flex align-items-center"><span class="fw-bold me-2">' + (det.Nombre_Producto || '') + '</span>';
         inner += '<span class="badge bg-secondary me-2">x' + (det.Cantidad || 0) + '</span>';
         inner += '<span class="text-success fw-bold">' + moneda + Number(det.Subtotal || 0).toFixed(2) + '</span></div>';
-    if (det.preparacion) inner += '<div class="text-muted small ms-3">Preparación: ' + det.preparacion + '</div>';
         inner += '<div class="d-flex gap-2">';
         const cant = Number(det.Cantidad || 0);
         if (cant > 1) {
@@ -416,8 +444,9 @@ function renderDetallesFromVenta(venta) {
         } else {
             inner += '<button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(' + det.ID_Detalle + ', 1)">Eliminar</button>';
         }
-        inner += '</div>';
-        li.innerHTML = inner;
+    inner += '</div></div>';
+    if (det.preparacion && String(det.preparacion).trim() !== '') inner += '<div class="mt-2 ms-3 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2">' + escapeHtml(det.preparacion) + '</span></div>';
+    li.innerHTML = inner;
         if (lista) lista.appendChild(li);
     });
     // Actualizar totales visibles usando valores oficiales si vienen en venta, si no usar el calculo local
@@ -498,12 +527,14 @@ function initProductButtons() {
             const id = parseInt(this.getAttribute('data-id'));
             const categoria = this.getAttribute('data-categoria');
             const precio = parseFloat(this.getAttribute('data-precio'));
-            productoSeleccionado = { nombre, id };
+            // Leer is_food del dataset, propagarlo y controlar la visibilidad del campo Preparación
+            const isFoodAttr = this.getAttribute('data-is-food');
+            const isFood = (isFoodAttr === '1' || isFoodAttr === 'true') ? '1' : '0';
+            productoSeleccionado = { nombre, id, is_food: isFood };
             productoSeleccionadoCategoria = categoria;
             productoSeleccionadoPrecio = precio;
             document.getElementById('inputCantidadProducto').value = 1;
             // Mostrar campo preparación si corresponde
-            const isFoodAttr = this.getAttribute('data-is-food');
             if (isFoodAttr !== null) {
                 if (isFoodAttr === '1' || isFoodAttr === 'true') {
                     document.getElementById('preparacionContainer').style.display = '';
@@ -524,13 +555,13 @@ function initProductButtons() {
             e.preventDefault();
             const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
             const preparacion = document.getElementById('inputPreparacion').value.trim();
-            if (productoSeleccionado && cantidad > 0) {
+                if (productoSeleccionado && cantidad > 0) {
                 // Si ya existe con la misma preparación, suma la cantidad
                 let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id && (p.preparacion || '') === preparacion);
                 if (idx !== -1) {
                     productosAgregados[idx].cantidad += cantidad;
                 } else {
-                    productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion });
+                    productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion, is_food: productoSeleccionado.is_food });
                 }
                 renderListaProductosAgregados();
                 // Limpiar campo preparación y cantidad

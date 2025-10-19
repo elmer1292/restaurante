@@ -177,6 +177,17 @@ class ComandaAjaxController extends BaseController {
                     // Crear la venta (comanda)
                     $idEmpleado = isset($_SESSION['empleado_id']) ? $_SESSION['empleado_id'] : null;
                     $idVenta = $ventaModel->createSale(1, $idMesa, 'Efectivo', $idEmpleado); // Cliente por defecto: 1
+                    // Guardar el monto de servicio inicial en la venta (aunque sea 0), para que esté persistido desde la creación
+                    require_once __DIR__ . '/../models/ConfigModel.php';
+                    $configModel = new ConfigModel();
+                    $servicioPct = (float)($configModel->get('servicio') ?? 0);
+                    // Actualizar total y servicio
+                    $ventaModel->actualizarTotal($idVenta);
+                    $ventaTmp = $ventaModel->getVentaById($idVenta);
+                    $totalTmp = isset($ventaTmp['Total']) ? (float)$ventaTmp['Total'] : 0.0;
+                    $servicioMonto = $totalTmp * $servicioPct;
+                    $stmtSvc = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
+                    $stmtSvc->execute([$servicioMonto, $idVenta]);
                     // Agregar productos si existen
                     if (!empty($productos)) {
                         foreach ($productos as $p) {

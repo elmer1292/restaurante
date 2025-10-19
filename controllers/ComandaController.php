@@ -63,24 +63,56 @@ class ComandaController extends BaseController {
             echo json_encode(['success' => false, 'error' => 'Mesa no especificada']);
             exit;
         }
-        // Si se reciben productos nuevos, filtrar por tipo (barra/cocina) según categoría
+        // Si se reciben productos nuevos, filtrar por tipo (barra/cocina) según is_food del producto en la BD
         if ($productosNuevos) {
-            // Categorías que van a barra
-            $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
-            if ($tipo === 'barra') {
-                $comanda = array_values(array_filter($productosNuevos, function($p) use ($categoriasBarra) {
-                    return isset($p['categoria']) && in_array(trim($p['categoria']), $categoriasBarra);
-                }));
-            } else {
-                $comanda = array_values(array_filter($productosNuevos, function($p) use ($categoriasBarra) {
-                    return !isset($p['categoria']) || !in_array(trim($p['categoria']), $categoriasBarra);
-                }));
+            // Cargar productos desde BD para validar is_food
+            require_once dirname(__DIR__, 1) . '/models/ProductModel.php';
+            $productModel = new ProductModel();
+            $allProducts = $productModel->getAllProducts();
+            $byId = [];
+            $byName = [];
+            foreach ($allProducts as $prod) {
+                if (isset($prod['ID_Producto'])) $byId[(int)$prod['ID_Producto']] = $prod;
+                if (isset($prod['Nombre_Producto'])) $byName[strtolower(trim($prod['Nombre_Producto']))] = $prod;
             }
+
+            $comanda = [];
+            foreach ($productosNuevos as $p) {
+                $match = null;
+                // Preferir id si llega
+                if (isset($p['id']) && intval($p['id']) > 0 && isset($byId[intval($p['id'])])) {
+                    $match = $byId[intval($p['id'])];
+                } elseif (isset($p['Nombre_Producto']) && isset($byName[strtolower(trim($p['Nombre_Producto']))])) {
+                    $match = $byName[strtolower(trim($p['Nombre_Producto']))];
+                }
+                // Determinar is_food: preferir valor de BD si hay match, sino fallback a p['categoria'] o p['tipo']
+                $isFood = null;
+                if ($match && isset($match['is_food'])) {
+                    $isFood = ($match['is_food'] == 1 || $match['is_food'] === '1') ? 1 : 0;
+                } elseif (isset($p['categoria'])) {
+                    $cat = trim($p['categoria']);
+                    $catLower = strtolower($cat);
+                    $barCats = ['bebidas','licores','cockteles','cervezas'];
+                    $isFood = in_array($catLower, $barCats) ? 0 : 1;
+                }
+                // Decide inclusion according to requested tipo
+                if ($tipo === 'barra') {
+                    // want barra: include when isFood===0 or fallback category indicates barra
+                    if ($isFood === 0) $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Bebida')]);
+                } else {
+                    if ($isFood === 1 || $isFood === null) {
+                        // include cocina if is_food==1 or unknown (default to cocina)
+                        $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Comida')]);
+                    }
+                }
+            }
+
             // Si no hay productos válidos, responder éxito sin imprimir
             if (empty($comanda)) {
                 echo json_encode(['success' => true]);
                 exit;
             }
+
             // Obtener datos de la mesa y la venta para imprimir encabezado
             require_once dirname(__DIR__, 1) . '/models/MesaModel.php';
             require_once dirname(__DIR__, 1) . '/models/VentaModel.php';
@@ -142,11 +174,22 @@ class ComandaController extends BaseController {
                 $contenido .= "BEBIDAS:\n";
                 foreach ($bebidas as $item) {
                     $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
+                    // Preparación (si existe)
+                    $prep = '';
+                    if (isset($item['preparacion'])) $prep = $item['preparacion'];
+                    elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
+                    $prep = trim((string)$prep);
+                    if ($prep !== '') $contenido .= "     > " . $prep . "\n";
                 }
             }
             if (count($otros) > 0) {
                 foreach ($otros as $item) {
                     $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
+                    $prep = '';
+                    if (isset($item['preparacion'])) $prep = $item['preparacion'];
+                    elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
+                    $prep = trim((string)$prep);
+                    if ($prep !== '') $contenido .= "     > " . $prep . "\n";
                 }
             }
         } else 
@@ -154,8 +197,12 @@ class ComandaController extends BaseController {
             foreach ($comanda as $item) {
                 $linea = $item['Cantidad'] . "x " . strtoupper($item['Nombre_Producto']) . "\n";
                 $contenido .= $linea;
-                if (!empty($item['Preparacion'])) {
-                    $contenido .= "   > " . trim($item['Preparacion']) . "\n";
+                $prep = '';
+                if (isset($item['preparacion'])) $prep = $item['preparacion'];
+                elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
+                $prep = trim((string)$prep);
+                if ($prep !== '') {
+                    $contenido .= "   > " . $prep . "\n";
                 }
             }
         }

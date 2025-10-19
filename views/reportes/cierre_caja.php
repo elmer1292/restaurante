@@ -191,4 +191,5 @@
     <?php endif; ?>
     <a href="<?= BASE_URL ?>reportes" class="btn btn-secondary btn-sm mt-3">Volver a reportes</a>
     <a href="<?= BASE_URL ?>imprimir_ticket_cierre.php?fecha=<?= htmlspecialchars($fecha) ?>" class="btn btn-primary btn-sm mt-3">Imprimir Ticket Cierre</a>
+    <a href="<?= BASE_URL ?>reportes/cierre_caja_export?fecha=<?= htmlspecialchars($fecha) ?>" class="btn btn-outline-secondary btn-sm mt-3 ms-2">Exportar cierre (HTML)</a>
 </div>

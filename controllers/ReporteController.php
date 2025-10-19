@@ -57,6 +57,29 @@ class ReporteController extends BaseController {
         $this->render('views/reportes/cierre_caja.php', compact('ventas', 'fecha', 'movimientos'));
     }
 
+    public function cierre_caja_export() {
+        $fecha = $_GET['fecha'] ?? date('Y-m-d');
+        $model = new ReporteModel();
+        $ventas = $model->getCierreCajaDiario($fecha);
+
+        // Obtener movimientos del día
+        require_once __DIR__ . '/../models/MovimientoModel.php';
+        $movModel = new MovimientoModel();
+        $movimientos = $movModel->obtenerMovimientos(null, $fecha, $fecha);
+
+        // Render view into a string
+        ob_start();
+        include __DIR__ . '/../views/reportes/cierre_caja_export.php';
+        $html = ob_get_clean();
+
+        // Send headers to force download as HTML file (browser can save as .html or print to PDF)
+        $filename = 'cierre_caja_' . $fecha . '.html';
+        header('Content-Type: text/html; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        echo $html;
+        exit;
+    }
+
         public function imprimir_ticket_productos_vendidos() {
         require_once __DIR__ . '/../helpers/TicketHelper.php';
         require_once __DIR__ . '/../config/Session.php';

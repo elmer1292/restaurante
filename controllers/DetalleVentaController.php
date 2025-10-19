@@ -101,10 +101,10 @@ class DetalleVentaController extends BaseController {
                     $contenido .= "Motivo: Eliminado desde el detalle\n";
                     $contenido .= "--------------------------\n";
                     // save debug copy
-                    $printsDir = __DIR__ . '/../tools/prints';
+                    /*$printsDir = __DIR__ . '/../tools/prints';
                     if (!is_dir($printsDir)) @mkdir($printsDir, 0755, true);
                     $fileName = $printsDir . '/eliminacion_' . $dest . '_mesa_' . $idVenta . '_' . date('Ymd_His') . '.txt';
-                    @file_put_contents($fileName, $contenido);
+                    @file_put_contents($fileName, $contenido);*/
                     $clave = $dest === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
                     @ImpresoraHelper::imprimir($clave, $contenido);
                 } catch (Exception $e) {

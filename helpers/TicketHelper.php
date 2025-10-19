@@ -100,8 +100,27 @@ class TicketHelper {
      * @return string Contenido listo para imprimir
      */
     public static function generarComandaDelivery($venta, $tipo = 'ambos', $width = 40) {
-        // Categorías que van a barra
+        // Intentar cargar categorías desde la base de datos para identificar las que van a barra (is_food = 0)
         $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+        try {
+            if (!class_exists('ProductModel')) require_once dirname(__DIR__, 1) . '/models/ProductModel.php';
+            $pm = new ProductModel();
+            $cats = $pm->getAllCategories();
+            if (is_array($cats) && count($cats) > 0) {
+                $categoriasBarra = [];
+                foreach ($cats as $c) {
+                    // Suponer que la columna is_food indica si es comida (1) o bebida (0)
+                    if (isset($c['is_food']) && intval($c['is_food']) === 0) {
+                        $categoriasBarra[] = $c['Nombre_Categoria'];
+                    }
+                }
+                // Si la consulta devuelve categorías pero ninguna marcada como barra, mantener el fallback
+                if (empty($categoriasBarra)) $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+            }
+        } catch (Exception $e) {
+            // fallback silencioso al arreglo por defecto
+            $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+        }
 
         $detalles = $venta['detalles'] ?? [];
         $barra = [];
@@ -173,8 +192,24 @@ class TicketHelper {
      * @return string
      */
     public static function generarComandaTraslado($venta, $origen = null, $destino = null, $tipo = 'ambos', $width = 40) {
-        // Separación por is_food cuando esté disponible; si no, fallback a categoría
+        // Intentar cargar categorías desde la base de datos para identificar las que van a barra (is_food = 0)
         $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+        try {
+            if (!class_exists('ProductModel')) require_once dirname(__DIR__, 1) . '/models/ProductModel.php';
+            $pm = new ProductModel();
+            $cats = $pm->getAllCategories();
+            if (is_array($cats) && count($cats) > 0) {
+                $categoriasBarra = [];
+                foreach ($cats as $c) {
+                    if (isset($c['is_food']) && intval($c['is_food']) === 0) {
+                        $categoriasBarra[] = $c['Nombre_Categoria'];
+                    }
+                }
+                if (empty($categoriasBarra)) $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+            }
+        } catch (Exception $e) {
+            $categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
+        }
         $detalles = $venta['detalles'] ?? [];
         $barra = [];
         $cocina = [];

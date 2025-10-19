@@ -5,6 +5,9 @@ CREATE TABLE `categorias` (
   `Nombre_Categoria` varchar(50) NOT NULL,
   PRIMARY KEY (`ID_Categoria`)
 );
+-- Add column (tinyint used for maximum compatibility)
+ALTER TABLE categorias
+  ADD COLUMN is_food TINYINT(1) NOT NULL DEFAULT 1;
 
 CREATE TABLE `clientes` (
   `ID_Cliente` int NOT NULL AUTO_INCREMENT,

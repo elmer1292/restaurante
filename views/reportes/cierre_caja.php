@@ -111,7 +111,9 @@
     require_once dirname(__DIR__, 2) . '/models/MovimientoModel.php';
     $movModel = new MovimientoModel();
     $ingresos = $movModel->obtenerIngresosNoVentas($fecha);
-    $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos;
+    // Restar el total de cambios entregados al efectivo a entregar
+    $totalesCambio = $totalesCambio ?? 0.0;
+    $efectivoEntregar = $apertura + $ingresos + $totalesPago['Efectivo'] - $egresos - $totalesCambio;
     ?>
 
     <div class="row mb-4">
@@ -124,6 +126,7 @@
                         <tr><th>Ingresos (no ventas)</th><td class="text-end">C$ <?= number_format($ingresos, 2) ?></td></tr>
                         <tr><th>Egresos</th><td class="text-end">C$ <?= number_format($egresos, 2) ?></td></tr>
                         <tr class="table-info"><th>Efectivo por Ventas</th><td class="text-end">C$ <?= number_format($totalesPago['Efectivo'], 2) ?></td></tr>
+                        <tr class="table-info"><th>Cambio entregado</th><td class="text-end">C$ <?= number_format($totalesCambio, 2) ?></td></tr>
                         <tr class="table-success fw-bold"><th>Efectivo a Entregar</th><td class="text-end">C$ <?= number_format($efectivoEntregar, 2) ?></td></tr>
                     </table>
                 </div>

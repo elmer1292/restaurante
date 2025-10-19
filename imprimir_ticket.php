@@ -112,7 +112,9 @@ try {
     $printer->cut();
     $printer->pulse(); // Abre el cajón de dinero
     $printer->close();
-    echo 'Ticket enviado a la impresora.';
+    //redirigir a ventas
+    header('Location: ventas');
+    exit();
 } catch (Exception $e) {
     echo 'Error al imprimir: ' . $e->getMessage();
 }

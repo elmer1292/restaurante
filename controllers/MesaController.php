@@ -147,5 +147,90 @@ class MesaController extends BaseController {
         $userRole = Session::getUserRole();
         $this->render('views/mesas/mesa.php', compact('mesa', 'comanda', 'mostrarCrearComanda', 'detalles', 'csrf_token', 'idMesa', 'userRole'));
     }
+    /**
+     * Endpoint AJAX para trasladar una venta a otra mesa
+     * POST params: id_venta, id_mesa_destino, imprimir_avisos (optional), csrf_token
+     */
+    public function trasladar() {
+        require_once __DIR__ . '/../helpers/Csrf.php';
+        require_once __DIR__ . '/../helpers/Validator.php';
+        Session::init();
+        // No usar checkRole porque hace redirect HTML; para AJAX devolvemos JSON
+        if (!Session::isLoggedIn()) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'No autenticado']);
+            exit;
+        }
+        $userRole = Session::getUserRole();
+        if (!in_array($userRole, ['Administrador', 'Mesero'])) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            exit;
+        }
+
+        $csrfToken = Validator::get($_POST, 'csrf_token', Validator::get($_SERVER, 'HTTP_X_CSRF_TOKEN', ''));
+        if (!Csrf::validateToken($csrfToken)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'CSRF token inválido']);
+            exit;
+        }
+
+        $idVenta = Validator::int(Validator::get($_POST, 'id_venta'));
+        $idMesaDestino = Validator::int(Validator::get($_POST, 'id_mesa_destino'));
+        $imprimirAvisos = Validator::get($_POST, 'imprimir_avisos', '0') === '1' || Validator::get($_POST, 'imprimir_avisos', false) === true;
+
+        if (!$idVenta || !$idMesaDestino) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Parámetros insuficientes']);
+            exit;
+        }
+
+    $ventaModel = new VentaModel();
+    $userId = Session::get('user_id');
+        $res = $ventaModel->trasladarVentaAMesa($idVenta, $idMesaDestino, $userId);
+
+        header('Content-Type: application/json');
+        if ($res['success']) {
+            echo json_encode(['success' => true, 'origen' => $res['origen'], 'message' => 'Traslado exitoso']);
+        } else {
+            echo json_encode(['success' => false, 'error' => $res['error'] ?? 'Error desconocido']);
+        }
+        exit;
+    }
+    /**
+     * Devuelve mesas libres (Estado = 0) en JSON para poblar el modal de traslado
+     */
+    public function listarLibres() {
+        Session::init();
+        // Para llamadas AJAX devolvemos JSON en lugar de redirect
+        if (!Session::isLoggedIn()) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'No autenticado']);
+            exit;
+        }
+        $userRole = Session::getUserRole();
+        if (!in_array($userRole, ['Administrador', 'Mesero', 'Cajero'])) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+            exit;
+        }
+
+        $mesaModel = new MesaModel();
+        $mesas = $mesaModel->getAllTables();
+        $libres = array_filter($mesas, function($m) { return isset($m['Estado']) && (int)$m['Estado'] === 0; });
+        header('Content-Type: application/json');
+        echo json_encode(array_values($libres));
+        exit;
+    }
     
 }

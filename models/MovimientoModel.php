@@ -29,6 +29,26 @@ class MovimientoModel {
     }
 
     /**
+     * Registrar movimiento usando una conexión PDO ya existente (participa en la transacción externa)
+     * @param PDO $conn
+     * @param string $tipo
+     * @param float $monto
+     * @param string|null $descripcion
+     * @param int|null $idUsuario
+     * @param int|null $idVenta
+     * @return bool
+     */
+    public static function registrarMovimientoConConn($conn, $tipo, $monto, $descripcion = null, $idUsuario = null, $idVenta = null) {
+        try {
+            $stmt = $conn->prepare('INSERT INTO movimientos (Tipo, Monto, Descripcion, ID_Usuario, ID_Venta) VALUES (?, ?, ?, ?, ?)');
+            return $stmt->execute([$tipo, $monto, $descripcion, $idUsuario, $idVenta]);
+        } catch (PDOException $e) {
+            error_log('Error en registrarMovimientoConConn: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Obtiene todos los movimientos, con filtros opcionales
      * @param string|null $tipo
      * @param string|null $fechaDesde formato 'Y-m-d'

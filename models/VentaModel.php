@@ -303,11 +303,12 @@ class VentaModel {
             }
 
             // Registrar movimiento/auditoría
+            // Registrar movimiento/auditoría usando la misma conexión para participar en la transacción
             try {
                 require_once __DIR__ . '/MovimientoModel.php';
-                $mov = new MovimientoModel();
                 $desc = 'Traslado venta ID ' . $idVenta . ' de mesa ' . ($idMesaOrigen ?? 'N/A') . ' a mesa ' . $idMesaDestino;
-                $mov->registrarMovimiento('Traslado', 0, $desc, $idUsuario, $idVenta);
+                // Registrar mediante el método estático que usa la conexión proporcionada
+                MovimientoModel::registrarMovimientoConConn($this->conn, 'Traslado', 0, $desc, $idUsuario, $idVenta);
             } catch (Exception $e) {
                 // No fatal: solo log
                 error_log('Aviso: no se pudo registrar movimiento de traslado: ' . $e->getMessage());

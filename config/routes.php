@@ -42,6 +42,9 @@ $router->add('user/update', 'UserController', 'actualizarPerfil');
 $router->add('mesas/dividir_cuenta', 'MesaController', 'dividirCuenta');
 
 $router->add('mesas/procesar_mesa', 'MesaController', 'procesarMesa');
+// Endpoints added for trasladar feature
+$router->add('mesas/listar_libres', 'MesaController', 'listarLibres');
+$router->add('mesas/trasladar', 'MesaController', 'trasladar');
 
 $router->add('caja/apertura', 'CajaController', 'apertura');
 $router->add('caja/cierre', 'CajaController', 'cierre');

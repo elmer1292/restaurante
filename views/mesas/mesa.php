@@ -564,4 +564,152 @@ if (document.readyState === 'loading') {
 }
 
 // Eliminado: lógica y referencias al modal de dividir cuenta y parciales
+
+// --- Trasladar mesa: botón/modal/JS ---
+// Insertar botón si hay comanda y usuario con permisos
+(() => {
+    const userRole = <?php echo json_encode($userRole ?? ''); ?>;
+    const comandaId = <?php echo json_encode($comanda ? $comanda['ID_Venta'] : null); ?>;
+    const currentMesaId = <?php echo json_encode($mesa['ID_Mesa']); ?>;
+    if (comandaId && (userRole === 'Administrador' || userRole === 'Mesero' || userRole === 'Cajero')) {
+        const container = document.querySelector('.card-body h2')?.parentElement;
+        if (container) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline-secondary mb-3 ms-2';
+            btn.textContent = 'Trasladar mesa';
+            btn.type = 'button';
+            btn.addEventListener('click', () => {
+                showTrasladarModal();
+            });
+            // Insert before the action links
+            const actionLinks = container.querySelectorAll('a');
+            if (actionLinks.length > 0) actionLinks[0].before(btn);
+            else container.appendChild(btn);
+        }
+    }
+
+    // Modal HTML (append once)
+    function ensureModalExists() {
+        if (document.getElementById('modalTrasladarMesa')) return;
+        const html = `
+        <div class="modal fade" id="modalTrasladarMesa" tabindex="-1" aria-labelledby="modalTrasladarMesaLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalTrasladarMesaLabel">Trasladar mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <form id="formTrasladarMesa">
+              <div class="modal-body">
+                <input type="hidden" name="id_venta" value="${comandaId}">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                <div class="mb-3">
+                  <label for="selectMesaDestino" class="form-label">Mesa destino</label>
+                  <select id="selectMesaDestino" name="id_mesa_destino" class="form-select" required>
+                    <option value="">Cargando mesas libres...</option>
+                  </select>
+                </div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" value="1" id="checkImprimirAvisos" name="imprimir_avisos">
+                  <label class="form-check-label" for="checkImprimirAvisos">Imprimir avisos a cocina/barra</label>
+                </div>
+                <div id="trasladoError" class="alert alert-danger d-none"></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar traslado</button>
+              </div>
+              </form>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+        const form = document.getElementById('formTrasladarMesa');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitTrasladoForm(this);
+        });
+    }
+
+    function showTrasladarModal() {
+        ensureModalExists();
+        const select = document.getElementById('selectMesaDestino');
+        select.innerHTML = '<option value="">Cargando mesas libres...</option>';
+        fetch('<?php echo BASE_URL; ?>mesas/listar_libres', { credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                select.innerHTML = '';
+                if (!Array.isArray(data) || data.length === 0) {
+                    select.innerHTML = '<option value="">No hay mesas libres</option>';
+                    return;
+                }
+                data.forEach(m => {
+                    // Excluir la mesa actual si aparece
+                    if (String(m.ID_Mesa) === String(currentMesaId)) return;
+                    const opt = document.createElement('option');
+                    opt.value = m.ID_Mesa;
+                    opt.textContent = 'Mesa ' + (m.Numero_Mesa ?? m.ID_Mesa) + (m.Capacidad ? ' — ' + m.Capacidad + ' pers.' : '');
+                    select.appendChild(opt);
+                });
+            }).catch(() => {
+                select.innerHTML = '<option value="">Error al cargar mesas</option>';
+            }).finally(() => {
+                const modal = new bootstrap.Modal(document.getElementById('modalTrasladarMesa'));
+                modal.show();
+            });
+    }
+
+    function submitTrasladoForm(form) {
+        const idVenta = form.id_venta.value;
+        const idMesaDestino = form.id_mesa_destino.value;
+        const csrf = form.csrf_token.value;
+        const imprimir = document.getElementById('checkImprimirAvisos').checked ? '1' : '0';
+        const errorDiv = document.getElementById('trasladoError');
+        errorDiv.classList.add('d-none');
+        errorDiv.textContent = '';
+        if (!idMesaDestino) {
+            errorDiv.textContent = 'Seleccione una mesa destino.';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+        fetch('<?php echo BASE_URL; ?>mesas/trasladar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'same-origin',
+            body: new URLSearchParams({ id_venta: idVenta, id_mesa_destino: idMesaDestino, imprimir_avisos: imprimir, csrf_token: csrf })
+        })
+        .then(async res => {
+            const txt = await res.text();
+            // Try parse JSON if possible
+            try {
+                const data = JSON.parse(txt || '{}');
+                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+                return data;
+            } catch (e) {
+                // Not JSON or parsing failed
+                if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (txt || res.statusText));
+                try {
+                    return JSON.parse(txt);
+                } catch (e2) {
+                    return { success: false, error: txt || 'Respuesta inesperada' };
+                }
+            }
+        })
+        .then(data => {
+            if (data && data.success) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalTrasladarMesa'));
+                modal.hide();
+                window.location.href = '<?php echo BASE_URL; ?>mesas';
+            } else {
+                errorDiv.textContent = (data && (data.error || data.message)) || 'Error desconocido';
+                errorDiv.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            errorDiv.textContent = err.message || 'Error de comunicación con el servidor.';
+            errorDiv.classList.remove('d-none');
+            console.error('Traslado error:', err);
+        });
+    }
+})();
 </script>

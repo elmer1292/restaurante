@@ -101,7 +101,7 @@ if (!isset($moneda)) {
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">Productos en la Mesa</h5></div>
             <div class="card-body">
-                <h2>Detalle de Mesa #<?php echo htmlspecialchars($mesa['Numero_Mesa']); ?></h2>
+                <h2 id="detalle-mesa-titulo">Detalle de Mesa #<?php echo htmlspecialchars($mesa['Numero_Mesa']); ?></h2>
                 <p>Capacidad: <?php echo htmlspecialchars($mesa['Capacidad']); ?> personas</p>
                 <?php if ($comanda) {
                     if (!$detalles || count($detalles) === 0) { ?>
@@ -567,12 +567,14 @@ if (document.readyState === 'loading') {
 
 // --- Trasladar mesa: botón/modal/JS ---
 // Insertar botón si hay comanda y usuario con permisos
-(() => {
+    (() => {
     const userRole = <?php echo json_encode($userRole ?? ''); ?>;
     const comandaId = <?php echo json_encode($comanda ? $comanda['ID_Venta'] : null); ?>;
     const currentMesaId = <?php echo json_encode($mesa['ID_Mesa']); ?>;
     if (comandaId && (userRole === 'Administrador' || userRole === 'Mesero' || userRole === 'Cajero')) {
-        const container = document.querySelector('.card-body h2')?.parentElement;
+        // Target the specific Detalle de Mesa header to avoid ambiguous selectors
+        const titulo = document.getElementById('detalle-mesa-titulo');
+        const container = titulo ? titulo.parentElement : null;
         if (container) {
             const btn = document.createElement('button');
             btn.className = 'btn btn-outline-secondary mb-3 ms-2';

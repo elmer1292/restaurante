@@ -75,7 +75,7 @@ try {
                             <?php endforeach; endif; ?>
                         </ul>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span><b>Total:</b> C$<?= number_format($venta['Total'] + ($config['servicio'] * $venta['Total']), 2) ?> servicio incluido</span>
+                            <span><b>Total:</b> C$<?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?> servicio incluido</span>
                             <!-- Botón para abrir el modal de pago -->
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pagoModal<?= $venta['ID_Venta'] ?>">Registrar Pago</button>
                         </div>
@@ -182,17 +182,12 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
         }
         let totalConServicio = subtotal + servicioMonto;
 
-        // Actualizar los saldos mostrados
+        // Actualizar los saldos mostrados (no sobreescribir inputs de usuario)
         const saldoElem = document.getElementById('saldoPendiente' + idVenta);
         const saldoConServicioElem = document.getElementById('saldoPendienteConServicio' + idVenta);
-        if (incluirServicio) {
-            if(saldoElem && saldoConServicioElem){
-                saldoElem.textContent = saldoConServicioElem.textContent;
-            }
-        } else {
-            if(saldoElem){
-                saldoElem.textContent = subtotal.toFixed(2);
-            }
+        if (saldoElem && saldoConServicioElem) {
+            saldoElem.textContent = subtotal.toFixed(2);
+            saldoConServicioElem.textContent = totalConServicio.toFixed(2);
         }
 
         // Recolectar métodos y montos de pago

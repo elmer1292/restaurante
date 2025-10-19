@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
 require_once dirname(__DIR__, 2) . '/models/VentaModel.php';
 require_once dirname(__DIR__, 2) . '/models/MesaModel.php';
 require_once dirname(__DIR__, 2) . '/models/UserModel.php';
+require_once dirname(__DIR__, 2) . '/models/PagoModel.php';
 require_once dirname(__DIR__, 2) . '/helpers/TicketHelper.php';
 
 $configModel = new ConfigModel();
@@ -35,17 +36,37 @@ foreach ($productos as $prod) {
     $total += $subtotal;
 }
 
-// Extraer el monto total pagado (puede ser varios métodos separados por coma: "Efectivo:300, Tarjeta:100")
-$metodos = array_filter(array_map('trim', explode(',', $venta['Metodo_Pago'] ?? '')));
+// Obtener pagos desde la tabla 'pagos' si existe
+$pagoModel = new PagoModel();
+$pagos = $pagoModel->getPagosByVenta($idVenta);
 $totalPagado = 0.0;
-foreach ($metodos as $metodo) {
-    $partes = explode(':', $metodo);
-    if (isset($partes[1])) {
-        $totalPagado += floatval(trim($partes[1]));
+$cambio = 0.0;
+$metodoPagoStr = $venta['Metodo_Pago'] ?? 'N/A';
+$servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0.0;
+if ($pagos && is_array($pagos)) {
+    foreach ($pagos as $p) {
+        if ((int)$p['Es_Cambio'] === 1) {
+            // Cambio se guarda como pago con Es_Cambio=1, restarlo del totalPagado efectivo recibido
+            $cambio += (float)$p['Monto'];
+        } else {
+            $totalPagado += (float)$p['Monto'];
+        }
+    }
+    // Si hay registros de pago, preferir mostrar los métodos concatenados a partir de la tabla pagos
+    $metodosArr = [];
+    foreach ($pagos as $p) {
+        if ((int)$p['Es_Cambio'] === 0) {
+            $metodosArr[] = $p['Metodo'] . ':' . number_format((float)$p['Monto'], 2);
+        }
+    }
+    if (!empty($metodosArr)) {
+        $metodoPagoStr = implode(', ', $metodosArr);
+    }
+    // calcular cambio real si no vino explícitamente como registro Es_Cambio
+    if ($cambio <= 0 && $totalPagado > ($total + $servicio)) {
+        $cambio = $totalPagado - ($total + $servicio);
     }
 }
-$servicio = isset($venta['Servicio']) ? floatval($venta['Servicio']) : 0.0;
-$cambio = $totalPagado > ($total + $servicio) ? $totalPagado - ($total + $servicio) : 0.0;
 
 $moneda = $configModel->get('moneda') ?: 'C$';
 $ticketTxt = TicketHelper::generarTicketVenta(

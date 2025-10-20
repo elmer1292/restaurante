@@ -101,7 +101,7 @@ if (!isset($moneda)) {
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white"><h5 class="mb-0">Productos en la Mesa</h5></div>
             <div class="card-body">
-                <h2 id="detalle-mesa-titulo">Detalle de Mesa #<?php echo htmlspecialchars($mesa['Numero_Mesa']); ?></h2>
+                <h2>Detalle de Mesa #<?php echo htmlspecialchars($mesa['Numero_Mesa']); ?></h2>
                 <p>Capacidad: <?php echo htmlspecialchars($mesa['Capacidad']); ?> personas</p>
                 <?php if ($comanda) {
                     if (!$detalles || count($detalles) === 0) { ?>
@@ -114,46 +114,39 @@ if (!isset($moneda)) {
                             <?php $total = 0;
                             foreach ($detalles as $detalle) {
                                 $total += $detalle['Subtotal']; ?>
-                                <li id="detalle-<?php echo $detalle['ID_Detalle']; ?>" class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <span class="fw-bold me-2"><?php echo htmlspecialchars($detalle['Nombre_Producto']); ?></span>
-                                            <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
-                                            <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <?php if ($detalle['Cantidad'] > 1): ?>
-                                                <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
-                                            <?php else: ?>
-                                                <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, 1)">Eliminar</button>
-                                            <?php endif; ?>
-                                        </div>
+                                <li id="detalle-<?php echo $detalle['ID_Detalle']; ?>" class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-bold me-2"><?php echo htmlspecialchars($detalle['Nombre_Producto']); ?></span>
+                                        <span class="badge bg-secondary me-2">x<?php echo $detalle['Cantidad']; ?></span>
+                                        <span class="text-success fw-bold">$<?php echo number_format($detalle['Subtotal'], 2); ?></span>
                                     </div>
-                                    <?php if (isset($detalle['Preparacion']) && trim($detalle['Preparacion']) !== ''): ?>
-                                        <?php $prepTrim = trim($detalle['Preparacion']); ?>
-                                        <div class="mt-2 ms-3 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2"><?php echo htmlspecialchars($prepTrim); ?></span></div>
+                                    <?php if (!empty($detalle['preparacion'])): ?>
+                                        <div class="text-muted small ms-3">Preparación: <?php echo htmlspecialchars($detalle['preparacion']); ?></div>
                                     <?php endif; ?>
+                                    <div class="d-flex gap-2">
+                                        <?php if ($detalle['Cantidad'] > 1): ?>
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, <?php echo $detalle['Cantidad']; ?>)">Eliminar</button>
+                                        <?php else: ?>
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(<?php echo $detalle['ID_Detalle']; ?>, 1)">Eliminar</button>
+                                        <?php endif; ?>
+                                    </div>
                                 </li>
                             <?php } ?>
                             <?php
-                            // Mostrar los totales usando los valores persistidos en la BD si la comanda existe.
+                            // Calcular servicio y total general usando la configuración
                             require_once dirname(__DIR__, 2) . '/models/ConfigModel.php';
                             $configModel = new ConfigModel();
                             $servicioPct = (float) ($configModel->get('servicio') ?? 0);
                             $moneda = $configModel->get('moneda') ?: 'C$';
-                            // Si la venta/comanda viene del controlador, preferir sus valores (DB authoritative)
-                            $dbTotal = isset($comanda['Total']) ? (float)$comanda['Total'] : $total;
-                            $dbServicio = isset($comanda['Servicio']) ? (float)$comanda['Servicio'] : ($dbTotal * $servicioPct);
-                            $displaySubtotal = $dbTotal;
-                            $displayServicio = $dbServicio;
-                            $totalConServicio = $displaySubtotal + $displayServicio;
+                            $servicioMonto = $total * $servicioPct;
+                            $totalConServicio = $total + $servicioMonto;
                             ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                <span>Subtotal</span><span id="subtotal-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($displaySubtotal, 2); ?></span>
+                                <span>Subtotal</span><span id="subtotal-venta" class="text-primary"><?php echo htmlspecialchars($moneda) . number_format($total, 2); ?></span>
                             </li>
                             <?php if ($servicioPct > 0): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span id="servicio-venta" class="text-success"><?php echo htmlspecialchars($moneda) . number_format($displayServicio, 2); ?></span>
+                                    <span>Servicio (<?php echo ($servicioPct * 100); ?>%)</span><span id="servicio-venta" class="text-success"><?php echo htmlspecialchars($moneda) . number_format($servicioMonto, 2); ?></span>
                                 </li>
                             <?php endif; ?>
                             <li class="list-group-item fw-bold d-flex justify-content-between align-items-center bg-white">
@@ -218,13 +211,10 @@ function agregarProducto(nombre, cantidad, id, preparacion = '') {
     for (let btn of btns) {
         if (btn.dataset.id == id) {
             categoria = btn.dataset.categoria || '';
-            // Leer el flag is_food desde el dataset (valores '1'|'0' o 'true'|'false')
-            var isFoodRaw = btn.dataset.isFood;
-            var isFoodVal = (isFoodRaw === '1' || isFoodRaw === 'true' || isFoodRaw === 1 || isFoodRaw === true) ? '1' : '0';
             break;
         }
     }
-    productosAgregados.push({ nombre, cantidad, id, preparacion, categoria, is_food: isFoodVal });
+    productosAgregados.push({ nombre, cantidad, id, preparacion, categoria });
     renderListaProductosAgregados();
 }
 function eliminarProductoAgregado(idx) {
@@ -245,17 +235,10 @@ function enviarProductosComanda() {
             agrupados.push({ ...prod });
         }
     }
-    // Separar productos para barra y cocina según flag is_food (preferido).
-    // is_food === '1' => comida (cocina), '0' => bebida (barra)
+    // Separar productos para barra y cocina según categoría
     const categoriasBarra = ['Bebidas', 'Licores', 'Cockteles', 'Cervezas'];
-    const productosBarra = agrupados.filter(p => {
-        if (typeof p.is_food !== 'undefined') return String(p.is_food) === '0';
-        return categoriasBarra.includes((p.categoria || '').trim());
-    });
-    const productosCocina = agrupados.filter(p => {
-        if (typeof p.is_food !== 'undefined') return String(p.is_food) === '1';
-        return !categoriasBarra.includes((p.categoria || '').trim());
-    });
+    const productosBarra = agrupados.filter(p => categoriasBarra.includes((p.categoria || '').trim()));
+    const productosCocina = agrupados.filter(p => !categoriasBarra.includes((p.categoria || '').trim()));
     let idMesaInput = document.querySelector('input[name="id_mesa"]');
     let csrfTokenInput = document.querySelector('input[name="csrf_token"]');
     let idMesa = idMesaInput ? idMesaInput.value : <?php echo json_encode($idMesa); ?>;
@@ -273,26 +256,37 @@ function enviarProductosComanda() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Intentar imprimir las comandas nuevas (barra / cocina) usando ComandaController::imprimirComanda
-            // Enviamos los productos agrupados para que el controlador filtre por tipo si es necesario
-            fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_mesa: idMesa, tipo: 'ambos', productos: agrupados })
-            }).then(r => r.json()).then(res => {
-                // No bloqueamos la recarga por fallos de impresión; mostramos mensaje si hubo error
-                if (res && res.success) {
-                    // opcional: puedes mostrar notificación de éxito
-                } else {
-                    console.warn('Error imprimiendo comanda:', res && res.error);
-                    // opcional: alert('Error al imprimir comanda: ' + (res && res.error || 'desconocido'));
-                }
-            }).catch(err => {
-                console.error('Error de red al imprimir comanda:', err);
-            }).finally(() => {
-                // Recargar la página para que la vista se actualice desde la BD
-                window.location.reload();
+            // Mapear productos a la estructura esperada por el backend
+            const mapProducto = p => ({
+                Cantidad: p.cantidad,
+                Nombre_Producto: p.nombre,
+                Preparacion: p.preparacion || '',
+                categoria: p.categoria || ''
             });
+            let promesas = [];
+            if (productosBarra.length > 0) {
+                promesas.push(
+                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'barra', productos: productosBarra.map(mapProducto) })
+                    }).then(res => res.json())
+                );
+            }
+            if (productosCocina.length > 0) {
+                promesas.push(
+                    fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mesa: idMesa, tipo: 'cocina', productos: productosCocina.map(mapProducto) })
+                    }).then(res => res.json())
+                );
+            }
+            Promise.all(promesas)
+                .catch(() => {})
+                .finally(() => {
+                    window.location.reload();
+                });
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }
@@ -406,32 +400,15 @@ function renderDetallesFromVenta(venta) {
     if (lista) lista.innerHTML = '';
     const detalles = venta.detalles || [];
     let subtotalCalc = 0;
-    // helper to escape text inserted into HTML
-    const escapeHtml = (str) => {
-        if (str === null || typeof str === 'undefined') return '';
-        return String(str).replace(/[&<>"'`]/g, function (s) {
-            return ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-                '`': '&#96;'
-            })[s];
-        });
-    };
-
     detalles.forEach(det => {
         subtotalCalc += Number(det.Subtotal || 0);
-        // Normalize preparación key: backend may return 'Preparacion' or 'preparacion'
-        det.preparacion = (typeof det.preparacion !== 'undefined' && det.preparacion !== null) ? det.preparacion : (typeof det.Preparacion !== 'undefined' ? det.Preparacion : '');
         const li = document.createElement('li');
-        li.className = 'list-group-item';
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
         li.id = 'detalle-' + det.ID_Detalle;
-        let inner = '<div class="d-flex justify-content-between align-items-center">';
-        inner += '<div class="d-flex align-items-center"><span class="fw-bold me-2">' + (det.Nombre_Producto || '') + '</span>';
+        let inner = '<div class="d-flex align-items-center"><span class="fw-bold me-2">' + (det.Nombre_Producto || '') + '</span>';
         inner += '<span class="badge bg-secondary me-2">x' + (det.Cantidad || 0) + '</span>';
         inner += '<span class="text-success fw-bold">' + moneda + Number(det.Subtotal || 0).toFixed(2) + '</span></div>';
+    if (det.preparacion) inner += '<div class="text-muted small ms-3">Preparación: ' + det.preparacion + '</div>';
         inner += '<div class="d-flex gap-2">';
         const cant = Number(det.Cantidad || 0);
         if (cant > 1) {
@@ -439,9 +416,8 @@ function renderDetallesFromVenta(venta) {
         } else {
             inner += '<button type="button" class="btn btn-sm btn-warning" onclick="eliminarProductoComanda(' + det.ID_Detalle + ', 1)">Eliminar</button>';
         }
-    inner += '</div></div>';
-    if (det.preparacion && String(det.preparacion).trim() !== '') inner += '<div class="mt-2 ms-3 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2">' + escapeHtml(det.preparacion) + '</span></div>';
-    li.innerHTML = inner;
+        inner += '</div>';
+        li.innerHTML = inner;
         if (lista) lista.appendChild(li);
     });
     // Actualizar totales visibles usando valores oficiales si vienen en venta, si no usar el calculo local
@@ -522,14 +498,12 @@ function initProductButtons() {
             const id = parseInt(this.getAttribute('data-id'));
             const categoria = this.getAttribute('data-categoria');
             const precio = parseFloat(this.getAttribute('data-precio'));
-            // Leer is_food del dataset, propagarlo y controlar la visibilidad del campo Preparación
-            const isFoodAttr = this.getAttribute('data-is-food');
-            const isFood = (isFoodAttr === '1' || isFoodAttr === 'true') ? '1' : '0';
-            productoSeleccionado = { nombre, id, is_food: isFood };
+            productoSeleccionado = { nombre, id };
             productoSeleccionadoCategoria = categoria;
             productoSeleccionadoPrecio = precio;
             document.getElementById('inputCantidadProducto').value = 1;
             // Mostrar campo preparación si corresponde
+            const isFoodAttr = this.getAttribute('data-is-food');
             if (isFoodAttr !== null) {
                 if (isFoodAttr === '1' || isFoodAttr === 'true') {
                     document.getElementById('preparacionContainer').style.display = '';
@@ -550,13 +524,13 @@ function initProductButtons() {
             e.preventDefault();
             const cantidad = parseInt(document.getElementById('inputCantidadProducto').value, 10);
             const preparacion = document.getElementById('inputPreparacion').value.trim();
-                if (productoSeleccionado && cantidad > 0) {
+            if (productoSeleccionado && cantidad > 0) {
                 // Si ya existe con la misma preparación, suma la cantidad
                 let idx = productosAgregados.findIndex(p => p.id === productoSeleccionado.id && (p.preparacion || '') === preparacion);
                 if (idx !== -1) {
                     productosAgregados[idx].cantidad += cantidad;
                 } else {
-                    productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion, is_food: productoSeleccionado.is_food });
+                    productosAgregados.push({ nombre: productoSeleccionado.nombre, cantidad, id: productoSeleccionado.id, categoria: productoSeleccionadoCategoria, precio: productoSeleccionadoPrecio, preparacion });
                 }
                 renderListaProductosAgregados();
                 // Limpiar campo preparación y cantidad
@@ -590,154 +564,4 @@ if (document.readyState === 'loading') {
 }
 
 // Eliminado: lógica y referencias al modal de dividir cuenta y parciales
-
-// --- Trasladar mesa: botón/modal/JS ---
-// Insertar botón si hay comanda y usuario con permisos
-    (() => {
-    const userRole = <?php echo json_encode($userRole ?? ''); ?>;
-    const comandaId = <?php echo json_encode($comanda ? $comanda['ID_Venta'] : null); ?>;
-    const currentMesaId = <?php echo json_encode($mesa['ID_Mesa']); ?>;
-    if (comandaId && (userRole === 'Administrador' || userRole === 'Mesero' || userRole === 'Cajero')) {
-        // Target the specific Detalle de Mesa header to avoid ambiguous selectors
-        const titulo = document.getElementById('detalle-mesa-titulo');
-        const container = titulo ? titulo.parentElement : null;
-        if (container) {
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-outline-secondary mb-3 ms-2';
-            btn.textContent = 'Trasladar mesa';
-            btn.type = 'button';
-            btn.addEventListener('click', () => {
-                showTrasladarModal();
-            });
-            // Insert before the action links
-            const actionLinks = container.querySelectorAll('a');
-            if (actionLinks.length > 0) actionLinks[0].before(btn);
-            else container.appendChild(btn);
-        }
-    }
-
-    // Modal HTML (append once)
-    function ensureModalExists() {
-        if (document.getElementById('modalTrasladarMesa')) return;
-        const html = `
-        <div class="modal fade" id="modalTrasladarMesa" tabindex="-1" aria-labelledby="modalTrasladarMesaLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="modalTrasladarMesaLabel">Trasladar mesa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-              </div>
-              <form id="formTrasladarMesa">
-              <div class="modal-body">
-                <input type="hidden" name="id_venta" value="${comandaId}">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
-                <div class="mb-3">
-                  <label for="selectMesaDestino" class="form-label">Mesa destino</label>
-                  <select id="selectMesaDestino" name="id_mesa_destino" class="form-select" required>
-                    <option value="">Cargando mesas libres...</option>
-                  </select>
-                </div>
-                <div class="form-check mb-2">
-                  <input class="form-check-input" type="checkbox" value="1" id="checkImprimirAvisos" name="imprimir_avisos">
-                  <label class="form-check-label" for="checkImprimirAvisos">Imprimir avisos a cocina/barra</label>
-                </div>
-                <div id="trasladoError" class="alert alert-danger d-none"></div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Confirmar traslado</button>
-              </div>
-              </form>
-            </div>
-          </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', html);
-        const form = document.getElementById('formTrasladarMesa');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitTrasladoForm(this);
-        });
-    }
-
-    function showTrasladarModal() {
-        ensureModalExists();
-        const select = document.getElementById('selectMesaDestino');
-        select.innerHTML = '<option value="">Cargando mesas libres...</option>';
-        fetch('<?php echo BASE_URL; ?>mesas/listar_libres', { credentials: 'same-origin' })
-            .then(res => res.json())
-            .then(data => {
-                select.innerHTML = '';
-                if (!Array.isArray(data) || data.length === 0) {
-                    select.innerHTML = '<option value="">No hay mesas libres</option>';
-                    return;
-                }
-                data.forEach(m => {
-                    // Excluir la mesa actual si aparece
-                    if (String(m.ID_Mesa) === String(currentMesaId)) return;
-                    const opt = document.createElement('option');
-                    opt.value = m.ID_Mesa;
-                    opt.textContent = 'Mesa ' + (m.Numero_Mesa ?? m.ID_Mesa) + (m.Capacidad ? ' — ' + m.Capacidad + ' pers.' : '');
-                    select.appendChild(opt);
-                });
-            }).catch(() => {
-                select.innerHTML = '<option value="">Error al cargar mesas</option>';
-            }).finally(() => {
-                const modal = new bootstrap.Modal(document.getElementById('modalTrasladarMesa'));
-                modal.show();
-            });
-    }
-
-    function submitTrasladoForm(form) {
-        const idVenta = form.id_venta.value;
-        const idMesaDestino = form.id_mesa_destino.value;
-        const csrf = form.csrf_token.value;
-        const imprimir = document.getElementById('checkImprimirAvisos').checked ? '1' : '0';
-        const errorDiv = document.getElementById('trasladoError');
-        errorDiv.classList.add('d-none');
-        errorDiv.textContent = '';
-        if (!idMesaDestino) {
-            errorDiv.textContent = 'Seleccione una mesa destino.';
-            errorDiv.classList.remove('d-none');
-            return;
-        }
-        fetch('<?php echo BASE_URL; ?>mesas/trasladar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            credentials: 'same-origin',
-            body: new URLSearchParams({ id_venta: idVenta, id_mesa_destino: idMesaDestino, imprimir_avisos: imprimir, csrf_token: csrf })
-        })
-        .then(async res => {
-            const txt = await res.text();
-            // Try parse JSON if possible
-            try {
-                const data = JSON.parse(txt || '{}');
-                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-                return data;
-            } catch (e) {
-                // Not JSON or parsing failed
-                if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (txt || res.statusText));
-                try {
-                    return JSON.parse(txt);
-                } catch (e2) {
-                    return { success: false, error: txt || 'Respuesta inesperada' };
-                }
-            }
-        })
-        .then(data => {
-            if (data && data.success) {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalTrasladarMesa'));
-                modal.hide();
-                window.location.href = '<?php echo BASE_URL; ?>mesas';
-            } else {
-                errorDiv.textContent = (data && (data.error || data.message)) || 'Error desconocido';
-                errorDiv.classList.remove('d-none');
-            }
-        })
-        .catch(err => {
-            errorDiv.textContent = err.message || 'Error de comunicación con el servidor.';
-            errorDiv.classList.remove('d-none');
-            console.error('Traslado error:', err);
-        });
-    }
-})();
 </script>

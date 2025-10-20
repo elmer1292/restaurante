@@ -48,9 +48,7 @@ class ComandaAjaxController extends BaseController {
                 $stmt = $conn->prepare('CALL sp_UpdateTableStatus(?, ?)');
                 $stmt->execute([$idMesa, 0]);
                 $conn->commit();
-                // Obtener venta actualizada con detalles para devolver al cliente
-                $ventaActualizada = $ventaModel->getVentaConDetalles($idVenta);
-                echo json_encode(['success' => true, 'venta' => $ventaActualizada]);
+                echo json_encode(['success' => true]);
             } catch (Exception $e) {
                 $conn->rollBack();
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -130,93 +128,7 @@ class ComandaAjaxController extends BaseController {
                 $stmt = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
                 $stmt->execute([$servicioMonto, $idVenta]);
                 $conn->commit();
-                // Devolver la venta actualizada con detalles para que el cliente pueda actualizar la UI
-                $ventaActualizada = $ventaModel->getVentaConDetalles($idVenta);
-
-                // Intentar imprimir las comandas nuevas (barra / cocina) usando el helper.
-                // No abortamos la operación si la impresión falla; solo lo intentamos y seguimos.
-                try {
-                    require_once __DIR__ . '/../helpers/ImpresoraHelper.php';
-                    // Reusar la lógica de filtrado por is_food similar a ComandaController::imprimirComanda
-                    $byId = [];
-                    $byName = [];
-                    $allProducts = $productModel->getAllProducts();
-                    foreach ($allProducts as $prod) {
-                        if (isset($prod['ID_Producto'])) $byId[(int)$prod['ID_Producto']] = $prod;
-                        if (isset($prod['Nombre_Producto'])) $byName[strtolower(trim($prod['Nombre_Producto']))] = $prod;
-                    }
-
-                    $comanda = [];
-                    foreach ($productos as $p) {
-                        $match = null;
-                        if (isset($p['id']) && intval($p['id']) > 0 && isset($byId[intval($p['id'])])) {
-                            $match = $byId[intval($p['id'])];
-                        } elseif (isset($p['nombre']) && isset($byName[strtolower(trim($p['nombre']))])) {
-                            $match = $byName[strtolower(trim($p['nombre']))];
-                        }
-                        $isFood = null;
-                        if ($match && isset($match['is_food'])) {
-                            $isFood = ($match['is_food'] == 1 || $match['is_food'] === '1') ? 1 : 0;
-                        } elseif (isset($p['categoria'])) {
-                            $cat = trim($p['categoria']);
-                            $catLower = strtolower($cat);
-                            $barCats = ['bebidas','licores','cockteles','cervezas'];
-                            $isFood = in_array($catLower, $barCats) ? 0 : 1;
-                        }
-                        if ($isFood === 0) {
-                            $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Bebida')]);
-                        } else {
-                            $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Comida')]);
-                        }
-                    }
-
-                    if (!empty($comanda)) {
-                        // Obtener datos de la mesa y la venta para encabezado
-                        require_once dirname(__DIR__, 1) . '/models/MesaModel.php';
-                        $mesaModel = new MesaModel();
-                        $mesa = $mesaModel->getTableById($idMesa);
-                        $numeroMesa = $mesa && isset($mesa['Numero_Mesa']) ? $mesa['Numero_Mesa'] : $idMesa;
-                        $fechaHora = $ventaActualizada && isset($ventaActualizada['Fecha_Hora']) ? $ventaActualizada['Fecha_Hora'] : date('Y-m-d H:i:s');
-                        $comanda[0]['Numero_Mesa'] = $numeroMesa;
-                        $comanda[0]['Fecha_Hora'] = $fechaHora;
-
-                        // Construir contenido para barra y cocina
-                        $contenidoBarra = "\n====== COMANDA BARRA ======\n";
-                        $contenidoCocina = "\n====== COMANDA COCINA ======\n";
-                        $usuario = isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido';
-                        $contenidoBarra .= "Usuario: " . $usuario . "\nMesa: " . $numeroMesa . "\nHora: " . $fechaHora . "\n--------------------------\n";
-                        $contenidoCocina .= "Usuario: " . $usuario . "\nMesa: " . $numeroMesa . "\nHora: " . $fechaHora . "\n--------------------------\n";
-
-                        foreach ($comanda as $item) {
-                            $qty = isset($item['cantidad']) ? $item['cantidad'] : (isset($item['Cantidad']) ? $item['Cantidad'] : 1);
-                            $name = isset($item['nombre']) ? $item['nombre'] : (isset($item['Nombre_Producto']) ? $item['Nombre_Producto'] : 'Producto');
-                            $prep = isset($item['preparacion']) ? $item['preparacion'] : (isset($item['Preparacion']) ? $item['Preparacion'] : '');
-                            $line = $qty . 'x ' . strtoupper($name) . "\n";
-                            if (isset($item['Tipo_Producto']) && strtolower($item['Tipo_Producto']) === 'bebida') {
-                                $contenidoBarra .= $line;
-                                if (trim((string)$prep) !== '') $contenidoBarra .= "   > " . $prep . "\n";
-                            } else {
-                                $contenidoCocina .= $line;
-                                if (trim((string)$prep) !== '') $contenidoCocina .= "   > " . $prep . "\n";
-                            }
-                        }
-                        $contenidoBarra .= "--------------------------\n\n";
-                        $contenidoCocina .= "--------------------------\n\n";
-
-                        // Intentar imprimir (ImpresoraHelper valida usar_impresora_* en config)
-                        if (trim($contenidoBarra) !== "\n====== COMANDA BARRA ======\n") {
-                            @ImpresoraHelper::imprimir('impresora_barra', $contenidoBarra);
-                        }
-                        if (trim($contenidoCocina) !== "\n====== COMANDA COCINA ======\n") {
-                            @ImpresoraHelper::imprimir('impresora_cocina', $contenidoCocina);
-                        }
-                    }
-                } catch (Exception $e) {
-                    // No interrumpir el flujo por errores de impresión; se podría loguear
-                    error_log('Error imprimiendo comanda desde agregarProductos: ' . $e->getMessage());
-                }
-
-                echo json_encode(['success' => true, 'venta' => $ventaActualizada]);
+                echo json_encode(['success' => true]);
             } catch (Exception $e) {
                 $conn->rollBack();
                 echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -265,17 +177,6 @@ class ComandaAjaxController extends BaseController {
                     // Crear la venta (comanda)
                     $idEmpleado = isset($_SESSION['empleado_id']) ? $_SESSION['empleado_id'] : null;
                     $idVenta = $ventaModel->createSale(1, $idMesa, 'Efectivo', $idEmpleado); // Cliente por defecto: 1
-                    // Guardar el monto de servicio inicial en la venta (aunque sea 0), para que esté persistido desde la creación
-                    require_once __DIR__ . '/../models/ConfigModel.php';
-                    $configModel = new ConfigModel();
-                    $servicioPct = (float)($configModel->get('servicio') ?? 0);
-                    // Actualizar total y servicio
-                    $ventaModel->actualizarTotal($idVenta);
-                    $ventaTmp = $ventaModel->getVentaById($idVenta);
-                    $totalTmp = isset($ventaTmp['Total']) ? (float)$ventaTmp['Total'] : 0.0;
-                    $servicioMonto = $totalTmp * $servicioPct;
-                    $stmtSvc = $conn->prepare('UPDATE ventas SET Servicio = ? WHERE ID_Venta = ?');
-                    $stmtSvc->execute([$servicioMonto, $idVenta]);
                     // Agregar productos si existen
                     if (!empty($productos)) {
                         foreach ($productos as $p) {

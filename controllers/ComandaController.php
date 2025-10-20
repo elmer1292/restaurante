@@ -228,8 +228,8 @@ class ComandaController extends BaseController {
             }
             $contenido .= "--------------------------\n\n";
             $timestamp = date('Ymd_His');
-            $fileName = $printsDir . '/comanda_' . $tipoLocal . '_mesa_' . $idMesa . '_' . $timestamp . '.txt';
-            @file_put_contents($fileName, $contenido);
+            // Debug files disabled: do not write comanda files to tools/prints
+            $fileName = null;
             $clave = $tipoLocal === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
             $ok = ImpresoraHelper::imprimir($clave, $contenido);
             return ['ok' => $ok, 'file' => $fileName, 'tipo' => $tipoLocal];

@@ -113,29 +113,48 @@ class VentaModel {
      */
     public function addSaleDetail($idVenta, $idProducto, $cantidad, $precioVenta, $preparacion = null) {
         try {
-            // Si hay preparación, insertar directo, si no, usar el SP para compatibilidad
-            if ($preparacion !== null && $preparacion !== '') {
-                // Normalizar la preparación: trim, colapsar espacios y comparar case-insensitive
-                $preparacion = preg_replace('/\s+/u', ' ', trim($preparacion));
-                // Buscar un detalle que tenga la misma preparación normalizada (case-insensitive).
-                // Usamos COLLATE utf8mb4_general_ci para igualdad insensible a mayúsculas y acentos en la mayoría de setups.
-                $stmt = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND preparacion COLLATE utf8mb4_general_ci = ? LIMIT 1');
-                $stmt->execute([$idVenta, $idProducto, $preparacion]);
+            // Normalizar y manejar preparación de forma robusta: trim, colapsar espacios.
+            $preparacion_display = null;
+            if ($preparacion !== null) {
+                $preparacion_display = preg_replace('/\s+/u', ' ', trim($preparacion));
+                // Si después de normalizar queda vacío, lo tratamos como sin preparación
+                if ($preparacion_display === '') $preparacion_display = null;
+            }
+
+            // Si hay preparación (no nula), buscar coincidencias usando comparación insensible a mayúsculas/acentos
+            if ($preparacion_display !== null) {
+                // Normalización para comparación (lowercase multibyte)
+                $preparacion_norm = mb_strtolower($preparacion_display, 'UTF-8');
+                // Buscar un detalle que tenga la misma preparación normalizada (case-insensitive, collation safe)
+                $stmt = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND LOWER(COALESCE(TRIM(preparacion), "")) COLLATE utf8mb4_general_ci = ? LIMIT 1');
+                $stmt->execute([$idVenta, $idProducto, $preparacion_norm]);
                 $detalle = $stmt->fetch(PDO::FETCH_ASSOC);
                 if ($detalle && isset($detalle['ID_Detalle'])) {
                     // Actualizar cantidad y subtotal si ya existe con la misma preparación
                     $stmt = $this->conn->prepare('UPDATE detalle_venta SET Cantidad = Cantidad + ?, Subtotal = (Cantidad + ?) * ? WHERE ID_Detalle = ?');
                     return $stmt->execute([$cantidad, $cantidad, $precioVenta, $detalle['ID_Detalle']]);
                 } else {
-                    // Insertar la preparación ya normalizada
+                    // Insertar la preparación ya normalizada (mostrar tal cual, no forcemos lowercase en DB)
                     $stmt = $this->conn->prepare('INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal, preparacion) VALUES (?, ?, ?, ?, ?, ?)');
-                    return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta, $cantidad * $precioVenta, $preparacion]);
+                    return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta, $cantidad * $precioVenta, $preparacion_display]);
                 }
-            } else {
-                // Sin preparación, usar SP existente
-                $stmt = $this->conn->prepare('CALL sp_AddSaleDetail(?, ?, ?, ?)');
-                return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta]);
             }
+
+            // Sin preparación, usar SP existente
+            // Si hay filas existentes para este producto con PREPARACIÓN no vacía,
+            // no debemos sumar la cantidad a una fila con preparación distinta.
+            // En ese caso insertamos un nuevo detalle sin preparación.
+            $stmtCheck = $this->conn->prepare('SELECT ID_Detalle FROM detalle_venta WHERE ID_Venta = ? AND ID_Producto = ? AND COALESCE(TRIM(preparacion), "") <> "" LIMIT 1');
+            $stmtCheck->execute([$idVenta, $idProducto]);
+            $existsWithPrep = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            if ($existsWithPrep && isset($existsWithPrep['ID_Detalle'])) {
+                $stmtIns = $this->conn->prepare('INSERT INTO detalle_venta (ID_Venta, ID_Producto, Cantidad, Precio_Venta, Subtotal, preparacion) VALUES (?, ?, ?, ?, ?, NULL)');
+                return $stmtIns->execute([$idVenta, $idProducto, $cantidad, $precioVenta, $cantidad * $precioVenta]);
+            }
+
+            $stmt = $this->conn->prepare('CALL sp_AddSaleDetail(?, ?, ?, ?)');
+            return $stmt->execute([$idVenta, $idProducto, $cantidad, $precioVenta]);
+        
         } catch (PDOException $e) {
             error_log('Error en addSaleDetail: ' . $e->getMessage());
             return false;

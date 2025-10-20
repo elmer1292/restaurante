@@ -275,7 +275,6 @@ CREATE TABLE `ventas` (
   `ID_Venta` int NOT NULL AUTO_INCREMENT,
   `ID_Cliente` int DEFAULT NULL,
   `ID_Mesa` int DEFAULT NULL,
-  `es_delivery` tinyint(1) NOT NULL DEFAULT '0',
   `Fecha_Hora` datetime NOT NULL,
   `Total` decimal(10,2) DEFAULT NULL,
   `Metodo_Pago` varchar(200) DEFAULT NULL,
@@ -286,7 +285,6 @@ CREATE TABLE `ventas` (
   KEY `ID_Cliente` (`ID_Cliente`),
   KEY `ID_Mesa` (`ID_Mesa`),
   KEY `ID_Empleado` (`ID_Empleado`),
-  KEY `idx_ventas_es_delivery` (`es_delivery`),
   CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`ID_Cliente`) REFERENCES `clientes` (`ID_Cliente`),
   CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`ID_Mesa`) REFERENCES `mesas` (`ID_Mesa`),
   CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`ID_Empleado`) REFERENCES `empleados` (`ID_Empleado`)

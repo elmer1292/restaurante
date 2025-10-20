@@ -55,10 +55,10 @@ class ComandaController extends BaseController {
             echo json_encode(['success' => false, 'error' => 'Método no permitido']);
             exit;
         }
-    $input = json_decode(file_get_contents('php://input'), true);
-    $idMesa = isset($input['id_mesa']) ? (int)$input['id_mesa'] : 0;
-    $tipo = isset($input['tipo']) ? $input['tipo'] : 'cocina';
-    $productosNuevos = isset($input['productos']) && is_array($input['productos']) ? $input['productos'] : null;
+        $input = json_decode(file_get_contents('php://input'), true);
+        $idMesa = isset($input['id_mesa']) ? (int)$input['id_mesa'] : 0;
+        $tipo = isset($input['tipo']) ? $input['tipo'] : 'cocina';
+        $productosNuevos = isset($input['productos']) && is_array($input['productos']) ? $input['productos'] : null;
         if (!$idMesa) {
             echo json_encode(['success' => false, 'error' => 'Mesa no especificada']);
             exit;
@@ -75,8 +75,18 @@ class ComandaController extends BaseController {
                 if (isset($prod['ID_Producto'])) $byId[(int)$prod['ID_Producto']] = $prod;
                 if (isset($prod['Nombre_Producto'])) $byName[strtolower(trim($prod['Nombre_Producto']))] = $prod;
             }
+            // Cargar mapa de categorías desde BD para decidir is_food dinámicamente
+            $categories = $productModel->getAllCategories();
+            $catMap = [];
+            foreach ($categories as $c) {
+                if (isset($c['Nombre_Categoria'])) {
+                    $catMap[strtolower(trim($c['Nombre_Categoria']))] = isset($c['is_food']) ? (int)$c['is_food'] : 1;
+                }
+            }
 
-            $comanda = [];
+            // Build separate lists for barra and cocina, normalizing fields
+            $comandaBarra = [];
+            $comandaCocina = [];
             foreach ($productosNuevos as $p) {
                 $match = null;
                 // Preferir id si llega
@@ -84,31 +94,60 @@ class ComandaController extends BaseController {
                     $match = $byId[intval($p['id'])];
                 } elseif (isset($p['Nombre_Producto']) && isset($byName[strtolower(trim($p['Nombre_Producto']))])) {
                     $match = $byName[strtolower(trim($p['Nombre_Producto']))];
+                } elseif (isset($p['nombre']) && isset($byName[strtolower(trim($p['nombre']))])) {
+                    $match = $byName[strtolower(trim($p['nombre']))];
                 }
-                // Determinar is_food: preferir valor de BD si hay match, sino fallback a p['categoria'] o p['tipo']
+
+                // Determine is_food: prefer product's DB value, then client flag, then category map
                 $isFood = null;
                 if ($match && isset($match['is_food'])) {
                     $isFood = ($match['is_food'] == 1 || $match['is_food'] === '1') ? 1 : 0;
+                } elseif (isset($p['is_food']) || isset($p['isFood'])) {
+                    $raw = isset($p['is_food']) ? $p['is_food'] : $p['isFood'];
+                    $isFood = ($raw == 1 || $raw === '1' || $raw === true || $raw === 'true') ? 1 : 0;
                 } elseif (isset($p['categoria'])) {
-                    $cat = trim($p['categoria']);
-                    $catLower = strtolower($cat);
-                    $barCats = ['bebidas','licores','cockteles','cervezas'];
-                    $isFood = in_array($catLower, $barCats) ? 0 : 1;
+                    $catLower = strtolower(trim($p['categoria']));
+                    if (isset($catMap[$catLower])) $isFood = $catMap[$catLower];
+                    else $isFood = null;
                 }
-                // Decide inclusion according to requested tipo
-                if ($tipo === 'barra') {
-                    // want barra: include when isFood===0 or fallback category indicates barra
-                    if ($isFood === 0) $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Bebida')]);
+
+                // Normalize fields
+                $nombre = '';
+                if ($match && isset($match['Nombre_Producto'])) $nombre = $match['Nombre_Producto'];
+                elseif (isset($p['Nombre_Producto'])) $nombre = $p['Nombre_Producto'];
+                elseif (isset($p['nombre'])) $nombre = $p['nombre'];
+                elseif (isset($p['Nombre'])) $nombre = $p['Nombre'];
+
+                $cantidad = 1;
+                if (isset($p['Cantidad'])) $cantidad = (int)$p['Cantidad'];
+                elseif (isset($p['cantidad'])) $cantidad = (int)$p['cantidad'];
+                elseif (isset($p['qty'])) $cantidad = (int)$p['qty'];
+
+                $preparacion = '';
+                if (isset($p['preparacion'])) $preparacion = $p['preparacion'];
+                elseif (isset($p['Preparacion'])) $preparacion = $p['Preparacion'];
+
+                $entry = [
+                    'ID_Producto' => $match['ID_Producto'] ?? (isset($p['id']) ? (int)$p['id'] : null),
+                    'Nombre_Producto' => $nombre,
+                    'Cantidad' => $cantidad,
+                    'preparacion' => $preparacion,
+                    'Tipo_Producto' => $match['Tipo_Producto'] ?? null,
+                    'original' => $p
+                ];
+
+                if ($isFood === 0) {
+                    $comandaBarra[] = $entry;
+                } elseif ($isFood === 1) {
+                    $comandaCocina[] = $entry;
                 } else {
-                    if ($isFood === 1 || $isFood === null) {
-                        // include cocina if is_food==1 or unknown (default to cocina)
-                        $comanda[] = array_merge($p, ['Tipo_Producto' => ($match['Tipo_Producto'] ?? 'Comida')]);
-                    }
+                    // unknown -> default to cocina
+                    $comandaCocina[] = $entry;
                 }
             }
 
-            // Si no hay productos válidos, responder éxito sin imprimir
-            if (empty($comanda)) {
+            // If both lists empty, nothing to print
+            if (empty($comandaBarra) && empty($comandaCocina)) {
                 echo json_encode(['success' => true]);
                 exit;
             }
@@ -122,9 +161,8 @@ class ComandaController extends BaseController {
             $venta = $ventaModel->getVentaActivaByMesa($idMesa);
             $numeroMesa = $mesa && isset($mesa['Numero_Mesa']) ? $mesa['Numero_Mesa'] : $idMesa;
             $fechaHora = $venta && isset($venta['Fecha_Hora']) ? $venta['Fecha_Hora'] : date('Y-m-d H:i:s');
-            // Agregar estos datos al primer producto para el formato de impresión
-            $comanda[0]['Numero_Mesa'] = $numeroMesa;
-            $comanda[0]['Fecha_Hora'] = $fechaHora;
+            if (!empty($comandaBarra)) { $comandaBarra[0]['Numero_Mesa'] = $numeroMesa; $comandaBarra[0]['Fecha_Hora'] = $fechaHora; }
+            if (!empty($comandaCocina)) { $comandaCocina[0]['Numero_Mesa'] = $numeroMesa; $comandaCocina[0]['Fecha_Hora'] = $fechaHora; }
         } else {
             // Obtener detalles de la comanda como antes
             require_once dirname(__DIR__, 1) . '/models/VentaModel.php';
@@ -146,87 +184,73 @@ class ComandaController extends BaseController {
                 exit;
             }
         }
-        // Formato especial para barra
-        $contenido = "\n";
-        if ($tipo === 'barra') {
-            $contenido .= "====== COMANDA BARRA ======\n";
-        } else {
-            $contenido .= "====== COMANDA COCINA ======\n";
-        }
-        $contenido .= "Usuario: " . (isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido') . "\n";
-        // Si prefieres el nombre completo, usa la línea siguiente:
-        // $contenido .= "Usuario: " . (isset($_SESSION['nombre_completo']) ? $_SESSION['nombre_completo'] : 'Desconocido') . "\n";
-        $contenido .= "Mesa: " . $comanda[0]['Numero_Mesa'] . "\n";
-        $contenido .= "Hora: " . $comanda[0]['Fecha_Hora'] . "\n";
-        $contenido .= "--------------------------\n";
-        // Agrupar productos por tipo si es barra
-        if ($tipo === 'barra') {
-            $bebidas = [];
-            $otros = [];
-            foreach ($comanda as $item) {
-                if (isset($item['Tipo_Producto']) && strtolower($item['Tipo_Producto']) === 'bebida') {
-                    $bebidas[] = $item;
-                } else {
-                    $otros[] = $item;
-                }
-            }
-            if (count($bebidas) > 0) {
-                $contenido .= "BEBIDAS:\n";
-                foreach ($bebidas as $item) {
-                    $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
-                    // Preparación (si existe)
-                    $prep = '';
-                    if (isset($item['preparacion'])) $prep = $item['preparacion'];
-                    elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
-                    $prep = trim((string)$prep);
-                    if ($prep !== '') $contenido .= "     > " . $prep . "\n";
-                }
-            }
-            if (count($otros) > 0) {
-                foreach ($otros as $item) {
-                    $contenido .= "  - " . $item['Cantidad'] . "x " . $item['Nombre_Producto'] . "\n";
-                    $prep = '';
-                    if (isset($item['preparacion'])) $prep = $item['preparacion'];
-                    elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
-                    $prep = trim((string)$prep);
-                    if ($prep !== '') $contenido .= "     > " . $prep . "\n";
-                }
-            }
-        } else 
-        {
-            foreach ($comanda as $item) {
-                $linea = $item['Cantidad'] . "x " . strtoupper($item['Nombre_Producto']) . "\n";
-                $contenido .= $linea;
-                $prep = '';
-                if (isset($item['preparacion'])) $prep = $item['preparacion'];
-                elseif (isset($item['Preparacion'])) $prep = $item['Preparacion'];
-                $prep = trim((string)$prep);
-                if ($prep !== '') {
-                    $contenido .= "   > " . $prep . "\n";
-                }
-            }
-        }
-        $contenido .= "--------------------------\n";
-        $contenido .= "\n";
-        //guarda el contenido de $contenido en un archivo .txt en la carpeta tickets_cocina o tickets_barra en la raiz segun sea el caso
-        /*$rutaArchivo = $tipo === 'cocina' ? 'tickets_cocina/comanda_' . $idMesa . '.txt' : 'tickets_barra/comanda_' . $idMesa . '.txt';
-        file_put_contents($rutaArchivo, $contenido); */
-        // Guardar una copia del contenido en tools/prints para depuración (no reemplaza la impresión)
-        /*$printsDir = __DIR__ . '/../tools/prints';
-        if (!is_dir($printsDir)) {
-            @mkdir($printsDir, 0755, true);
-        }
-        $fileName = $printsDir . '/comanda_' . $tipo . '_mesa_' . $idMesa . '_' . date('Ymd_His') . '.txt';
-        @file_put_contents($fileName, $contenido);*/
+        // Ahora construiremos y guardaremos/mandaremos a imprimir separadamente para barra y cocina según corresponda.
+        $printsDir = __DIR__ . '/../tools/prints';
+        if (!is_dir($printsDir)) {@mkdir($printsDir, 0755, true);} 
+        $results = [];
 
-        // Imprimir usando el helper
-        $clave = $tipo === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
-        $ok = ImpresoraHelper::imprimir($clave, $contenido);
-        if ($ok) {
-            echo json_encode(['success' => true]);
+        $doBuildAndPrint = function($tipoLocal, $lista) use ($idMesa, $printsDir, $numeroMesa, $fechaHora) {
+            if (empty($lista)) return ['ok' => true, 'file' => null, 'tipo' => $tipoLocal];
+            $contenido = "\n";
+            $contenido .= $tipoLocal === 'barra' ? "====== COMANDA BARRA ======\n" : "====== COMANDA COCINA ======\n";
+            $contenido .= "Usuario: " . (isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido') . "\n";
+            $contenido .= "Mesa: " . ($lista[0]['Numero_Mesa'] ?? $idMesa) . "\n";
+            $contenido .= "Hora: " . ($lista[0]['Fecha_Hora'] ?? date('Y-m-d H:i:s')) . "\n";
+            $contenido .= "--------------------------\n";
+            if ($tipoLocal === 'barra') {
+                $bebidas = [];
+                $otros = [];
+                foreach ($lista as $item) {
+                    if (isset($item['Tipo_Producto']) && strtolower($item['Tipo_Producto']) === 'bebida') $bebidas[] = $item;
+                    else $otros[] = $item;
+                }
+                if (count($bebidas) > 0) {
+                    $contenido .= "BEBIDAS:\n";
+                    foreach ($bebidas as $item) {
+                        $contenido .= "  - " . ($item['Cantidad'] ?? 1) . "x " . ($item['Nombre_Producto'] ?? '') . "\n";
+                        $prep = trim((string)($item['preparacion'] ?? ''));
+                        if ($prep !== '') $contenido .= "     > " . $prep . "\n";
+                    }
+                }
+                if (count($otros) > 0) {
+                    foreach ($otros as $item) {
+                        $contenido .= "  - " . ($item['Cantidad'] ?? 1) . "x " . ($item['Nombre_Producto'] ?? '') . "\n";
+                        $prep = trim((string)($item['preparacion'] ?? ''));
+                        if ($prep !== '') $contenido .= "     > " . $prep . "\n";
+                    }
+                }
+            } else {
+                foreach ($lista as $item) {
+                    $contenido .= ($item['Cantidad'] ?? 1) . "x " . strtoupper(($item['Nombre_Producto'] ?? '')) . "\n";
+                    $prep = trim((string)($item['preparacion'] ?? ''));
+                    if ($prep !== '') $contenido .= "   > " . $prep . "\n";
+                }
+            }
+            $contenido .= "--------------------------\n\n";
+            $timestamp = date('Ymd_His');
+            $fileName = $printsDir . '/comanda_' . $tipoLocal . '_mesa_' . $idMesa . '_' . $timestamp . '.txt';
+            @file_put_contents($fileName, $contenido);
+            $clave = $tipoLocal === 'cocina' ? 'impresora_cocina' : 'impresora_barra';
+            $ok = ImpresoraHelper::imprimir($clave, $contenido);
+            return ['ok' => $ok, 'file' => $fileName, 'tipo' => $tipoLocal];
+        };
+
+        // Decide what to print based on requested tipo
+        if ($tipo === 'ambos') {
+            $resBarra = $doBuildAndPrint('barra', $comandaBarra);
+            $resCocina = $doBuildAndPrint('cocina', $comandaCocina);
+            $results[] = $resBarra;
+            $results[] = $resCocina;
+        } elseif ($tipo === 'barra') {
+            $results[] = $doBuildAndPrint('barra', $comandaBarra);
         } else {
-            echo json_encode(['success' => false, 'error' => 'No se pudo imprimir. Verifica la configuración de la impresora.']);
+            $results[] = $doBuildAndPrint('cocina', $comandaCocina);
         }
+
+        // Aggregate result
+        $allOk = true;
+        foreach ($results as $r) if (!$r['ok']) $allOk = false;
+        echo json_encode(['success' => $allOk, 'results' => $results]);
         exit;
     }
 }

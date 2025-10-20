@@ -273,8 +273,26 @@ function enviarProductosComanda() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Recargar la página para que la vista se actualice desde la BD
-            window.location.reload();
+            // Intentar imprimir las comandas nuevas (barra / cocina) usando ComandaController::imprimirComanda
+            // Enviamos los productos agrupados para que el controlador filtre por tipo si es necesario
+            fetch('<?php echo BASE_URL; ?>comandas/imprimirComanda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_mesa: idMesa, tipo: 'ambos', productos: agrupados })
+            }).then(r => r.json()).then(res => {
+                // No bloqueamos la recarga por fallos de impresión; mostramos mensaje si hubo error
+                if (res && res.success) {
+                    // opcional: puedes mostrar notificación de éxito
+                } else {
+                    console.warn('Error imprimiendo comanda:', res && res.error);
+                    // opcional: alert('Error al imprimir comanda: ' + (res && res.error || 'desconocido'));
+                }
+            }).catch(err => {
+                console.error('Error de red al imprimir comanda:', err);
+            }).finally(() => {
+                // Recargar la página para que la vista se actualice desde la BD
+                window.location.reload();
+            });
         } else {
             alert('Error al enviar productos: ' + (data.error || 'Error desconocido.'));
         }

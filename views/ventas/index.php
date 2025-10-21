@@ -214,7 +214,7 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
 
         // Validaciones de monto
         let saldo = incluirServicio ? totalConServicio : subtotal;
-            if (totalPagado < saldo) {
+        if (totalPagado < saldo) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'mt-3 alert alert-danger';
             msgDiv.textContent = 'El monto pagado es menor al saldo pendiente.';
@@ -222,6 +222,17 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
             return;
         }
         const metodosUnicos = Object.keys(metodos);
+        // Si hay sobrepago, sólo permitirlo si hay Efectivo en los métodos (para poder dar cambio)
+        if (totalPagado > saldo) {
+            const efectivoMonto = metodos['Efectivo'] || 0;
+            if (efectivoMonto <= 0) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'mt-3 alert alert-danger';
+                msgDiv.innerHTML = `El monto entregado excede el total a pagar. Si hay sobrepago, incluya un método <strong>Efectivo</strong> para poder dar cambio.`;
+                form.parentNode.appendChild(msgDiv);
+                return;
+            }
+        }
 
         // Función para mostrar el modal de confirmación y continuar si acepta
         function mostrarModalConfirmacion(detalle, onConfirm) {
@@ -272,9 +283,10 @@ document.querySelectorAll('.formPagoVenta').forEach(function(form) {
                 detalle += `<li><b>${met}:</b> $${monto.toFixed(2)}</li>`;
             }
             detalle += `</ul><p><b>Total entregado:</b> $${totalPagado.toFixed(2)}</p>`;
-            if (totalPagado > saldo && metodosUnicos.length === 1 && metodosUnicos[0] === 'Efectivo') {
+            if (totalPagado > saldo) {
+                const efectivoMonto = metodos['Efectivo'] || 0;
                 const cambio = totalPagado - saldo;
-                if (cambio > 0) {
+                if (efectivoMonto >= cambio && cambio > 0) {
                     detalle += `<p><b>Cambio a devolver:</b> C$${cambio.toFixed(2)}</p>`;
                 }
             }

@@ -31,6 +31,7 @@ class VentaController extends BaseController {
         // Parse payment methods server-side. Prefer structured JSON 'metodos_json' if present (safer), else fallback to comma-separated 'metodo_pago'.
         $totalPagado = 0.0;
         $hasEfectivo = false;
+        $efectivoMonto = 0.0;
         $metodosStructured = [];
         if (!empty($_POST['metodos_json'])) {
             $raw = $_POST['metodos_json'];
@@ -41,7 +42,10 @@ class VentaController extends BaseController {
                     $montoEntry = isset($entry['monto']) ? floatval($entry['monto']) : 0.0;
                     $metodosStructured[] = ['metodo' => $mname, 'monto' => $montoEntry];
                     $totalPagado += $montoEntry;
-                    if (stripos($mname, 'efectivo') !== false) $hasEfectivo = true;
+                    if (stripos($mname, 'efectivo') !== false) {
+                        $hasEfectivo = true;
+                        $efectivoMonto += $montoEntry;
+                    }
                 }
             }
         } else {
@@ -55,12 +59,32 @@ class VentaController extends BaseController {
                 }
                 if (stripos($m, 'efectivo') !== false) {
                     $hasEfectivo = true;
+                    // try to extract amount
+                    $parts = explode(':', $m);
+                    $amt = isset($parts[1]) ? floatval(trim($parts[1])) : 0.0;
+                    $efectivoMonto += $amt;
                 }
             }
         }
-        if (!$idVenta || !$metodoPago || $totalPagado <= 0) {
-            echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+        // Basic server-side validation for payment input
+        if (!$idVenta) {
+            echo json_encode(['success' => false, 'error' => 'ID de venta inválido']);
             exit;
+        }
+        if ($totalPagado <= 0) {
+            echo json_encode(['success' => false, 'error' => 'El monto total pagado debe ser mayor a 0']);
+            exit;
+        }
+        // Validate structured methods if provided
+        if (!empty($metodosStructured)) {
+            foreach ($metodosStructured as $idx => $entry) {
+                $mname = isset($entry['metodo']) ? trim($entry['metodo']) : '';
+                $montoEntry = isset($entry['monto']) ? floatval($entry['monto']) : 0.0;
+                if ($mname === '' || $montoEntry <= 0) {
+                    echo json_encode(['success' => false, 'error' => "Método de pago inválido en la posición " . ($idx+1)]);
+                    exit;
+                }
+            }
         }
     $ventaModel = new VentaModel();
     $movimientoModel = new MovimientoModel();
@@ -92,15 +116,39 @@ class VentaController extends BaseController {
             // determinar si en esta operacion se cobrará el servicio (checkbox del cajero)
             $servicioCobradoEnEstaOperacion = $incluirServicioFlag ? $servicio : 0.0;
             $totalFactura = $total + $servicioCobradoEnEstaOperacion;
+            // Use small epsilon to avoid floating point rounding issues
+            $epsilon = 0.005;
             // Validar con el total pagado extraido de metodo_pago
-            if ($totalPagado > $totalFactura) {
+            if ($totalPagado > $totalFactura + $epsilon) {
+                $neededChange = round($totalPagado - $totalFactura, 2);
                 if ($hasEfectivo) {
-                    $cambio = $totalPagado - $totalFactura;
+                    // ensure efectivo provided covers the needed change
+                    if ($efectivoMonto + $epsilon < $neededChange) {
+                        throw new Exception('No hay suficiente efectivo para cubrir el cambio. Efectivo: ' . number_format($efectivoMonto,2,'.','') . ', cambio necesario: ' . number_format($neededChange,2,'.',''));
+                    }
+                    $cambio = $neededChange;
                 } else {
-                    throw new Exception('El monto pagado excede el total de la venta');
+                    throw new Exception('El monto pagado excede el total de la venta y no hay efectivo para devolver cambio');
                 }
             }
-            if ($totalPagado < $totalFactura) throw new Exception('El monto pagado es menor al total de la venta');
+            if ($totalFactura > $totalPagado + $epsilon) {
+                throw new Exception('El monto pagado es menor al total de la venta');
+            }
+            // Si la diferencia es menor a epsilon, igualamos para evitar discrepancias de redondeo
+            if (abs($totalPagado - $totalFactura) <= $epsilon) {
+                $totalPagado = $totalFactura;
+            }
+
+            // Si se usó metodosStructured pero metodoPago (legacy) está vacío, crear una representación legible para guardarla en ventas.Metodo_Pago
+            if (empty($metodoPago) && !empty($metodosStructured)) {
+                $pairs = [];
+                foreach ($metodosStructured as $entry) {
+                    $mname = $entry['metodo'] ?? '';
+                    $montoEntry = isset($entry['monto']) ? floatval($entry['monto']) : 0.0;
+                    $pairs[] = $mname . ':' . number_format($montoEntry, 2, '.', '');
+                }
+                $metodoPago = implode(',', $pairs);
+            }
             // Registrar el pago y marcar como pagada (no sobrescribimos Servicio desde el cliente)
             $stmtUp = $conn->prepare('UPDATE ventas SET Metodo_Pago = ?, Estado = "Pagada" WHERE ID_Venta = ?');
             $stmtUp->execute([$metodoPago, $idVenta]);
@@ -169,11 +217,17 @@ class VentaController extends BaseController {
                 }
             }
 
-            $response = ['success' => true];
+            $response = ['success' => true, 'total_pagado' => $totalPagado, 'total_factura' => $totalFactura, 'metodo_pago' => $metodoPago];
             if (isset($cambio)) $response['cambio'] = $cambio;
             echo json_encode($response);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            // If the exception is about overpayment, include difference info when possible
+            $msg = $e->getMessage();
+            if (isset($totalFactura) && isset($totalPagado) && strpos($msg, 'excede') !== false) {
+                $diff = round($totalPagado - $totalFactura, 2);
+                $msg .= ' (diferencia: ' . number_format($diff, 2, '.', '') . ')';
+            }
+            echo json_encode(['success' => false, 'error' => $msg]);
         }
     }
     // ticket

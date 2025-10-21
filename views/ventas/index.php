@@ -46,85 +46,101 @@ try {
     <!-- Si no hay ventas pendientes, mostrar mensaje informativo -->
     <div class="alert alert-info">No hay ventas pendientes.</div>
 <?php else: ?>
-    <!-- Listado de ventas pendientes en formato acordeón -->
-    <div class="accordion" id="ventasAccordion">
+    <!-- Listado de ventas pendientes en formato tarjetas -->
+    <div class="row g-3">
         <?php foreach ($ventasPendientes as $venta): ?>
-            <div class="accordion-item mb-2">
-                <h2 class="accordion-header" id="heading<?= $venta['ID_Venta'] ?>">
-                    <!-- Encabezado con datos de la venta y botón para imprimir ticket -->
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $venta['ID_Venta'] ?>">
-                        Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?> | Venta #<?= $venta['ID_Venta'] ?> | Total: C$<?= number_format($venta['Total'] + $venta['Servicio'], 2) ?> | Fecha: <?= $venta['Fecha_Hora'] ?>
-                    </button>
-                    <!-- Botón de imprimir ticket removido temporalmente -->
-                </h2>
-                <div id="collapse<?= $venta['ID_Venta'] ?>" class="accordion-collapse collapse" data-bs-parent="#ventasAccordion">
-                    <div class="accordion-body">
-                        <h5>Detalle de la Comanda</h5>
-                        <ul class="list-group mb-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="card-title mb-0">Mesa <?= htmlspecialchars($venta['Numero_Mesa']) ?></h5>
+                                <small class="text-muted">Venta #<?= $venta['ID_Venta'] ?> &middot; <?= $venta['Fecha_Hora'] ?></small>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-0">C$<?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?></h6>
+                                <small class="text-muted">Servicio incluido</small>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="card-subtitle mb-2 text-muted">Detalle de la Comanda</h6>
+                        <ul class="list-group list-group-flush mb-3">
                             <?php 
-                            // Obtener detalles de productos de la venta
                             $detalles = $ventaModel->getSaleDetails($venta['ID_Venta']);
                             if (empty($detalles)): ?>
                                 <li class="list-group-item text-danger">No hay productos registrados en esta venta.</li>
                             <?php else:
                                 foreach ($detalles as $detalle): ?>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <?= htmlspecialchars($detalle['Nombre_Producto'] ?? $detalle['ID_Producto']) ?>
-                                        <span><?= $detalle['Cantidad'] ?> x $<?= number_format($detalle['Precio_Venta'], 2) ?> = <b>$<?= number_format($detalle['Cantidad'] * $detalle['Precio_Venta'], 2) ?></b></span>
+                                        <div class="me-2 small"><b><?= htmlspecialchars($detalle['Nombre_Producto'] ?? $detalle['ID_Producto']) ?></b></div>
+                                        <div class="small text-muted"><?= $detalle['Cantidad'] ?> x C$<?= number_format($detalle['Precio_Venta'], 2) ?></div>
                                     </li>
+                                    <?php
+                                    // Mostrar preparación si existe (puede venir como 'Preparacion' o 'preparacion')
+                                    $prep = '';
+                                    if (isset($detalle['Preparacion']) && trim($detalle['Preparacion']) !== '') {
+                                        $prep = trim($detalle['Preparacion']);
+                                    } elseif (isset($detalle['preparacion']) && trim($detalle['preparacion']) !== '') {
+                                        $prep = trim($detalle['preparacion']);
+                                    }
+                                    if ($prep !== ''): ?>
+                                        <div class="mt-2 ms-3 small text-muted fst-italic">Preparación: <span class="badge bg-secondary text-white ms-2"><?= htmlspecialchars($prep) ?></span></div>
+                                    <?php endif; ?>
                             <?php endforeach; endif; ?>
                         </ul>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span><b>Total:</b> C$<?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?> servicio incluido</span>
-                            <!-- Botón para abrir el modal de pago -->
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pagoModal<?= $venta['ID_Venta'] ?>">Registrar Pago</button>
+
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#pagoModal<?= $venta['ID_Venta'] ?>">Registrar Pago</button>
+                            <small class="text-muted">Mesa: <?= htmlspecialchars($venta['Numero_Mesa']) ?></small>
                         </div>
-                        <!-- Modal de pago para registrar el pago de la venta -->
-                        <div class="modal fade" id="pagoModal<?= $venta['ID_Venta'] ?>" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Registrar Pago - Venta #<?= $venta['ID_Venta'] ?></h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form class="formPagoVenta" data-id-venta="<?= $venta['ID_Venta'] ?>">
-                                        <div class="modal-body">
-                                            <!-- Contenedor de métodos de pago -->
-                                            <div id="metodosPagoContainer<?= $venta['ID_Venta'] ?>">
-                                                <div class="row mb-2 metodo-pago-row">
-                                                    <div class="col-6">
-                                                        <select class="form-select metodo-pago-select" required>
-                                                            <option value="Efectivo">Efectivo</option>
-                                                            <option value="Transferencia">Transferencia</option>
-                                                            <option value="Tarjeta">Tarjeta</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <input type="number" min="1" step="0.01" class="form-control metodo-pago-monto" placeholder="Monto" required>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Botón para agregar otro método de pago -->
-                                            <button type="button" class="btn btn-link" onclick="agregarMetodoPago(<?= $venta['ID_Venta'] ?>)">+ Agregar otro método</button>
-                                            <div class="mt-3"><b>Saldo pendiente SIN servicio:</b> C$<span id="saldoPendiente<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'], 2) ?></span></div>
-                                            <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
-                                            <!-- Agregar saldo pendiente para incluir servicio -->
-                                            <div class="mt-3"><b>Saldo pendiente CON servicio:</b> C$<span id="saldoPendienteConServicio<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?></span></div>
-                                            <!-- desmarcar SI DESEA quitar el servicio -->
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="incluirServicio<?= $venta['ID_Venta'] ?>" checked>
-                                                <label class="form-check-label" for="incluirServicio<?= $venta['ID_Venta'] ?>">
-                                                    ¿Incluir servicio? (<?= ($config['servicio']*100) ?? 0 ?>%)
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="submit" class="btn btn-success">Registrar Pago</button>
-                                        </div>
-                                    </form>
-                                </div>
+                    </div>
+                </div>
+
+                <!-- Modal de pago para registrar el pago de la venta (mantener estructura original) -->
+                <div class="modal fade" id="pagoModal<?= $venta['ID_Venta'] ?>" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Registrar Pago - Venta #<?= $venta['ID_Venta'] ?></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
+                            <form class="formPagoVenta" data-id-venta="<?= $venta['ID_Venta'] ?>">
+                                <div class="modal-body">
+                                    <!-- Contenedor de métodos de pago -->
+                                    <div id="metodosPagoContainer<?= $venta['ID_Venta'] ?>">
+                                        <div class="row mb-2 metodo-pago-row">
+                                            <div class="col-6">
+                                                <select class="form-select metodo-pago-select" required>
+                                                    <option value="Efectivo">Efectivo</option>
+                                                    <option value="Transferencia">Transferencia</option>
+                                                    <option value="Tarjeta">Tarjeta</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="number" min="1" step="0.01" class="form-control metodo-pago-monto" placeholder="Monto" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Botón para agregar otro método de pago -->
+                                    <button type="button" class="btn btn-link" onclick="agregarMetodoPago(<?= $venta['ID_Venta'] ?>)">+ Agregar otro método</button>
+                                    <div class="mt-3"><b>Saldo pendiente SIN servicio:</b> C$<span id="saldoPendiente<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'], 2) ?></span></div>
+                                    <input type="hidden" name="csrf_token" value="<?= Csrf::getToken() ?>">
+                                    <!-- Agregar saldo pendiente para incluir servicio -->
+                                    <div class="mt-3"><b>Saldo pendiente CON servicio:</b> C$<span id="saldoPendienteConServicio<?= $venta['ID_Venta'] ?>"><?= number_format($venta['Total'] + ($venta['Servicio'] ?? ($config['servicio'] * $venta['Total'])), 2) ?></span></div>
+                                    <!-- desmarcar SI DESEA quitar el servicio -->
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="incluirServicio<?= $venta['ID_Venta'] ?>" checked>
+                                        <label class="form-check-label" for="incluirServicio<?= $venta['ID_Venta'] ?>">
+                                            ¿Incluir servicio? (<?= ($config['servicio']*100) ?? 0 ?>%)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-success">Registrar Pago</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
